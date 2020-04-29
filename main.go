@@ -35,7 +35,7 @@ func main() {
 }
 
 func shouldProcess(file *protogen.File) bool {
-    ignoredFiles := []string{"auth/auth.proto", "google/protobuf/descriptor.proto"}
+    ignoredFiles := []string{"auth/auth.proto", "auth.proto", "google/protobuf/descriptor.proto"}
     for _, ignored := range ignoredFiles {
         if *file.Proto.Name == ignored {
             return false
