@@ -14,10 +14,15 @@ message TestMethodResponse {
   string data = 1;
 }
 
-message OpenDoorCommand {
-  option (auth.message_permissions) = "open_door";
-  string id  = 1 [(auth.field_behaviour) = ID];
-  repeated string ids  = 2 [(auth.field_behaviour) = IDS];
-  float lat = 3;
-  float lng = 4;
+message TestCommand {
+  option (auth.message_permissions) = "test_command_permission1";
+  option (auth.message_permissions) = "test_command_permission2";
+  string testId  = 1 [(auth.field_behaviour) = ID];
+  repeated string testIds  = 2 [(auth.field_behaviour) = IDS];
+}
+
+message TestCommandNoIds {
+  option (auth.message_permissions) = "test_command_permission1";
+  option (auth.message_permissions) = "test_command_permission2";
+  string testId  = 1;
 }
