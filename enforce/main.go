@@ -77,20 +77,16 @@ func (e Enforcer) Enforce(id string, msg auth.AuthMessage) (bool, error) {
 
 	e.enforcer.LoadFilteredPolicy(&fileadapter.Filter{P: filters})
 
-	var filteredResourceIds []string
 	for _, resourceId := range resourceIds {
 		for _, perm := range msg.XXX_AuthPermissions() {
 
 			ok, err := e.enforcer.Enforce(id, resourceId, perm)
 
+			// fail if any resource not permitted
 			if !ok || err != nil {
 				return false, err
 			}
 		}
-	}
-
-	if msg.XXX_PullResourceIds() {
-		msg.XXX_SetAuthResourceIds(filteredResourceIds)
 	}
 
 	return true, nil
