@@ -2,20 +2,39 @@ syntax = "proto3";
 
 package cases;
 
-import "auth/auth.proto";
+import "graphql/graphql.proto";
+import "google/protobuf/wrappers.proto";
 
 option go_package = "cases;cases";
 
-message TestMethodRequest {
-  string data = 1;
+service MyService {
+  rpc getSomething(GetSomethingRequest) returns (GetSomethingResponse) { }
 }
 
-message TestMethodResponse {
-  string data = 1;
+message GetSomethingRequest {
+  repeated string id = 1;
+}
+
+message GetSomethingResponse {
+  string id = 1;
+  string something_id = 2;
+  repeated string some_id_list = 3;
 }
 
 message TestCommand {
-  option (auth.message_permissions) = "test_command_permission1";
-  option (auth.message_permissions) = "test_command_permission2";
-  string id  = 1 [(auth.field_behaviour) = "ID"];
+  string id = 1;
+  int32 some_int = 2;
+  bool some_bool = 3;
+  map<string, SomeSmallObject> id_object_map = 4;
+  repeated SomeSmallObject id_object_list = 5;
+  repeated string string_list = 6;
+  map<string, string> string_map = 7;
+  google.protobuf.StringValue optional_id = 8;
 }
+
+message SomeSmallObject {
+  string some_id = 1;
+}
+
+
+
