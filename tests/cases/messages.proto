@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package cases;
+
+import "auth/auth.proto";
+
+option go_package = "cases;cases";
+
+message TestMethodRequest {
+  string data = 1;
+}
+
+message TestMethodResponse {
+  string data = 1;
+}
+
+message TestCommand {
+  option (auth.message_permissions) = "test_command_permission1";
+  option (auth.message_permissions) = "test_command_permission2";
+  string id  = 1 [(auth.field_behaviour) = "ID"];
+}
