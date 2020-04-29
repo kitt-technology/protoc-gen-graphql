@@ -32,13 +32,21 @@ func New(file *protogen.File) (f File)  {
         for _, field := range msg.Field {
             if field.Options != nil {
                 // TODO use proto-gen-go functionality for field names
-                if proto.GetExtension(field.Options, auth.E_FieldBehaviour) == auth.FieldBehaviour_ID {
-                    name := *field.Name
+                name := *field.Name
+
+
+                switch proto.GetExtension(field.Options, auth.E_FieldBehaviour) {
+                case auth.FieldBehaviour_ID:
                     authMessage.ResourceId = strings.ToUpper(string(name[0])) + string(name[1:])
-                }
-                if proto.GetExtension(field.Options, auth.E_FieldBehaviour) == auth.FieldBehaviour_IDS {
-                    name := *field.Name
+                    break;
+                case auth.FieldBehaviour_IDS:
                     authMessage.ResourceIds = strings.ToUpper(string(name[0])) + string(name[1:])
+                    break
+                case auth.FieldBehaviour_PULL_IDS:
+                    authMessage.PullResourceIds = true
+                    authMessage.ResourceIds = strings.ToUpper(string(name[0])) + string(name[1:])
+                    break
+
                 }
             }
         }

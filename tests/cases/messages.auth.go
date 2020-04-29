@@ -23,6 +23,10 @@ func (x *TestCommand) XXX_SetAuthResourceIds(resourceIds []string) {
 	x.TestIds = resourceIds
 }
 
+func (x *TestCommand) XXX_PullResourceIds() bool {
+	return false
+}
+
 func (x *TestCommandNoIds) XXX_AuthPermissions() []string {
 	return []string{
 		"test_command_permission1",
@@ -44,4 +48,35 @@ func (x *TestCommandNoIds) XXX_SetAuthResourceId(resourceId string) {
 
 func (x *TestCommandNoIds) XXX_SetAuthResourceIds(resourceIds []string) {
 	return
+}
+
+func (x *TestCommandNoIds) XXX_PullResourceIds() bool {
+	return false
+}
+
+func (x *TestCommandPullIds) XXX_AuthPermissions() []string {
+	return []string{
+		"test_command_permission1",
+		"test_command_permission2",
+	}
+}
+
+func (x *TestCommandPullIds) XXX_AuthResourceId() *string {
+	return nil
+}
+
+func (x *TestCommandPullIds) XXX_AuthResourceIds() []string {
+	return x.TestIds
+}
+
+func (x *TestCommandPullIds) XXX_SetAuthResourceId(resourceId string) {
+	return
+}
+
+func (x *TestCommandPullIds) XXX_SetAuthResourceIds(resourceIds []string) {
+	x.TestIds = resourceIds
+}
+
+func (x *TestCommandPullIds) XXX_PullResourceIds() bool {
+	return true
 }

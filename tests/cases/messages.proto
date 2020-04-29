@@ -26,3 +26,9 @@ message TestCommandNoIds {
   option (auth.message_permissions) = "test_command_permission2";
   string testId  = 1;
 }
+
+message TestCommandPullIds {
+  option (auth.message_permissions) = "test_command_permission1";
+  option (auth.message_permissions) = "test_command_permission2";
+  repeated string testIds  = 2 [(auth.field_behaviour) = PULL_IDS];
+}

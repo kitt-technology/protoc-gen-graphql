@@ -28,6 +28,10 @@ func (x *{{ .Type }}) XXX_SetAuthResourceId(resourceId string) {
 func (x *{{ .Type }}) XXX_SetAuthResourceIds(resourceIds []string) {
     {{ if .ResourceIds }}x.{{ .ResourceIds }} = resourceIds{{ else }}return {{ end }}
 }
+
+func (x *{{ .Type }}) XXX_PullResourceIds() bool {
+    return {{ if .PullResourceIds }}true{{ else }}false{{ end }}
+}
 `
 
 type AuthMessage struct {
@@ -35,6 +39,7 @@ type AuthMessage struct {
     Permissions []string
     ResourceId string
     ResourceIds string
+    PullResourceIds bool
 }
 
 func (a AuthMessage) Generate() string {
