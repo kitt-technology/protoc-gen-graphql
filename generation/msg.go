@@ -6,8 +6,15 @@ import (
 )
 
 const msgTpl = `
-func (x *{{ .Type }}) AuthMeta() string {
-	return ""
+func (x *{{ .Type }}) XXX_AuthPermissions() []string {
+	return []string{
+    {{ range $perm := .Permissions }}"{{ $perm }}",
+    {{ end }}
+    }
+}
+
+func (x *{{ .Type }}) XXX_AuthResourceId() string {
+	return x.{{ .ResourceId }}
 }
 `
 
@@ -19,10 +26,11 @@ type AuthMessage struct {
 
 func (a AuthMessage) Generate() string {
     var buf bytes.Buffer
-    tpl, err := template.New("msg").Parse(msgTpl)
+    mTpl, err := template.New("msg").Parse(msgTpl)
     if err != nil {
         panic(err)
     }
-    tpl.Execute(&buf, a)
+    mTpl.Execute(&buf, a)
+
     return buf.String()
 }
