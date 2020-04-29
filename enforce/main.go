@@ -1,78 +1,97 @@
 package enforce
 
 import (
-	"context"
+	"fmt"
 	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v2/model"
+	"github.com/casbin/casbin/v2/persist"
 	fileadapter "github.com/casbin/casbin/v2/persist/file-adapter"
-	"github.com/go-kit/kit/auth/casbin"
-	"github.com/kitt-technology/kitt/lib/go/log"
-	"io/ioutil"
+	"github.com/kitt-technology/protoc-gen-auth/auth"
 )
 
-func Enforce(ctx context.Context, model casbin.) (status bool, err error) {
-
+func NewEnforcer(model model.Model, adapter persist.FilteredAdapter) Enforcer {
+	var err error
+	enforcer, err := casbin.NewEnforcer()
 	if err != nil {
-		return
+		panic(err)
 	}
-	// See https://casbin.org/editor/ for reference
-	text :=
-		[]byte(`
-[request_definition]
-r = sub, obj, act
+	enforcer.InitWithModelAndAdapter(model, adapter)
 
-[policy_definition]
-p = sub, obj, act
+	return Enforcer {
+		enforcer,
+	}
+}
 
-[policy_effect]
-e = some(where (p.eft == allow))
+type Enforcer struct {
+	enforcer *casbin.Enforcer
+}
 
-[matchers]
-m = r.sub == p.sub && r.obj == p.obj && r.act == p.act
-`)
+func (e Enforcer) Hydate(id string, msg auth.AuthMessage,) (auth.AuthMessage, error) {
+	var filters []string
+	filters = append(filters, id)
 
-	p := []byte(`
-p, ` + user.Id +`, ` + *msg.XXX_AuthResourceId() +`, OPEN_DOOR
-`)
-
-	err = ioutil.WriteFile("/tmp/policy.conf", p, 0644)
-	err = ioutil.WriteFile("/tmp/model.conf", text, 0644)
+	err := e.enforcer.LoadFilteredPolicy(&fileadapter.Filter{P: filters})
 	if err != nil {
-		return
-	}
-	adapter := fileadapter.NewFilteredAdapter( "/tmp/policy.conf")
-
-	e, err := casbin.NewEnforcer()
-	e.InitWithAdapter("/tmp/model.conf", adapter)
-
-	e.GetPolicy()
-	if err != nil {
-		return
-	}
-	e.LoadPolicy()
-
-	if err != nil {
-		return
+		return nil, err
 	}
 
+	permissions := e.enforcer.GetPermissionsForUser(id)
 
-	if msg.XXX_PullResourceIds() {
-		e.LoadFilteredPolicy(fileadapter.Filter{
-			P: []string{},
-		})
+	// count permissions for each returned object
+	userPermsToObj := map[string]map[string]string{}
+	for _, policy := range permissions {
+		obj, act := policy[1], policy[2]
+		if _, ok := userPermsToObj[obj]; !ok {
+			userPermsToObj[obj] = make(map[string]string)
+		}
+		userPermsToObj[obj][act] = act
 	}
 
-	for _, perm := range msg.XXX_AuthPermissions() {
-		userAllowed, err := e.Enforce(user.Id, msg.XXX_AuthResourceId(), perm)
-		companyAllowed, err := e.Enforce(user.Id, msg.XXX_AuthResourceId(), perm)
-
-
-		if err == nil && (userAllowed || companyAllowed) {
-			log.WithContext(ctx).Info("User doesnt have permissions")
-			log.WithContext(ctx).Info(status)
-			return
+	// valid objects are those with the correct amount of permissions
+	permissionsRequired := len(msg.XXX_AuthPermissions())
+	var validResourceIds []string
+	for key, perms := range userPermsToObj {
+		if len(perms) >= permissionsRequired {
+			validResourceIds = append(validResourceIds, key)
 		}
 	}
 
-	return e.Enforce(msg)
+	if len(validResourceIds) == 0 {
+		return nil, fmt.Errorf("no permitted resources")
+	}
+
+	return msg.XXX_SetAuthResourceIds(validResourceIds), nil
 }
 
+func (e Enforcer) Enforce(id string, msg auth.AuthMessage) (bool, error) {
+	var resourceIds []string
+	if msg.XXX_AuthResourceId() != nil {
+		resourceIds = append(resourceIds, *msg.XXX_AuthResourceId())
+	}
+	if msg.XXX_AuthResourceIds() != nil {
+		resourceIds = append(resourceIds, msg.XXX_AuthResourceIds()...)
+	}
+
+	var filters []string
+	filters = append(filters, id)
+
+	e.enforcer.LoadFilteredPolicy(&fileadapter.Filter{P: filters})
+
+	var filteredResourceIds []string
+	for _, resourceId := range resourceIds {
+		for _, perm := range msg.XXX_AuthPermissions() {
+
+			ok, err := e.enforcer.Enforce(id, resourceId, perm)
+
+			if !ok || err != nil {
+				return false, err
+			}
+		}
+	}
+
+	if msg.XXX_PullResourceIds() {
+		msg.XXX_SetAuthResourceIds(filteredResourceIds)
+	}
+
+	return true, nil
+}
