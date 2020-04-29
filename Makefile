@@ -13,6 +13,7 @@ build:
 
 .PHONY: test
 test:
+	go test ./enforce/...
 	rm -rf tests/out || true
 	mkdir tests/out
 	protoc \

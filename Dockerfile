@@ -2,6 +2,7 @@ FROM ubuntu:xenial
 
 ENV INSTALL_DEPS \
   ca-certificates \
+  gcc \
   git \
   make \
   software-properties-common \
