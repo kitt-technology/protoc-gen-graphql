@@ -2,7 +2,7 @@ package generation
 
 import (
     "bytes"
-    "github.com/kitt-technology/kitt/lib/protoc-gen-auth/auth"
+    "github.com/kitt-technology/protoc-gen-auth/auth"
     "google.golang.org/protobuf/compiler/protogen"
     "google.golang.org/protobuf/proto"
     "strings"
