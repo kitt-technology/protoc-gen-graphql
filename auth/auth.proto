@@ -1,0 +1,19 @@
+syntax = "proto3";
+package auth;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = ".;auth";
+
+extend google.protobuf.FieldOptions {
+  string field_behaviour = 1072;
+}
+
+extend google.protobuf.MessageOptions {
+  repeated string message_permissions = 1072;
+}
+
+enum FieldBehaviour {
+  ID = 0;
+  IDS = 1;
+}
