@@ -26,16 +26,19 @@ type Enforcer struct {
 	enforcer *casbin.Enforcer
 }
 
-func (e Enforcer) Hydate(id string, msg auth.AuthMessage,) (auth.AuthMessage, error) {
+func (e Enforcer) Hydrate(attrs []string, msg auth.AuthMessage) (auth.AuthMessage, error) {
 	var filters []string
-	filters = append(filters, id)
+	filters = append(filters, attrs...)
 
 	err := e.enforcer.LoadFilteredPolicy(&fileadapter.Filter{P: filters})
 	if err != nil {
 		return nil, err
 	}
 
-	permissions := e.enforcer.GetPermissionsForUser(id)
+	var permissions [][]string
+	for _, attr := range attrs {
+		permissions = append(permissions, e.enforcer.GetPermissionsForUser(attr)...)
+	}
 
 	// count permissions for each returned object
 	userPermsToObj := map[string]map[string]string{}
@@ -63,7 +66,7 @@ func (e Enforcer) Hydate(id string, msg auth.AuthMessage,) (auth.AuthMessage, er
 	return msg.XXX_SetAuthResourceIds(validResourceIds), nil
 }
 
-func (e Enforcer) Enforce(id string, msg auth.AuthMessage) (bool, error) {
+func (e Enforcer) Enforce(attrs []string, msg auth.AuthMessage) (bool, error) {
 	var resourceIds []string
 	if msg.XXX_AuthResourceId() != nil {
 		resourceIds = append(resourceIds, *msg.XXX_AuthResourceId())
@@ -73,21 +76,32 @@ func (e Enforcer) Enforce(id string, msg auth.AuthMessage) (bool, error) {
 	}
 
 	var filters []string
-	filters = append(filters, id)
+	filters = append(filters, attrs...)
 
 	e.enforcer.LoadFilteredPolicy(&fileadapter.Filter{P: filters})
 
 	for _, resourceId := range resourceIds {
-		for _, perm := range msg.XXX_AuthPermissions() {
+		for _, attr := range attrs {
+			attrValid := true
 
-			ok, err := e.enforcer.Enforce(id, resourceId, perm)
-
-			// fail if any resource not permitted
-			if !ok || err != nil {
-				return false, err
+			// disable if any permission fails for attr
+			// TODO this is business logic, needs to be refactored out
+			for _, perm := range msg.XXX_AuthPermissions() {
+				ok, err := e.enforcer.Enforce(attr, resourceId, perm)
+				if !ok || err != nil {
+					attrValid = false
+				}
 			}
+
+			// enable if any attr correct
+			// TODO this is business logic, needs to be refactored out
+			if attrValid {
+				return true, nil
+			}
+
 		}
+
 	}
 
-	return true, nil
+	return false, nil
 }

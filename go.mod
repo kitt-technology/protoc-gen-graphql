@@ -7,5 +7,6 @@ require (
 	github.com/go-kit/kit v0.10.0 // indirect
 	github.com/golang/protobuf v1.4.0
 	github.com/stretchr/testify v1.4.0
+	google.golang.org/grpc v1.26.0
 	google.golang.org/protobuf v1.21.0
 )
