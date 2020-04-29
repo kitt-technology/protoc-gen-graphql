@@ -22,7 +22,7 @@ func (x *{{ .Type }}) XXX_AuthResourceIds() []string {
 }
 
 func (x *{{ .Type }}) XXX_SetAuthResourceId(resourceId string) {
-    {{ if .ResourceIds }}x.{{ .ResourceId }} = resourceId{{ else }}return {{ end }}
+    {{ if .ResourceId }}x.{{ .ResourceId }} = resourceId{{ else }}return {{ end }}
 }
 
 func (x *{{ .Type }}) XXX_SetAuthResourceIds(resourceIds []string) {
