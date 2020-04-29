@@ -6,4 +6,5 @@ type AuthMessage interface {
 	XXX_AuthResourceIds() []string
 	XXX_SetAuthResourceId(resourceId string)
 	XXX_SetAuthResourceIds(resourceIds string)
+    XXX_PullResourceIds() bool
 }
