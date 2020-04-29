@@ -23,8 +23,12 @@ func main() {
 
     for _, file := range plugin.Files {
         if shouldProcess(file) {
+            parsedFile := generation.New(file)
+            if len(parsedFile.AuthMessages) == 0 {
+                continue
+            }
             generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix + ".auth.go", ".")
-            generateFile.Write([]byte(generation.New(file).ToString()))
+            generateFile.Write([]byte(parsedFile.ToString()))
         }
     }
 
