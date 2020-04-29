@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package authors;
+
+import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
+
+option go_package = "example/authors;authors";
+
+service Authors {
+  option (graphql.host) =
+      "localhost:50052";
+
+  rpc getAuthors(GetAuthorsRequest) returns (GetAuthorsResponse) {}
+
+  rpc loadAuthors(graphql.BatchRequest) returns (AuthorsBatchResponse) {};
+}
+
+message GetAuthorsRequest {
+  repeated string ids = 1;
+}
+
+message GetAuthorsResponse {
+  repeated Author authors = 1;
+}
+
+message AuthorsBatchRequest {
+  repeated string ids = 1;
+}
+
+message AuthorsBatchResponse {
+  map<string, Author> results = 1;
+}
+
+message Author {
+  string id = 1;
+  string name = 2;
+}

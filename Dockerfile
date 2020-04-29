@@ -2,6 +2,7 @@ FROM ubuntu:xenial
 
 ENV INSTALL_DEPS \
   ca-certificates \
+  gcc \
   git \
   make \
   software-properties-common \
@@ -43,7 +44,7 @@ RUN go get -d ${PGG_PKG} \
   && cd - \
   && rm -rf ${PGG_PATH}
 
-COPY . .
+COPY go.* ./
 
 RUN make deps
 
