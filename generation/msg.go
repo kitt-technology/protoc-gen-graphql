@@ -21,12 +21,14 @@ func (x *{{ .Type }}) XXX_AuthResourceIds() []string {
     {{ if .ResourceIds }} return x.{{ .ResourceIds }}{{ else }}return nil {{ end }}
 }
 
-func (x *{{ .Type }}) XXX_SetAuthResourceId(resourceId string) {
-    {{ if .ResourceId }}x.{{ .ResourceId }} = resourceId{{ else }}return {{ end }}
+func (x *{{ .Type }}) XXX_SetAuthResourceId(resourceId string) auth.AuthMessage {
+    {{ if .ResourceId }}x.{{ .ResourceId }} = resourceId{{ end }}
+	return x
 }
 
-func (x *{{ .Type }}) XXX_SetAuthResourceIds(resourceIds []string) {
-    {{ if .ResourceIds }}x.{{ .ResourceIds }} = resourceIds{{ else }}return {{ end }}
+func (x *{{ .Type }}) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthMessage {
+    {{ if .ResourceIds }}x.{{ .ResourceIds }} = resourceIds{{ end }}
+	return x
 }
 
 func (x *{{ .Type }}) XXX_PullResourceIds() bool {

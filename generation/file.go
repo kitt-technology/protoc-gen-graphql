@@ -11,6 +11,10 @@ import (
 
 const fileTpl = `
 package {{ .Package }}
+
+import (
+	"github.com/kitt-technology/protoc-gen-auth/auth"
+)
 `
 
 type File struct {
