@@ -5,6 +5,7 @@ import (
     "github.com/kitt-technology/kitt/lib/protoc-gen-auth/auth"
     "google.golang.org/protobuf/compiler/protogen"
     "google.golang.org/protobuf/proto"
+    "strings"
     "text/template"
 )
 
@@ -30,7 +31,10 @@ func New(file *protogen.File) (f File)  {
 
         for _, field := range msg.Field {
             if field.Options != nil {
-                authMessage.ResourceId = proto.GetExtension(field.Options, auth.E_FieldBehaviour).(string)
+                if proto.GetExtension(field.Options, auth.E_FieldBehaviour).(string) == "ID" {
+                    name := *field.Name
+                    authMessage.ResourceId = strings.ToUpper(string(name[0])) + string(name[1:])  // TODO use proto-gen-go functionality
+                }
             }
         }
 

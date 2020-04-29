@@ -17,5 +17,5 @@ message TestMethodResponse {
 message TestCommand {
   option (auth.message_permissions) = "test_command_permission1";
   option (auth.message_permissions) = "test_command_permission2";
-  string id  = 1 [(auth.field_behaviour) = "ID"];
+  string testId  = 1 [(auth.field_behaviour) = "ID"];
 }
