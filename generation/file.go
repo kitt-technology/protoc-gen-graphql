@@ -31,9 +31,14 @@ func New(file *protogen.File) (f File)  {
 
         for _, field := range msg.Field {
             if field.Options != nil {
-                if proto.GetExtension(field.Options, auth.E_FieldBehaviour).(string) == "ID" {
+                // TODO use proto-gen-go functionality for field names
+                if proto.GetExtension(field.Options, auth.E_FieldBehaviour) == auth.FieldBehaviour_ID {
                     name := *field.Name
-                    authMessage.ResourceId = strings.ToUpper(string(name[0])) + string(name[1:])  // TODO use proto-gen-go functionality
+                    authMessage.ResourceId = strings.ToUpper(string(name[0])) + string(name[1:])
+                }
+                if proto.GetExtension(field.Options, auth.E_FieldBehaviour) == auth.FieldBehaviour_IDS {
+                    name := *field.Name
+                    authMessage.ResourceIds = strings.ToUpper(string(name[0])) + string(name[1:])
                 }
             }
         }

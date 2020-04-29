@@ -6,7 +6,7 @@ import "google/protobuf/descriptor.proto";
 option go_package = ".;auth";
 
 extend google.protobuf.FieldOptions {
-  string field_behaviour = 1072;
+  FieldBehaviour field_behaviour = 1072;
 }
 
 extend google.protobuf.MessageOptions {

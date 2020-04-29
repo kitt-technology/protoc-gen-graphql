@@ -1,12 +1,15 @@
 package cases
 
-func (x *TestCommand) XXX_AuthPermissions() []string {
+func (x *OpenDoorCommand) XXX_AuthPermissions() []string {
 	return []string{
-		"test_command_permission1",
-		"test_command_permission2",
+		"open_door",
 	}
 }
 
-func (x *TestCommand) XXX_AuthResourceId() string {
-	return x.TestId
+func (x *OpenDoorCommand) XXX_AuthResourceId() *string {
+	return &x.Id
+}
+
+func (x *OpenDoorCommand) XXX_AuthResourceIds() []string {
+	return x.Ids
 }
