@@ -16,7 +16,7 @@ func (x *{{ .Type }}) XXX_AuthPermissions() []string {
 func (x *{{ .Type }}) XXX_AuthResourceIds() []string {
     resourceIds := []string{}
     {{ if .ResourceId }} resourceIds = append(resourceIds,  x.{{ .ResourceId }}){{ end }}
-    {{ if .ResourceId }} resourceIds = append(resourceIds,  x.{{ .ResourceIds }}...){{ end }}
+    {{ if .ResourceIds }} resourceIds = append(resourceIds,  x.{{ .ResourceIds }}...){{ end }}
     return resourceIds
     {{ if .ResourceIds }} return x.{{ .ResourceIds }}{{ else }}return nil {{ end }}
 }

@@ -61,6 +61,7 @@ func (x *TestCommandPullIds) XXX_AuthPermissions() []string {
 func (x *TestCommandPullIds) XXX_AuthResourceIds() []string {
 	resourceIds := []string{}
 
+	resourceIds = append(resourceIds, x.TestIds...)
 	return resourceIds
 	return x.TestIds
 }
