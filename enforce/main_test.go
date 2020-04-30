@@ -59,20 +59,20 @@ func TestEnforce(t *testing.T) {
 	allPerms = append(allPerms, userPerms...)
 	log.Println(allPerms)
 	log.Println(permrequired)
-	filteredPerms := [][]string{}
+	resourceids := []string{}
 	for _, perm := range allPerms {
 		if perm[3] == permrequired {
-			filteredPerms = append(filteredPerms, perm)
+			resourceids = append(resourceids, perm[2])
 		}
 	}
 
-	log.Println(filteredPerms)
+	log.Println(resourceids)
 
 	ok, err := enforcer.enforcer.Enforce("user1", "company1", "door1", "auth.use_door")
 
 	log.Println(ok)
 	log.Println(err)
-	assert.Equal(t, true, true)
+	assert.Equal(t, false, true)
 }
 func init()  {
 	m, _ := model.NewModelFromString(modelDef)
