@@ -32,22 +32,21 @@ p, dave, door1, auth.list_doors
 var enforcer Enforcer
 
 func TestEnforce(t *testing.T) {
-	doorId := "door1"
-	msg := NewAuthMessage([]string{"auth.list_doors"}, &doorId, nil, false)
+	msg := NewAuthMessage([]string{"auth.list_doors"}, []string{"door1"}, false)
 	res, _ := enforcer.Enforce([]string{"alice"}, msg)
 	assert.Equal(t, true, res)
 }
 
 func TestHydrate(t *testing.T) {
-	msg := NewAuthMessage([]string{"auth.list_doors"}, nil, nil, false)
+	msg := NewAuthMessage([]string{"auth.list_doors"}, nil, false)
 	outMsg, _ := enforcer.Hydrate([]string{"alice"}, msg)
 	assert.ElementsMatch(t, []string{"door1", "door2", "door3"}, outMsg.XXX_AuthResourceIds())
 
-	msg = NewAuthMessage([]string{"auth.list_doors"}, nil, nil, false)
+	msg = NewAuthMessage([]string{"auth.list_doors"}, nil, false)
 	outMsg, _ = enforcer.Hydrate([]string{"dave"}, msg)
 	assert.Equal(t, []string{"door1"}, outMsg.XXX_AuthResourceIds())
 
-	msg = NewAuthMessage([]string{"auth.list_doors"}, nil, nil, false)
+	msg = NewAuthMessage([]string{"auth.list_doors"}, nil, false)
 	_, err := enforcer.Hydrate([]string{"tim"}, msg)
 	assert.Error(t, err)
 }

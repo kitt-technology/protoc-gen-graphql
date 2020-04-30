@@ -11,17 +11,12 @@ func (x *TestCommand) XXX_AuthPermissions() []string {
 	}
 }
 
-func (x *TestCommand) XXX_AuthResourceId() *string {
-	return &x.TestId
-}
-
 func (x *TestCommand) XXX_AuthResourceIds() []string {
+	resourceIds := []string{}
+	resourceIds = append(resourceIds, x.TestId)
+	resourceIds = append(resourceIds, x.TestIds...)
+	return resourceIds
 	return x.TestIds
-}
-
-func (x *TestCommand) XXX_SetAuthResourceId(resourceId string) auth.AuthMessage {
-	x.TestId = resourceId
-	return x
 }
 
 func (x *TestCommand) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthMessage {
@@ -40,17 +35,11 @@ func (x *TestCommandNoIds) XXX_AuthPermissions() []string {
 	}
 }
 
-func (x *TestCommandNoIds) XXX_AuthResourceId() *string {
-	return nil
-}
-
 func (x *TestCommandNoIds) XXX_AuthResourceIds() []string {
+	resourceIds := []string{}
+
+	return resourceIds
 	return nil
-}
-
-func (x *TestCommandNoIds) XXX_SetAuthResourceId(resourceId string) auth.AuthMessage {
-
-	return x
 }
 
 func (x *TestCommandNoIds) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthMessage {
@@ -69,17 +58,11 @@ func (x *TestCommandPullIds) XXX_AuthPermissions() []string {
 	}
 }
 
-func (x *TestCommandPullIds) XXX_AuthResourceId() *string {
-	return nil
-}
-
 func (x *TestCommandPullIds) XXX_AuthResourceIds() []string {
+	resourceIds := []string{}
+
+	return resourceIds
 	return x.TestIds
-}
-
-func (x *TestCommandPullIds) XXX_SetAuthResourceId(resourceId string) auth.AuthMessage {
-
-	return x
 }
 
 func (x *TestCommandPullIds) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthMessage {

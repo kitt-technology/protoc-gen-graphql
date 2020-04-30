@@ -13,17 +13,12 @@ func (x *{{ .Type }}) XXX_AuthPermissions() []string {
     }
 }
 
-func (x *{{ .Type }}) XXX_AuthResourceId() *string {
-    {{ if .ResourceId }} return &x.{{ .ResourceId }}{{ else }} return nil {{ end }}
-}
-
 func (x *{{ .Type }}) XXX_AuthResourceIds() []string {
+    resourceIds := []string{}
+    {{ if .ResourceId }} resourceIds = append(resourceIds,  x.{{ .ResourceId }}){{ end }}
+    {{ if .ResourceId }} resourceIds = append(resourceIds,  x.{{ .ResourceIds }}...){{ end }}
+    return resourceIds
     {{ if .ResourceIds }} return x.{{ .ResourceIds }}{{ else }}return nil {{ end }}
-}
-
-func (x *{{ .Type }}) XXX_SetAuthResourceId(resourceId string) auth.AuthMessage {
-    {{ if .ResourceId }}x.{{ .ResourceId }} = resourceId{{ end }}
-	return x
 }
 
 func (x *{{ .Type }}) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthMessage {

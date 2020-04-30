@@ -67,20 +67,12 @@ func (e Enforcer) Hydrate(attrs []string, msg auth.AuthMessage) (auth.AuthMessag
 }
 
 func (e Enforcer) Enforce(attrs []string, msg auth.AuthMessage) (bool, error) {
-	var resourceIds []string
-	if msg.XXX_AuthResourceId() != nil {
-		resourceIds = append(resourceIds, *msg.XXX_AuthResourceId())
-	}
-	if msg.XXX_AuthResourceIds() != nil {
-		resourceIds = append(resourceIds, msg.XXX_AuthResourceIds()...)
-	}
-
 	var filters []string
 	filters = append(filters, attrs...)
 
 	e.enforcer.LoadFilteredPolicy(&fileadapter.Filter{P: filters})
 
-	for _, resourceId := range resourceIds {
+	for _, resourceId := range msg.XXX_AuthResourceIds() {
 		for _, attr := range attrs {
 			attrValid := true
 
