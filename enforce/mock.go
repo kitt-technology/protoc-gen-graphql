@@ -4,7 +4,7 @@ import (
 	"github.com/kitt-technology/protoc-gen-auth/auth"
 )
 
-func NewAuthMessage(perms []string, resourceIds []string, pull bool) MockAuthMessage {
+func NewAuthMessage(perms string, resourceIds []string, pull bool) MockAuthMessage {
 	return MockAuthMessage{
 		perms: perms,
 		resourceIds: resourceIds,
@@ -14,12 +14,12 @@ func NewAuthMessage(perms []string, resourceIds []string, pull bool) MockAuthMes
 
 type MockAuthMessage struct {
 	auth.AuthMessage
-	perms []string
+	perms string
 	resourceIds []string
 	pull bool
 }
 
-func (a MockAuthMessage) XXX_AuthPermissions() []string {
+func (a MockAuthMessage) XXX_AuthPermission() string {
 	return a.perms
 }
 

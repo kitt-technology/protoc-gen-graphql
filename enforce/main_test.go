@@ -1,3 +1,4 @@
+
 package enforce
 
 import (
@@ -5,57 +6,79 @@ import (
 	fileadapter "github.com/casbin/casbin/v2/persist/file-adapter"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"log"
 	"testing"
 )
 
 const modelDef = `
 [request_definition]
-r = sub, obj, act
+r = user, company, resource, perm
 
 [policy_definition]
-p = sub, obj, act
+p = user, company, resource, perm
 
 [policy_effect]
 e = some(where (p.eft == allow))
 
+[role_definition]
+g = _, _
+g2 = _, _
+
 [matchers]
-m = r.sub == p.sub && r.obj == p.obj && r.act == p.act
+m = ((r.user == p.user || r.company == p.company) && (r.resource == p.resource || p.resource == '*' ) && r.perm == p.perm) || (g(r.company, p.company) && g2(r.resource, p.resource) && g2(r.perm, p.perm)) 
 `
 
 const policyDef = `
-p, alice, door1, auth.list_doors
-p, alice, door2, auth.list_doors
-p, alice, door3, auth.list_doors
-p, dave, door1, auth.list_doors
+g, company1, clerkenwell_tenant
+p, *, clerkenwell_tenant, door1, auth.use_door
+p, *, company1, door2, auth.use_door
+p, *, company1, door2, auth.blow_up
 `
 
 var enforcer Enforcer
 
 func TestEnforce(t *testing.T) {
-	msg := NewAuthMessage([]string{"auth.list_doors"}, []string{"door1"}, false)
-	res, _ := enforcer.Enforce([]string{"alice"}, msg)
-	assert.Equal(t, true, res)
+	uid := "user1"
+	cid := "company1"
+	permrequired := "auth.use_door"
+
+	userPolicies := enforcer.enforcer.GetFilteredGroupingPolicy(0, uid)
+	companyPolicies := enforcer.enforcer.GetFilteredGroupingPolicy(0, cid)
+
+	policies := append(userPolicies, companyPolicies...)
+
+	allPerms := [][]string{}
+	for _, policy := range policies {
+		allPerms = append(enforcer.enforcer.GetFilteredPolicy(1, policy[1]))
+	}
+
+	companyPerms := enforcer.enforcer.GetFilteredPolicy(1, cid)
+	userPerms := enforcer.enforcer.GetFilteredPolicy(2, uid)
+
+	allPerms = append(allPerms, companyPerms...)
+	allPerms = append(allPerms, userPerms...)
+	log.Println(allPerms)
+	log.Println(permrequired)
+	filteredPerms := [][]string{}
+	for _, perm := range allPerms {
+		if perm[3] == permrequired {
+			filteredPerms = append(filteredPerms, perm)
+		}
+	}
+
+	log.Println(filteredPerms)
+
+	ok, err := enforcer.enforcer.Enforce("user1", "company1", "door1", "auth.use_door")
+
+	log.Println(ok)
+	log.Println(err)
+	assert.Equal(t, true, true)
 }
-
-func TestHydrate(t *testing.T) {
-	msg := NewAuthMessage([]string{"auth.list_doors"}, nil, false)
-	outMsg, _ := enforcer.Hydrate([]string{"alice"}, msg)
-	assert.ElementsMatch(t, []string{"door1", "door2", "door3"}, outMsg.XXX_AuthResourceIds())
-
-	msg = NewAuthMessage([]string{"auth.list_doors"}, nil, false)
-	outMsg, _ = enforcer.Hydrate([]string{"dave"}, msg)
-	assert.Equal(t, []string{"door1"}, outMsg.XXX_AuthResourceIds())
-
-	msg = NewAuthMessage([]string{"auth.list_doors"}, nil, false)
-	_, err := enforcer.Hydrate([]string{"tim"}, msg)
-	assert.Error(t, err)
-}
-
 func init()  {
 	m, _ := model.NewModelFromString(modelDef)
 	adapter := fileadapter.NewFilteredAdapter("/tmp/policy.conf")
 	ioutil.WriteFile("/tmp/policy.conf", []byte(policyDef), 0644)
-	ioutil.WriteFile("/tmp/policy.conf", []byte(policyDef), 0644)
 
 	enforcer = NewEnforcer(m, adapter)
+	enforcer.enforcer.LoadPolicy()
 }

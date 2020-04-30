@@ -6,11 +6,8 @@ import (
 )
 
 const msgTpl = `
-func (x *{{ .Type }}) XXX_AuthPermissions() []string {
-	return []string{
-    {{ range $perm := .Permissions }}"{{ $perm }}",
-    {{ end }}
-    }
+func (x *{{ .Type }}) XXX_AuthPermission() string {
+	return "{{ .Permission }}"
 }
 
 func (x *{{ .Type }}) XXX_AuthResourceIds() []string {
@@ -18,7 +15,6 @@ func (x *{{ .Type }}) XXX_AuthResourceIds() []string {
     {{ if .ResourceId }} resourceIds = append(resourceIds,  x.{{ .ResourceId }}){{ end }}
     {{ if .ResourceIds }} resourceIds = append(resourceIds,  x.{{ .ResourceIds }}...){{ end }}
     return resourceIds
-    {{ if .ResourceIds }} return x.{{ .ResourceIds }}{{ else }}return nil {{ end }}
 }
 
 func (x *{{ .Type }}) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthMessage {
@@ -33,7 +29,7 @@ func (x *{{ .Type }}) XXX_PullResourceIds() bool {
 
 type AuthMessage struct {
     Type string
-    Permissions []string
+    Permission string
     ResourceId string
     ResourceIds string
     PullResourceIds bool

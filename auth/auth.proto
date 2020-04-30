@@ -10,7 +10,7 @@ extend google.protobuf.FieldOptions {
 }
 
 extend google.protobuf.MessageOptions {
-  repeated string message_permissions = 1072;
+  string message_permission = 1072;
 }
 
 enum FieldBehaviour {

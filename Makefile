@@ -13,14 +13,14 @@ build:
 
 .PHONY: test
 test:
-	go test ./enforce/...
-	rm -rf tests/out || true
-	mkdir tests/out
 	protoc \
 		--proto_path ./auth \
 		-I=./auth \
 		./auth/auth.proto \
 		--go_out=./auth/
+	go test ./enforce/...
+	rm -rf tests/out || true
+	mkdir tests/out
 	@go install .
 	protoc \
 		--proto_path tests/cases \

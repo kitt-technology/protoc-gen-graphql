@@ -30,14 +30,13 @@ func New(file *protogen.File) (f File)  {
             Type: msg.GetName(),
         }
         if msg.Options != nil {
-            authMessage.Permissions = proto.GetExtension(msg.Options, auth.E_MessagePermissions).([]string)
+            authMessage.Permission = proto.GetExtension(msg.Options, auth.E_MessagePermission).(string)
         }
 
         for _, field := range msg.Field {
             if field.Options != nil {
                 // TODO use proto-gen-go functionality for field names
                 name := *field.Name
-
 
                 switch proto.GetExtension(field.Options, auth.E_FieldBehaviour) {
                 case auth.FieldBehaviour_ID:
@@ -55,7 +54,7 @@ func New(file *protogen.File) (f File)  {
             }
         }
 
-        if len(authMessage.Permissions) > 0 {
+        if authMessage.Permission != "" {
             f.AuthMessages = append(f.AuthMessages, authMessage)
         }
     }
