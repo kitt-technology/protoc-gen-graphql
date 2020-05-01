@@ -18,7 +18,6 @@ test:
 		-I=./auth \
 		./auth/auth.proto \
 		--go_out=./auth/
-	go test ./enforce/...
 	rm -rf tests/out || true
 	mkdir tests/out
 	@go install .
