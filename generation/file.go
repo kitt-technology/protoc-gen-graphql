@@ -13,7 +13,7 @@ const fileTpl = `
 package {{ .Package }}
 
 import (
-	"github.com/kitt-technology/protoc-gen-auth/auth"
+	_ "github.com/kitt-technology/protoc-gen-auth/auth"
 )
 `
 
