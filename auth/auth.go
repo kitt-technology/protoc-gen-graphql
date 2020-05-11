@@ -5,6 +5,7 @@ type AuthMessage interface {
 }
 
 type AuthResourceMessage interface {
+	XXX_AuthPermission() string
 	XXX_AuthResourceIds() []string
-	XXX_SetAuthResourceIds(resourceIds []string) AuthMessage
+	XXX_SetAuthResourceIds(resourceIds []string) AuthResourceMessage
 }

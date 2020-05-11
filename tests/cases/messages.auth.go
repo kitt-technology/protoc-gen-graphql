@@ -8,7 +8,7 @@ func (x *TestCommand) XXX_AuthPermission() string {
 	return "test_command_permission1"
 }
 
-func (x *TestCommand) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthMessage {
+func (x *TestCommand) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthResourceMessage {
 	x.TestIds = resourceIds
 	return x
 }
