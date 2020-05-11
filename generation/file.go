@@ -40,16 +40,13 @@ func New(file *protogen.File) (f File)  {
 
                 switch proto.GetExtension(field.Options, auth.E_FieldBehaviour) {
                 case auth.FieldBehaviour_ID:
-                    authMessage.ResourceId = strings.ToUpper(string(name[0])) + string(name[1:])
+                    resourceId := strings.ToUpper(string(name[0])) + name[1:]
+                    authMessage.ResourceId = &resourceId
                     break;
                 case auth.FieldBehaviour_IDS:
-                    authMessage.ResourceIds = strings.ToUpper(string(name[0])) + string(name[1:])
+                    resourceIds := strings.ToUpper(string(name[0])) + name[1:]
+                    authMessage.ResourceIds = &resourceIds
                     break
-                case auth.FieldBehaviour_PULL_IDS:
-                    authMessage.PullResourceIds = true
-                    authMessage.ResourceIds = strings.ToUpper(string(name[0])) + string(name[1:])
-                    break
-
                 }
             }
         }

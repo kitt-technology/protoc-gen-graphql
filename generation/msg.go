@@ -10,29 +10,27 @@ func (x *{{ .Type }}) XXX_AuthPermission() string {
 	return "{{ .Permission }}"
 }
 
+{{if or .ResourceIds .ResourceId}}
+func (x *{{ .Type }}) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthMessage {
+    {{ if .ResourceIds }}x.{{ .ResourceIds }} = resourceIds{{ end }}
+	return x
+}
+
 func (x *{{ .Type }}) XXX_AuthResourceIds() []string {
     resourceIds := []string{}
     {{ if .ResourceId }} resourceIds = append(resourceIds,  x.{{ .ResourceId }}){{ end }}
     {{ if .ResourceIds }} resourceIds = append(resourceIds,  x.{{ .ResourceIds }}...){{ end }}
     return resourceIds
 }
+{{end}}
 
-func (x *{{ .Type }}) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthMessage {
-    {{ if .ResourceIds }}x.{{ .ResourceIds }} = resourceIds{{ end }}
-	return x
-}
-
-func (x *{{ .Type }}) XXX_PullResourceIds() bool {
-    return {{ if .PullResourceIds }}true{{ else }}false{{ end }}
-}
 `
 
 type AuthMessage struct {
     Type string
     Permission string
-    ResourceId string
-    ResourceIds string
-    PullResourceIds bool
+    ResourceId *string
+    ResourceIds *string
 }
 
 func (a AuthMessage) Generate() string {

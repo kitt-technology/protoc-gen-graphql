@@ -16,5 +16,4 @@ extend google.protobuf.MessageOptions {
 enum FieldBehaviour {
   ID = 0;
   IDS = 1;
-  PULL_IDS = 2;
 }
