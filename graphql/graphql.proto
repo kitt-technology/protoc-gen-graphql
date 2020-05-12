@@ -1,0 +1,16 @@
+syntax = "proto3";
+package graphql;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = ".;graphql";
+
+extend google.protobuf.MessageOptions {
+  MutationOption mutation_options = 1084;
+}
+
+message MutationOption {
+  string name = 1;
+  string success = 2;
+  string failure = 3;
+}

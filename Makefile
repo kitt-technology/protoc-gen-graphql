@@ -14,17 +14,18 @@ build:
 .PHONY: test
 test:
 	protoc \
-		--proto_path ./auth \
-		-I=./auth \
-		./auth/auth.proto \
-		--go_out=./auth/
+		--proto_path ./graphql \
+		-I=./graphql \
+		./graphql/graphql.proto \
+		--go_out=./graphql/
 	rm -rf tests/out || true
-	mkdir tests/out
+	mkdir tests/out/
 	@go install .
 	protoc \
 		--proto_path tests/cases \
 		-I=. \
 		./tests/cases/messages.proto \
 		--go_out=./tests/out \
-		--auth_out="lang=go:./tests/out"
+		--go-grpc_out=./tests/out \
+		--graphql_out="lang=go:./tests/out"
 	go run tests/run.go

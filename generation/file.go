@@ -1,75 +1,93 @@
 package generation
 
 import (
-    "bytes"
-    "github.com/kitt-technology/protoc-gen-auth/auth"
-    "google.golang.org/protobuf/compiler/protogen"
-    "google.golang.org/protobuf/proto"
-    "strings"
-    "text/template"
+	"bytes"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/mutation"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/query"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/typedef"
+	"github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/proto"
+	"text/template"
 )
 
 const fileTpl = `
 package {{ .Package }}
 
-import (
-	_ "github.com/kitt-technology/protoc-gen-auth/auth"
-)
-`
+import "github.com/graphql-go/graphql"
+import pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 
-type File struct {
-    Package protogen.GoPackageName
-    AuthMessages []AuthMessage
+{{- range $import := .Imports }}
+import "{{ $import }}"
+{{ end }}
+
+var mutations []*graphql.Field
+var queries []*graphql.Field
+
+var mutationResolver pg.MutationResolver
+
+func Register(config pg.ProtoConfig, mr pg.MutationResolver) pg.ProtoConfig {
+	mutationResolver = mr
+	config.Mutations = append(config.Mutations, mutations...)
+	config.Queries = append(config.Queries, queries...)
+	return config
 }
 
-func New(file *protogen.File) (f File)  {
-    f.Package = file.GoPackageName
+`
 
-    for _, msg := range file.Proto.MessageType {
-        authMessage := AuthMessage{
-            Type: msg.GetName(),
-        }
-        if msg.Options != nil {
-            authMessage.Permission = proto.GetExtension(msg.Options, auth.E_MessagePermission).(string)
-        }
+type Message interface {
+	Generate() string
+}
 
-        for _, field := range msg.Field {
-            if field.Options != nil {
-                // TODO use proto-gen-go functionality for field names
-                name := *field.Name
+type File struct {
+	Package  protogen.GoPackageName
+	Message  []Message
+	TypeDefs []Message
+	Imports  []string
+}
 
-                switch proto.GetExtension(field.Options, auth.E_FieldBehaviour) {
-                case auth.FieldBehaviour_ID:
-                    resourceId := strings.ToUpper(string(name[0])) + name[1:]
-                    authMessage.ResourceId = &resourceId
-                    break;
-                case auth.FieldBehaviour_IDS:
-                    resourceIds := strings.ToUpper(string(name[0])) + name[1:]
-                    authMessage.ResourceIds = &resourceIds
-                    break
-                }
-            }
-        }
+func New(file *protogen.File) (f File) {
+	f.Package = file.GoPackageName
 
-        if authMessage.Permission != "" {
-            f.AuthMessages = append(f.AuthMessages, authMessage)
-        }
-    }
-    return f
+	for _, dep := range file.Proto.Dependency {
+		switch dep {
+		case "google/protobuf/wrappers.proto":
+			f.Imports = append(f.Imports, "github.com/golang/protobuf/ptypes/wrappers")
+		}
+	}
+
+	for _, service := range file.Proto.Service {
+		f.Message = append(f.Message, query.New(service))
+	}
+	for _, msg := range file.Proto.MessageType {
+		if msg.Options != nil {
+			if proto.HasExtension(msg.Options, graphql.E_MutationOptions) {
+				f.Message = append(f.Message, mutation.New(msg))
+			}
+		}
+		f.TypeDefs = append(f.TypeDefs, typedef.New(msg))
+
+	}
+	return f
 }
 
 func (f File) ToString() string {
-    var buf bytes.Buffer
-    tpl, err := template.New("file").Parse(fileTpl)
-    if err != nil {
-        panic(err)
-    }
-    tpl.Execute(&buf, f)
+	var buf bytes.Buffer
+	tpl, err := template.New("file").Parse(fileTpl)
+	if err != nil {
+		panic(err)
+	}
 
-    out := buf.String()
+	tpl.Execute(&buf, f)
 
-    for _, msg := range f.AuthMessages {
-       out += msg.Generate()
-    }
-    return out
+	out := buf.String()
+
+	for _, msg := range f.TypeDefs {
+		out += msg.Generate()
+	}
+
+	for _, msg := range f.Message {
+		out += msg.Generate()
+	}
+	return out
 }

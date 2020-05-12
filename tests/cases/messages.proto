@@ -2,25 +2,45 @@ syntax = "proto3";
 
 package cases;
 
-import "auth/auth.proto";
+import "graphql/graphql.proto";
+import "google/protobuf/wrappers.proto";
 
 option go_package = "cases;cases";
 
-message TestMethodRequest {
-  string data = 1;
+service MyService {
+  rpc getSomething(GetSomethingRequest) returns (GetSomethingResponse) {}
 }
 
-message TestMethodResponse {
-  string data = 1;
+message GetSomethingRequest {
+  string id = 1;
+}
+message GetSomethingResponse {
+  string id = 1;
 }
 
 message TestCommand {
-  option (auth.message_permission) = "test_command_permission1";
-  string testId  = 1 [(auth.field_behaviour) = ID];
-  repeated string testIds  = 2 [(auth.field_behaviour) = IDS];
+  option (graphql.mutation_options) = {
+    name: "openDoor",
+    success: "CommandSuccess",
+    failure: "CommandFailed",
+  };
+
+  string id = 1;
+  int32 some_int = 2;
+  bool some_bool = 3;
+  map<string, SomeObject> id_object_map = 4;
+  repeated SomeObject id_object_list = 5;
+  repeated string string_list = 6;
+  map<string, string> string_map = 7;
+  google.protobuf.StringValue optional_id = 8;
 }
 
-message TestCommandNoIds {
-  option (auth.message_permission) = "test_command_permission2";
-  string testId  = 1;
+message SomeObject {
+  string some_id = 1;
 }
+
+message CommandSuccess {}
+
+message CommandFailed {}
+
+
