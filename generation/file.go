@@ -12,14 +12,17 @@ import (
 const fileTpl = `
 package {{ .Package }}
 
+{{if .HasAuthResourceMessage}}
 import (
-	_ "github.com/kitt-technology/protoc-gen-auth/auth"
+	"github.com/kitt-technology/protoc-gen-auth/auth"
 )
+{{end}}
 `
 
 type File struct {
     Package protogen.GoPackageName
     AuthMessages []AuthMessage
+    HasAuthResourceMessage bool
 }
 
 func New(file *protogen.File) (f File)  {
@@ -64,9 +67,17 @@ func (f File) ToString() string {
     if err != nil {
         panic(err)
     }
+
+    for _, msg := range f.AuthMessages {
+        if msg.ResourceId != nil || msg.ResourceIds != nil {
+            f.HasAuthResourceMessage = true
+        }
+    }
+
     tpl.Execute(&buf, f)
 
     out := buf.String()
+
 
     for _, msg := range f.AuthMessages {
        out += msg.Generate()

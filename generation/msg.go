@@ -10,7 +10,7 @@ func (x *{{ .Type }}) XXX_AuthPermission() string {
 	return "{{ .Permission }}"
 }
 
-{{if or .ResourceIds}}
+{{if or .ResourceIds .ResourceId}}
 func (x *{{ .Type }}) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthResourceMessage {
     {{ if .ResourceIds }}x.{{ .ResourceIds }} = resourceIds{{ end }}
 	return x
@@ -18,7 +18,7 @@ func (x *{{ .Type }}) XXX_SetAuthResourceIds(resourceIds []string) auth.AuthReso
 {{end}}
 
 
-{{if .ResourceIds}}
+{{if or .ResourceIds .ResourceId}}
 func (x *{{ .Type }}) XXX_AuthResourceIds() []string {
     resourceIds := []string{}
     {{ if .ResourceId }} resourceIds = append(resourceIds,  x.{{ .ResourceId }}){{ end }}
