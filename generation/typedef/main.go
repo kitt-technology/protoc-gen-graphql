@@ -21,7 +21,7 @@ var {{ .Descriptor.GetName }}_type = graphql.NewObject(graphql.ObjectConfig{
 			{{- if $field.Optional }}
 			Type: {{ $field.Type }},
 			{{- else }}
-			Type: graphql.NewNonNull(graphql.NewList({{ $field.Type }})),
+			Type: graphql.NewNonNull({{ $field.Type }}),
 			{{- end }}
 		},
 		{{- end }}
@@ -34,7 +34,7 @@ var {{ .Descriptor.GetName }}_args = graphql.FieldConfigArgument{
 		{{- if $field.Optional }}
 		Type: {{ $field.Type }},
 		{{- else }}
-		Type: graphql.NewNonNull(graphql.NewList({{ $field.Type }})),
+		Type: graphql.NewNonNull({{ $field.Type }}),
 		{{- end }}
 	},
 	{{- end }}
@@ -43,7 +43,9 @@ var {{ .Descriptor.GetName }}_args = graphql.FieldConfigArgument{
 func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descriptor.GetName }} {
 	return &{{ .Descriptor.GetName }}{
 		{{- range $field := .Fields }}
-		{{ $field.StructKey }}: args["{{ $field.Key }}"].({{ $field.StructType }}),
+		{{- if $field.StructKey }}
+			{{ $field.StructKey }}: args["{{ $field.Key }}"].({{ $field.StructType }}),
+		{{- end }}
 		{{- end }}
 	}
 }
@@ -65,6 +67,10 @@ func New(msg *descriptorpb.DescriptorProto) (m Message) {
 func last(path string) string {
 	t := strings.Split(path, ".")
 	return t[len(t)-1]
+}
+
+func (m Message) Imports() []string {
+	return []string{}
 }
 
 func (m Message) Generate() string {
@@ -142,6 +148,16 @@ func (m Message) Generate() string {
 
 		}
 		log.Println()
+	}
+
+	if len(m.Fields) == 0 {
+		m.Fields = append(m.Fields, Field{
+			Key:        "message",
+			Type:       "graphql.String",
+			Optional:   true,
+			StructKey:  "",
+			StructType: "",
+		})
 	}
 
 	var buf bytes.Buffer

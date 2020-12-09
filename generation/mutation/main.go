@@ -32,6 +32,10 @@ func New(msg *descriptorpb.DescriptorProto) (m Message) {
 	}
 }
 
+func (m Message) Imports() []string {
+	return []string{}
+}
+
 func (m Message) Generate() string {
 	var buf bytes.Buffer
 	mTpl, err := template.New("msg").Parse(msgTpl)

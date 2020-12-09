@@ -1,7 +1,7 @@
 package graphql
 
 import (
-	"github.com/golang/protobuf/proto"
+	"context"
 	"github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
 	"time"
@@ -15,16 +15,26 @@ type Mutation interface {
 	GetFailureEvent() *string
 }
 
+type Dataloader struct {
+	Output graphql.Output
+	Fn     DataloaderFn
+}
+type DataloaderFn func(context context.Context, ids []string) (interface{}, error)
+type RegisterDataloaderFn func(typeDef Dataloader)
+
 type ProtoConfig struct {
-	Mutations []*graphql.Field
-	Queries   []*graphql.Field
+	Mutations  []*graphql.Field
+	Queries    []*graphql.Field
+	Dataloader map[string]DataloaderFn
 }
 
-type MutationResolver func(command proto.Message, success proto.Message) (proto.Message, error)
+type Svc interface {
+	AppendDataloaders(map[string]Dataloader) map[string]Dataloader
+}
 
-func GrpcConnection(name string) *grpc.ClientConn {
+func GrpcConnection(host string) *grpc.ClientConn {
 	conn, err := grpc.Dial(
-		name+".default.svc.cluster.local:50051",
+		host,
 		grpc.WithInsecure(),
 		grpc.WithBackoffMaxDelay(30*time.Second),
 	)

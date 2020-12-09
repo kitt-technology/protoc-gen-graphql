@@ -16,6 +16,7 @@ package {{ .Package }}
 
 import "github.com/graphql-go/graphql"
 import pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+import "google.golang.org/protobuf/proto"
 
 {{- range $import := .Imports }}
 import "{{ $import }}"
@@ -24,12 +25,29 @@ import "{{ $import }}"
 var mutations []*graphql.Field
 var queries []*graphql.Field
 
-var mutationResolver pg.MutationResolver
+var mutationResolver func(command proto.Message, success proto.Message) (proto.Message, error)
+var dataloadersToRegister map[string][]pg.RegisterDataloaderFn
+var dataloadersToProvide map[string]pg.Dataloader
 
-func Register(config pg.ProtoConfig, mr pg.MutationResolver) pg.ProtoConfig {
+func AppendDataloaders(dataloaders map[string]pg.Dataloader) map[string]pg.Dataloader {
+	for k, v := range dataloadersToProvide {
+		dataloaders[k] = v
+	}
+	return dataloaders
+}
+
+
+func Register(config pg.ProtoConfig, mr func(command proto.Message, success proto.Message) (proto.Message, error), dataloaders map[string]pg.Dataloader) pg.ProtoConfig {
 	mutationResolver = mr
 	config.Mutations = append(config.Mutations, mutations...)
 	config.Queries = append(config.Queries, queries...)
+
+	// Find objects who have registered a particular dataloader and add the field resolve
+	for dataloaderName, dataloader := range dataloaders {
+		for _, registerFn := range dataloadersToRegister[dataloaderName] {
+			registerFn(dataloader)
+		}
+	}
 	return config
 }
 
@@ -37,6 +55,7 @@ func Register(config pg.ProtoConfig, mr pg.MutationResolver) pg.ProtoConfig {
 
 type Message interface {
 	Generate() string
+	Imports() []string
 }
 
 type File struct {
@@ -57,7 +76,7 @@ func New(file *protogen.File) (f File) {
 	}
 
 	for _, service := range file.Proto.Service {
-		f.Message = append(f.Message, query.New(service))
+		f.Message = append(f.Message, query.New(service, file.Proto))
 	}
 	for _, msg := range file.Proto.MessageType {
 		if msg.Options != nil {
@@ -72,6 +91,19 @@ func New(file *protogen.File) (f File) {
 }
 
 func (f File) ToString() string {
+	var extraImportMap = map[string]string{}
+	var extraImports = []string{}
+	for _, msg := range append(f.TypeDefs, f.Message...) {
+		for _, imp := range msg.Imports() {
+			extraImportMap[imp] = imp
+		}
+	}
+	for _, val := range extraImportMap {
+		extraImports = append(extraImports, val)
+	}
+
+	f.Imports = append(f.Imports, extraImports...)
+
 	var buf bytes.Buffer
 	tpl, err := template.New("file").Parse(fileTpl)
 	if err != nil {

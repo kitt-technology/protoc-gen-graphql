@@ -11,6 +11,37 @@ deps:
 build:
 	@go install .
 
+.PHONY: examples
+build-examples:
+	protoc \
+		--proto_path ./graphql \
+		-I=./graphql \
+		./graphql/graphql.proto \
+		--go_out=./graphql/
+	rm -rf tests/out || true
+	mkdir tests/out/
+	@go install .
+
+	protoc \
+		--proto_path ./example/authors/ \
+		-I . \
+		./example/authors/authors.proto \
+		--go_out=. \
+		--go-grpc_out=. \
+		--graphql_out="lang=go:."
+	protoc \
+		--proto_path ./example/books \
+		-I . \
+		./example/books/books.proto \
+		--go_out=. \
+		--go-grpc_out=. \
+		--graphql_out="lang=go:."
+	 # dumb
+	sed -i '' '10d' example/authors/authors.pb.go
+	sed -i '' '10d' example/books/books.pb.go
+run-examples:
+	cd example; parallel -u ::: 'go run ./cmd/books' 'go run ./cmd/authors' 'go run ./cmd/graphql'; cd -
+
 .PHONY: test
 test:
 	protoc \

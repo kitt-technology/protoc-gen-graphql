@@ -8,14 +8,29 @@ import "google/protobuf/wrappers.proto";
 option go_package = "cases;cases";
 
 service MyService {
-  rpc getSomething(GetSomethingRequest) returns (GetSomethingResponse) {}
+  rpc getSomething(GetSomethingRequest) returns (GetSomethingResponse) {
+    option (graphql.dataloader_service) = {
+      name: "something_else_by_id_loader",
+    };
+  }
 }
 
 message GetSomethingRequest {
-  string id = 1;
+  repeated string id = 1 [(graphql.dataloader) = {
+    ids: true
+  }];
 }
+
 message GetSomethingResponse {
   string id = 1;
+  string something_id = 2 [(graphql.field_resolver) = {
+    field_name: "something"
+    dataloader_name: "something_by_id_loader"
+  }];
+  repeated string some_id_list = 3 [(graphql.field_resolver) = {
+    field_name: "something"
+    dataloader_name: "something_by_id_loader"
+  }];
 }
 
 message TestCommand {

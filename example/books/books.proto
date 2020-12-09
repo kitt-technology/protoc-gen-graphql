@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package books;
+
+import "graphql/graphql.proto";
+option go_package = "example/books;books";
+
+service Books {
+  option (graphql.host) =
+  "localhost:50051";
+
+  rpc getBooks(GetBooksRequest) returns (GetBooksResponse) {}
+}
+
+message GetBooksRequest {}
+
+message GetBooksResponse {
+  repeated Book books = 1;
+}
+
+message Book {
+  string id = 1;
+  string name = 2;
+  string author_id = 3 [(graphql.field_resolver) = {
+    field_name: "author"
+    dataloader_name: "author_id_loader"
+  }];
+}
+

@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package authors;
+
+import "graphql/graphql.proto";
+option go_package = "example/authors;authors";
+
+service Authors {
+  option (graphql.host) =
+      "localhost:50052";
+
+  rpc getAuthors(GetAuthorsRequest) returns (GetAuthorsResponse) {
+    option (graphql.dataloader_service) = {
+      name: "author_id_loader",
+    };
+  }
+}
+
+message GetAuthorsRequest {
+  repeated string ids = 1 [(graphql.dataloader_ids) = true];
+}
+
+message GetAuthorsResponse {
+  repeated Author authors = 1 [(graphql.dataloader_object) = true];
+}
+
+message Author {
+  string id = 1;
+  string name = 2;
+}
