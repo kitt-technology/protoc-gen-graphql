@@ -6,7 +6,6 @@ import (
 	"github.com/kitt-technology/protoc-gen-graphql/example/authors"
 	"github.com/kitt-technology/protoc-gen-graphql/example/books"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-	"google.golang.org/protobuf/proto"
 	"log"
 	"net/http"
 
@@ -19,18 +18,31 @@ type postData struct {
 	Variables map[string]interface{} `json:"variables"`
 }
 
+func AddFieldResolver(fieldName string, root *graphql.Object, returnType graphql.Output, resolve func(p graphql.ResolveParams) (interface{}, error)) {
+	root.AddFieldConfig(fieldName, &graphql.Field{
+		Name:    fieldName,
+		Type:    returnType,
+		Resolve: resolve,
+	})
+}
+
 func main() {
 	config := pg.ProtoConfig{}
 
-	dataloader := map[string]pg.Dataloader{}
-	dataloaders := books.AppendDataloaders(authors.AppendDataloaders(dataloader))
+	AddFieldResolver("author", books.Book_type, authors.Author_type, func(p graphql.ResolveParams) (interface{}, error) {
+		book := p.Source.(*books.Book)
+		resp, err := authors.Get().GetAuthors(p.Context, &authors.GetAuthorsRequest{
+			Ids: []string{book.AuthorId},
+		})
 
-	mutationResolve := func(command proto.Message, success proto.Message) (proto.Message, error) {
-		return nil, nil
-	}
+		if err != nil {
+			return nil, err
+		}
+		return resp.Authors[0], err
+	})
 
-	config = authors.Register(config, mutationResolve, dataloaders)
-	config = books.Register(config, mutationResolve, dataloaders)
+	config = authors.Register(config)
+	config = books.Register(config)
 
 	field := graphql.Fields{}
 	for _, query := range config.Queries {

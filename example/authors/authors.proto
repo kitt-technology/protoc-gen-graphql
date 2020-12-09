@@ -9,19 +9,15 @@ service Authors {
   option (graphql.host) =
       "localhost:50052";
 
-  rpc getAuthors(GetAuthorsRequest) returns (GetAuthorsResponse) {
-    option (graphql.dataloader_service) = {
-      name: "author_id_loader",
-    };
-  }
+  rpc getAuthors(GetAuthorsRequest) returns (GetAuthorsResponse) {}
 }
 
 message GetAuthorsRequest {
-  repeated string ids = 1 [(graphql.dataloader_ids) = true];
+  repeated string ids = 1;
 }
 
 message GetAuthorsResponse {
-  repeated Author authors = 1 [(graphql.dataloader_object) = true];
+  repeated Author authors = 1;
 }
 
 message Author {

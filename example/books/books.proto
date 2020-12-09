@@ -21,9 +21,6 @@ message GetBooksResponse {
 message Book {
   string id = 1;
   string name = 2;
-  string author_id = 3 [(graphql.field_resolver) = {
-    field_name: "author"
-    dataloader_name: "author_id_loader"
-  }];
+  string author_id = 3;
 }
 

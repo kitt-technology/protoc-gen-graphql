@@ -14,6 +14,11 @@ const msgTpl = `
 
 var {{ .Descriptor.Name }} {{ .Descriptor.Name }}Client
 
+func Get() {{ .Descriptor.Name }}Client {
+	return {{ .Descriptor.Name }}
+}
+
+
 func init() {
 	{{ .Descriptor.Name }} = New{{ .Descriptor.Name }}Client(pg.GrpcConnection("{{ .Dns }}"))
 	{{- range $method := .Methods }}

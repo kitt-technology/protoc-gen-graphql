@@ -29,25 +29,8 @@ var mutationResolver func(command proto.Message, success proto.Message) (proto.M
 var dataloadersToRegister map[string][]pg.RegisterDataloaderFn
 var dataloadersToProvide map[string]pg.Dataloader
 
-func AppendDataloaders(dataloaders map[string]pg.Dataloader) map[string]pg.Dataloader {
-	for k, v := range dataloadersToProvide {
-		dataloaders[k] = v
-	}
-	return dataloaders
-}
-
-
-func Register(config pg.ProtoConfig, mr func(command proto.Message, success proto.Message) (proto.Message, error), dataloaders map[string]pg.Dataloader) pg.ProtoConfig {
-	mutationResolver = mr
-	config.Mutations = append(config.Mutations, mutations...)
+func Register(config pg.ProtoConfig) pg.ProtoConfig {
 	config.Queries = append(config.Queries, queries...)
-
-	// Find objects who have registered a particular dataloader and add the field resolve
-	for dataloaderName, dataloader := range dataloaders {
-		for _, registerFn := range dataloadersToRegister[dataloaderName] {
-			registerFn(dataloader)
-		}
-	}
 	return config
 }
 

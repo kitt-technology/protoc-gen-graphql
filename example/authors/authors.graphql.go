@@ -3,7 +3,6 @@ package authors
 import "github.com/graphql-go/graphql"
 import pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 import "google.golang.org/protobuf/proto"
-import "context"
 
 var mutations []*graphql.Field
 var queries []*graphql.Field
@@ -12,24 +11,8 @@ var mutationResolver func(command proto.Message, success proto.Message) (proto.M
 var dataloadersToRegister map[string][]pg.RegisterDataloaderFn
 var dataloadersToProvide map[string]pg.Dataloader
 
-func AppendDataloaders(dataloaders map[string]pg.Dataloader) map[string]pg.Dataloader {
-	for k, v := range dataloadersToProvide {
-		dataloaders[k] = v
-	}
-	return dataloaders
-}
-
-func Register(config pg.ProtoConfig, mr func(command proto.Message, success proto.Message) (proto.Message, error), dataloaders map[string]pg.Dataloader) pg.ProtoConfig {
-	mutationResolver = mr
-	config.Mutations = append(config.Mutations, mutations...)
+func Register(config pg.ProtoConfig) pg.ProtoConfig {
 	config.Queries = append(config.Queries, queries...)
-
-	// Find objects who have registered a particular dataloader and add the field resolve
-	for dataloaderName, dataloader := range dataloaders {
-		for _, registerFn := range dataloadersToRegister[dataloaderName] {
-			registerFn(dataloader)
-		}
-	}
 	return config
 }
 
@@ -105,6 +88,10 @@ func Author_from_args(args map[string]interface{}) *Author {
 
 var Authors AuthorsClient
 
+func Get() AuthorsClient {
+	return Authors
+}
+
 func init() {
 	Authors = NewAuthorsClient(pg.GrpcConnection("localhost:50052"))
 	queries = append(queries, &graphql.Field{
@@ -115,20 +102,5 @@ func init() {
 			return Authors.GetAuthors(p.Context, GetAuthorsRequest_from_args(p.Args))
 		},
 	})
-
-	if dataloadersToProvide == nil {
-		dataloadersToProvide = make(map[string]pg.Dataloader)
-	}
-	dataloadersToProvide["author_id_loader"] = pg.Dataloader{
-		Fn: func(ctx context.Context, ids []string) (interface{}, error) {
-			resp, err := Authors.GetAuthors(ctx, &GetAuthorsRequest{Ids: ids})
-
-			if err != nil {
-				return nil, err
-			}
-			return resp.Authors, nil
-		},
-		Output: graphql.NewList(Author_type),
-	}
 
 }
