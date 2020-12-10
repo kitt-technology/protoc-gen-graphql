@@ -28,6 +28,11 @@ type ProtoConfig struct {
 	Dataloader map[string]DataloaderFn
 }
 
+type GraphqlMessage interface {
+	XXX_type() *graphql.Object
+	XXX_args() graphql.FieldConfigArgument
+}
+
 type Svc interface {
 	AppendDataloaders(map[string]Dataloader) map[string]Dataloader
 }
