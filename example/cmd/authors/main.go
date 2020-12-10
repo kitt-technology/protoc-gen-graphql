@@ -33,24 +33,34 @@ type AuthorService struct {
 func (a AuthorService) GetAuthors(ctx context.Context, request *authors.GetAuthorsRequest) (*authors.GetAuthorsResponse, error) {
 	var as []*authors.Author
 
-	for _, id := range request.Ids {
-		if author, ok := authorsDb[id]; ok {
-			as = append(as, &author)
+	if len(request.Ids) > 0 {
+		for _, id := range request.Ids {
+			for _, a := range authorsDb {
+				if a.Id == id {
+					as = append(as, a)
+				}
+			}
+		}
+	} else {
+		for _, author := range authorsDb {
+			a := author
+			as = append(as, a)
 		}
 	}
+
 	return &authors.GetAuthorsResponse{Authors: as}, nil
 }
 
-var authorsDb map[string]authors.Author
+var authorsDb map[string]*authors.Author
 
 func init() {
-	authorsDb = map[string]authors.Author{
+	authorsDb = map[string]*authors.Author{
 		"1": {
 			Id:   "1",
 			Name: "Leo Tolstoy",
 		},
 		"2": {
-			Id:   "3",
+			Id:   "2",
 			Name: "Road Dahl",
 		},
 		"3": {

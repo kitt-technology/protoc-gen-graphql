@@ -61,17 +61,16 @@ func main() {
 
 func init() {
 	books.Book_type.AddFieldConfig("author", &graphql.Field{
-		Name: "author",
 		Type: authors.Author_type,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return authors.LoadAuthor(p.Context, p.Source.(*books.Book).AuthorId)
 		},
 	})
-	authors.Author_type.AddFieldConfig("books", &graphql.Field{
-		Name: "books",
-		Type: graphql.NewList(books.Book_type),
+
+	authors.Author_type.AddFieldConfig("booksByAuthor", &graphql.Field{
+		Type: books.BooksByAuthor_type,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return books.LoadBook(p.Context, p.Source.(*authors.Author).Id)
+			return books.LoadBooksByAuthor(p.Context, p.Source.(*authors.Author).Id)
 		},
 	})
 }

@@ -30,20 +30,48 @@ type BookService struct {
 	books.UnimplementedBooksServer
 }
 
+func (s BookService) GetBooksByAuthor(ctx context.Context, request *books.GetBooksRequest) (*books.GetBooksByAuthorResponse, error) {
+	var bs []*books.BooksByAuthor
+
+	for _, authorId := range request.Ids {
+		booksByAuthor := books.BooksByAuthor{AuthorId: authorId}
+		for _, book := range booksDb {
+			if book.AuthorId == authorId {
+				booksByAuthor.Books = append(booksByAuthor.Books, book)
+			}
+		}
+
+		bs = append(bs, &booksByAuthor)
+	}
+
+	return &books.GetBooksByAuthorResponse{Results: bs}, nil
+}
+
 func (s BookService) GetBooks(ctx context.Context, request *books.GetBooksRequest) (*books.GetBooksResponse, error) {
 	var bs []*books.Book
 
-	for _, book := range booksDb {
-		b := book
-		bs = append(bs, &b)
+	if len(request.Ids) > 0 {
+		for _, id := range request.Ids {
+			for _, b := range booksDb {
+				if b.Id == id {
+					bs = append(bs, b)
+				}
+			}
+		}
+	} else {
+		for _, book := range booksDb {
+			b := book
+			bs = append(bs, b)
+		}
 	}
+
 	return &books.GetBooksResponse{Books: bs}, nil
 }
 
-var booksDb map[string]books.Book
+var booksDb map[string]*books.Book
 
 func init() {
-	booksDb = map[string]books.Book{
+	booksDb = map[string]*books.Book{
 		"1": {
 			Id:       "1",
 			Name:     "Philosophers Stone",
@@ -55,7 +83,7 @@ func init() {
 			AuthorId: "3",
 		},
 		"3": {
-			Id:       "2",
+			Id:       "3",
 			Name:     "Prisoner of Azkaban",
 			AuthorId: "3",
 		},

@@ -46,15 +46,18 @@ func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descr
 		{{- if $field.StructKey }}	
 			
 			{{- if $field.IsList }}
+			if args["{{ $field.Key }}"] != nil {
+	
+				{{ $field.Key }}InterfaceList := args["{{ $field.Key }}"].([]interface{})
+			
+				var {{ $field.Key }} []{{ $field.StructType }}
+				for _, item := range {{ $field.Key }}InterfaceList {
+					{{ $field.Key }} = append({{ $field.Key }}, item.({{ $field.StructType }}))
+				}
+				objectFromArgs.{{ $field.StructKey }} = {{ $field.Key }}
 
-			{{ $field.Key }}InterfaceList := args["{{ $field.Key }}"].([]interface{})
-		
-			var {{ $field.Key }} []{{ $field.StructType }}
-			for _, item := range {{ $field.Key }}InterfaceList {
-				{{ $field.Key }} = append({{ $field.Key }}, item.({{ $field.StructType }}))
 			}
-			objectFromArgs.{{ $field.StructKey }} = {{ $field.Key }}
-
+		
 			{{- else }}
 			objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
 
@@ -124,7 +127,7 @@ func (m Message) Generate() string {
 					m.Fields = append(m.Fields, Field{
 						Key:        *field.JsonName,
 						Type:       fmt.Sprintf("graphql.NewList(%s_type)", nestedTypeKey),
-						Optional:   false,
+						Optional:   true,
 						StructKey:  toGoStruct(field),
 						StructType: "*" + toGoType(field),
 						IsList:     true,
@@ -135,7 +138,7 @@ func (m Message) Generate() string {
 				m.Fields = append(m.Fields, Field{
 					Key:        *field.JsonName,
 					Type:       fmt.Sprintf("graphql.NewList(graphql.%s)", protoToGraphqlType(field.Type.String())),
-					Optional:   false,
+					Optional:   true,
 					StructKey:  toGoStruct(field),
 					StructType: toGoType(field),
 					IsList:     true,

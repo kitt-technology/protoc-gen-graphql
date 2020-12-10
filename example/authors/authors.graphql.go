@@ -13,27 +13,30 @@ var GetAuthorsRequest_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetAuthorsRequest",
 	Fields: graphql.Fields{
 		"ids": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(graphql.String)),
+			Type: graphql.NewList(graphql.String),
 		},
 	},
 })
 
 var GetAuthorsRequest_args = graphql.FieldConfigArgument{
 	"ids": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.NewList(graphql.String)),
+		Type: graphql.NewList(graphql.String),
 	},
 }
 
 func GetAuthorsRequest_from_args(args map[string]interface{}) *GetAuthorsRequest {
 	objectFromArgs := GetAuthorsRequest{}
+	if args["ids"] != nil {
 
-	idsInterfaceList := args["ids"].([]interface{})
+		idsInterfaceList := args["ids"].([]interface{})
 
-	var ids []string
-	for _, item := range idsInterfaceList {
-		ids = append(ids, item.(string))
+		var ids []string
+		for _, item := range idsInterfaceList {
+			ids = append(ids, item.(string))
+		}
+		objectFromArgs.Ids = ids
+
 	}
-	objectFromArgs.Ids = ids
 
 	return &objectFromArgs
 }
@@ -42,27 +45,30 @@ var GetAuthorsResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetAuthorsResponse",
 	Fields: graphql.Fields{
 		"authors": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(Author_type)),
+			Type: graphql.NewList(Author_type),
 		},
 	},
 })
 
 var GetAuthorsResponse_args = graphql.FieldConfigArgument{
 	"authors": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.NewList(Author_type)),
+		Type: graphql.NewList(Author_type),
 	},
 }
 
 func GetAuthorsResponse_from_args(args map[string]interface{}) *GetAuthorsResponse {
 	objectFromArgs := GetAuthorsResponse{}
+	if args["authors"] != nil {
 
-	authorsInterfaceList := args["authors"].([]interface{})
+		authorsInterfaceList := args["authors"].([]interface{})
 
-	var authors []*Author
-	for _, item := range authorsInterfaceList {
-		authors = append(authors, item.(*Author))
+		var authors []*Author
+		for _, item := range authorsInterfaceList {
+			authors = append(authors, item.(*Author))
+		}
+		objectFromArgs.Authors = authors
+
 	}
-	objectFromArgs.Authors = authors
 
 	return &objectFromArgs
 }

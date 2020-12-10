@@ -13,27 +13,30 @@ var GetBooksRequest_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetBooksRequest",
 	Fields: graphql.Fields{
 		"ids": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(graphql.String)),
+			Type: graphql.NewList(graphql.String),
 		},
 	},
 })
 
 var GetBooksRequest_args = graphql.FieldConfigArgument{
 	"ids": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.NewList(graphql.String)),
+		Type: graphql.NewList(graphql.String),
 	},
 }
 
 func GetBooksRequest_from_args(args map[string]interface{}) *GetBooksRequest {
 	objectFromArgs := GetBooksRequest{}
+	if args["ids"] != nil {
 
-	idsInterfaceList := args["ids"].([]interface{})
+		idsInterfaceList := args["ids"].([]interface{})
 
-	var ids []string
-	for _, item := range idsInterfaceList {
-		ids = append(ids, item.(string))
+		var ids []string
+		for _, item := range idsInterfaceList {
+			ids = append(ids, item.(string))
+		}
+		objectFromArgs.Ids = ids
+
 	}
-	objectFromArgs.Ids = ids
 
 	return &objectFromArgs
 }
@@ -42,27 +45,30 @@ var GetBooksResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetBooksResponse",
 	Fields: graphql.Fields{
 		"books": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(Book_type)),
+			Type: graphql.NewList(Book_type),
 		},
 	},
 })
 
 var GetBooksResponse_args = graphql.FieldConfigArgument{
 	"books": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.NewList(Book_type)),
+		Type: graphql.NewList(Book_type),
 	},
 }
 
 func GetBooksResponse_from_args(args map[string]interface{}) *GetBooksResponse {
 	objectFromArgs := GetBooksResponse{}
+	if args["books"] != nil {
 
-	booksInterfaceList := args["books"].([]interface{})
+		booksInterfaceList := args["books"].([]interface{})
 
-	var books []*Book
-	for _, item := range booksInterfaceList {
-		books = append(books, item.(*Book))
+		var books []*Book
+		for _, item := range booksInterfaceList {
+			books = append(books, item.(*Book))
+		}
+		objectFromArgs.Books = books
+
 	}
-	objectFromArgs.Books = books
 
 	return &objectFromArgs
 }
@@ -70,28 +76,70 @@ func GetBooksResponse_from_args(args map[string]interface{}) *GetBooksResponse {
 var GetBooksByAuthorResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetBooksByAuthorResponse",
 	Fields: graphql.Fields{
-		"books": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(Book_type)),
+		"results": &graphql.Field{
+			Type: graphql.NewList(BooksByAuthor_type),
 		},
 	},
 })
 
 var GetBooksByAuthorResponse_args = graphql.FieldConfigArgument{
-	"books": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.NewList(Book_type)),
+	"results": &graphql.ArgumentConfig{
+		Type: graphql.NewList(BooksByAuthor_type),
 	},
 }
 
 func GetBooksByAuthorResponse_from_args(args map[string]interface{}) *GetBooksByAuthorResponse {
 	objectFromArgs := GetBooksByAuthorResponse{}
+	if args["results"] != nil {
 
-	booksInterfaceList := args["books"].([]interface{})
+		resultsInterfaceList := args["results"].([]interface{})
 
-	var books []*Book
-	for _, item := range booksInterfaceList {
-		books = append(books, item.(*Book))
+		var results []*BooksByAuthor
+		for _, item := range resultsInterfaceList {
+			results = append(results, item.(*BooksByAuthor))
+		}
+		objectFromArgs.Results = results
+
 	}
-	objectFromArgs.Books = books
+
+	return &objectFromArgs
+}
+
+var BooksByAuthor_type = graphql.NewObject(graphql.ObjectConfig{
+	Name: "BooksByAuthor",
+	Fields: graphql.Fields{
+		"authorId": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"books": &graphql.Field{
+			Type: graphql.NewList(Book_type),
+		},
+	},
+})
+
+var BooksByAuthor_args = graphql.FieldConfigArgument{
+	"authorId": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.String),
+	},
+	"books": &graphql.ArgumentConfig{
+		Type: graphql.NewList(Book_type),
+	},
+}
+
+func BooksByAuthor_from_args(args map[string]interface{}) *BooksByAuthor {
+	objectFromArgs := BooksByAuthor{}
+	objectFromArgs.AuthorId = args["authorId"].(string)
+	if args["books"] != nil {
+
+		booksInterfaceList := args["books"].([]interface{})
+
+		var books []*Book
+		for _, item := range booksInterfaceList {
+			books = append(books, item.(*Book))
+		}
+		objectFromArgs.Books = books
+
+	}
 
 	return &objectFromArgs
 }
@@ -156,7 +204,7 @@ func init() {
 
 }
 
-func LoadBook(originalContext context.Context, key string) (func() (interface{}, error), error) {
+func LoadBooksByAuthor(originalContext context.Context, key string) (func() (interface{}, error), error) {
 	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 		var results []*dataloader.Result
 
@@ -168,7 +216,7 @@ func LoadBook(originalContext context.Context, key string) (func() (interface{},
 			return results
 		}
 
-		for _, item := range resp.Books {
+		for _, item := range resp.Results {
 			results = append(results, &dataloader.Result{Data: item})
 		}
 
@@ -183,11 +231,11 @@ func LoadBook(originalContext context.Context, key string) (func() (interface{},
 		if err != nil {
 			return nil, err
 		}
-		return res.(*Book), nil
+		return res.(*BooksByAuthor), nil
 	}, nil
 }
 
-func LoadManyBook(originalContext context.Context, keys []string) (func() (interface{}, error), error) {
+func LoadManyBooksByAuthor(originalContext context.Context, keys []string) (func() (interface{}, error), error) {
 	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 		var results []*dataloader.Result
 
@@ -199,7 +247,7 @@ func LoadManyBook(originalContext context.Context, keys []string) (func() (inter
 			return results
 		}
 
-		for _, item := range resp.Books {
+		for _, item := range resp.Results {
 			results = append(results, &dataloader.Result{Data: item})
 		}
 
@@ -218,9 +266,9 @@ func LoadManyBook(originalContext context.Context, keys []string) (func() (inter
 			}
 		}
 
-		var results []*Book
+		var results []*BooksByAuthor
 		for _, res := range resSlice {
-			results = append(results, res.(*Book))
+			results = append(results, res.(*BooksByAuthor))
 		}
 
 		return results, nil
