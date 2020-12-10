@@ -262,7 +262,8 @@ func IsWrapper(field *descriptorpb.FieldDescriptorProto) *WrapperType {
 				return &WrapperType{Type: "String", Primitive: "string", GraphqlType: "String"}
 			case ".google.protobuf.BoolValue":
 				return &WrapperType{Type: "Bool", Primitive: "bool", GraphqlType: "Boolean"}
-
+			case ".google.protobuf.FloatValue":
+				return &WrapperType{Type: "Float", Primitive: "float32", GraphqlType: "Float"}
 			}
 		}
 	}
@@ -278,7 +279,6 @@ func toGoType(field *descriptorpb.FieldDescriptorProto) string {
 			return "*wrappers.BoolValue"
 		case ".google.protobuf.FloatValue":
 			return "*wrappers.FloatValue"
-
 		}
 
 		if strings.Contains(last(*field.TypeName), "*") {
