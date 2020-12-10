@@ -30,6 +30,19 @@ type AuthorService struct {
 	authors.UnimplementedAuthorsServer
 }
 
+func (a AuthorService) LoadAuthors(ctx context.Context, request *authors.AuthorsBatchRequest) (*authors.AuthorsBatchResponse, error) {
+	as := make(map[string]*authors.Author)
+
+	for _, id := range request.Ids {
+		for _, a := range authorsDb {
+			if a.Id == id {
+				as[id] = a
+			}
+		}
+	}
+	return &authors.AuthorsBatchResponse{Authors: as}, nil
+}
+
 func (a AuthorService) GetAuthors(ctx context.Context, request *authors.GetAuthorsRequest) (*authors.GetAuthorsResponse, error) {
 	var as []*authors.Author
 

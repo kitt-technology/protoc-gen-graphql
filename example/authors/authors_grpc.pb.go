@@ -18,6 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthorsClient interface {
 	GetAuthors(ctx context.Context, in *GetAuthorsRequest, opts ...grpc.CallOption) (*GetAuthorsResponse, error)
+	LoadAuthors(ctx context.Context, in *_.BatchRequest, opts ...grpc.CallOption) (*AuthorsBatchResponse, error)
 }
 
 type authorsClient struct {
@@ -37,11 +38,21 @@ func (c *authorsClient) GetAuthors(ctx context.Context, in *GetAuthorsRequest, o
 	return out, nil
 }
 
+func (c *authorsClient) LoadAuthors(ctx context.Context, in *_.BatchRequest, opts ...grpc.CallOption) (*AuthorsBatchResponse, error) {
+	out := new(AuthorsBatchResponse)
+	err := c.cc.Invoke(ctx, "/authors.Authors/loadAuthors", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthorsServer is the server API for Authors service.
 // All implementations must embed UnimplementedAuthorsServer
 // for forward compatibility
 type AuthorsServer interface {
 	GetAuthors(context.Context, *GetAuthorsRequest) (*GetAuthorsResponse, error)
+	LoadAuthors(context.Context, *_.BatchRequest) (*AuthorsBatchResponse, error)
 	mustEmbedUnimplementedAuthorsServer()
 }
 
@@ -51,6 +62,9 @@ type UnimplementedAuthorsServer struct {
 
 func (UnimplementedAuthorsServer) GetAuthors(context.Context, *GetAuthorsRequest) (*GetAuthorsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAuthors not implemented")
+}
+func (UnimplementedAuthorsServer) LoadAuthors(context.Context, *_.BatchRequest) (*AuthorsBatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoadAuthors not implemented")
 }
 func (UnimplementedAuthorsServer) mustEmbedUnimplementedAuthorsServer() {}
 
@@ -83,6 +97,24 @@ func _Authors_GetAuthors_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Authors_LoadAuthors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(_.BatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthorsServer).LoadAuthors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/authors.Authors/loadAuthors",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthorsServer).LoadAuthors(ctx, req.(*_.BatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Authors_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "authors.Authors",
 	HandlerType: (*AuthorsServer)(nil),
@@ -90,6 +122,10 @@ var _Authors_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "getAuthors",
 			Handler:    _Authors_GetAuthors_Handler,
+		},
+		{
+			MethodName: "loadAuthors",
+			Handler:    _Authors_LoadAuthors_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

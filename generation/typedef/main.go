@@ -59,8 +59,16 @@ func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descr
 			}
 		
 			{{- else }}
-			objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
-
+				
+				{{ if $field.WrapperType }}
+					if args["{{ $field.Key }}"] != nil {
+						objectFromArgs.{{ $field.StructKey }} = wrapperspb.{{ $field.WrapperType.Type }}(args["{{ $field.Key }}"].({{ $field.WrapperType.Primitive }}))
+					}
+				{{ else }}
+					objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
+	
+				{{ end }}
+				
 			{{- end }}
 			
 		{{- end }}
@@ -75,10 +83,12 @@ type Message struct {
 	Descriptor *descriptorpb.DescriptorProto
 	Options    *graphql.MutationOption
 	Fields     []Field
+	Import     map[string]string
 }
 
 func New(msg *descriptorpb.DescriptorProto) (m Message) {
 	return Message{
+		Import:     make(map[string]string),
 		Options:    proto.GetExtension(msg.Options, graphql.E_MutationOptions).(*graphql.MutationOption),
 		Descriptor: msg,
 	}
@@ -90,7 +100,12 @@ func last(path string) string {
 }
 
 func (m Message) Imports() []string {
-	return []string{}
+	m.Generate()
+	var imports []string
+	for _, val := range m.Import {
+		imports = append(imports, val)
+	}
+	return imports
 }
 
 func (m Message) Generate() string {
@@ -149,22 +164,32 @@ func (m Message) Generate() string {
 		// Its a normal type
 		default:
 			if field.TypeName != nil {
+				wrapperType := IsWrapper(field)
+
+				t := fmt.Sprintf("%s_type", protoToGraphqlType(*field.TypeName))
+				if wrapperType != nil {
+					m.Import["google.golang.org/protobuf/types/known/wrapperspb"] = "google.golang.org/protobuf/types/known/wrapperspb"
+					t = fmt.Sprintf("graphql.%s", wrapperType.GraphqlType)
+				}
 
 				m.Fields = append(m.Fields, Field{
-					Key:        *field.JsonName,
-					Type:       fmt.Sprintf("%s_type", protoToGraphqlType(*field.TypeName)),
-					Optional:   true,
-					StructKey:  toGoStruct(field),
-					StructType: toGoType(field),
+					Key:         *field.JsonName,
+					Type:        t,
+					Optional:    true,
+					StructKey:   toGoStruct(field),
+					StructType:  toGoType(field),
+					WrapperType: wrapperType,
 				})
 
 			} else {
+				wrapperType := IsWrapper(field)
 				m.Fields = append(m.Fields, Field{
-					Key:        *field.JsonName,
-					Type:       fmt.Sprintf("%s", protoToGraphqlType(field.Type.String())),
-					Optional:   false,
-					StructKey:  toGoStruct(field),
-					StructType: toGoType(field),
+					Key:         *field.JsonName,
+					Type:        fmt.Sprintf("%s", protoToGraphqlType(field.Type.String())),
+					Optional:    false,
+					StructKey:   toGoStruct(field),
+					StructType:  toGoType(field),
+					WrapperType: wrapperType,
 				})
 			}
 
@@ -207,6 +232,8 @@ func protoToGraphqlType(protoType string) string {
 		return "graphql.Boolean"
 	case ".google.protobuf.StringValue":
 		return "graphql.String"
+	case ".google.protobuf.BoolValue":
+		return "graphql.Bool"
 	}
 	return last(protoType)
 }
@@ -217,11 +244,28 @@ func toGoStruct(field *descriptorpb.FieldDescriptorProto) string {
 	return strings.ToUpper(string(name[0])) + name[1:]
 }
 
+func IsWrapper(field *descriptorpb.FieldDescriptorProto) *WrapperType {
+	if field.TypeName != nil {
+		if strings.Contains(*field.TypeName, "google.protobuf.") {
+			switch *field.TypeName {
+			case ".google.protobuf.StringValue":
+				return &WrapperType{Type: "String", Primitive: "string", GraphqlType: "String"}
+			case ".google.protobuf.BoolValue":
+				return &WrapperType{Type: "Bool", Primitive: "bool", GraphqlType: "Boolean"}
+
+			}
+		}
+	}
+	return nil
+}
+
 func toGoType(field *descriptorpb.FieldDescriptorProto) string {
 	if field.TypeName != nil {
 		switch *field.TypeName {
 		case ".google.protobuf.StringValue":
 			return "*wrappers.StringValue"
+		case ".google.protobuf.BoolValue":
+			return "*wrappers.BoolValue"
 
 		}
 
@@ -250,10 +294,17 @@ func toGoType(field *descriptorpb.FieldDescriptorProto) string {
 }
 
 type Field struct {
-	Optional   bool
-	Key        string
-	Type       string
-	StructKey  string
-	StructType string
-	IsList     bool
+	Optional    bool
+	Key         string
+	Type        string
+	StructKey   string
+	StructType  string
+	IsList      bool
+	WrapperType *WrapperType
+}
+
+type WrapperType struct {
+	Type        string
+	Primitive   string
+	GraphqlType string
 }

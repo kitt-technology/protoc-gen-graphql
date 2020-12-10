@@ -2,6 +2,7 @@ package query
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/iancoleman/strcase"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
@@ -42,8 +43,8 @@ func Load{{ $loader.ResultsType }}(originalContext context.Context, key string) 
 			return results
 		}
 
-		for _, item := range resp.{{ $loader.ResultsField }} {
-			results = append(results, &dataloader.Result{Data: item})
+		for _, key := range keys.Keys() {
+			results = append(results, &dataloader.Result{Data: resp.{{ $loader.ResultsField }}[key]})
 		}
 
 		return results
@@ -73,8 +74,8 @@ func LoadMany{{ $loader.ResultsType }}(originalContext context.Context, keys []s
 			return results
 		}
 
-		for _, item := range resp.{{ $loader.ResultsField }} {
-			results = append(results, &dataloader.Result{Data: item})
+		for _, key := range keys.Keys() {
+			results = append(results, &dataloader.Result{Data: resp.{{ $loader.ResultsField }}[key]})
 		}
 
 		return results
@@ -135,28 +136,38 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 		}
 
 		// See if method is a batch loader
-		if proto.HasExtension(method.Options, graphql.E_Batch) {
-			batchOptions := proto.GetExtension(method.Options, graphql.E_Batch).(*graphql.BatchOptions)
-
-			// Find result field type
+		if *method.InputType == "graphql.BatchRequest" {
+			// Find type of map
 			var resultType string
-			for _, field := range output.Field {
-				if *field.Name == batchOptions.Results {
-					resultType = strings.Title(last(*field.TypeName))
+
+			if len(output.Field) == 0 || output.Field[0].Label.String() != "LABEL_REPEATED" || !strings.Contains(*output.Field[0].TypeName, "Entry") {
+				panic(fmt.Sprintf("batch loaders must have one field of the type: map<string, Result> for %s.%s", *msg.Name, *method.Name))
+			}
+
+			var field = output.Field[0]
+			resultType = strings.Title(last(*field.TypeName))
+			nestedTypeKey := last(*field.TypeName)
+			for _, nestedType := range output.NestedType {
+				if *nestedType.Name == nestedTypeKey {
+					if nestedType.Field[1].TypeName != nil {
+						resultType = last(*nestedType.Field[1].TypeName)
+					} else {
+						resultType = nestedType.Field[1].Type.String()
+					}
 				}
 			}
 
 			m.Loaders = append(m.Loaders, Loader{
 				Method:       strings.Title(*method.Name),
 				RequestType:  strings.Title(last(*method.InputType)),
-				KeysField:    strcase.ToCamel(batchOptions.Keys),
-				ResultsField: strcase.ToCamel(batchOptions.Results),
+				KeysField:    strcase.ToCamel("Keys"),
+				ResultsField: strcase.ToCamel(*field.Name),
 				ResultsType:  resultType,
 			})
 
+		} else {
+			methods = append(methods, Method{Input: last(*method.InputType), Output: last(*method.OutputType), Name: strings.Title(*method.Name)})
 		}
-
-		methods = append(methods, Method{Input: last(*method.InputType), Output: last(*method.OutputType), Name: strings.Title(*method.Name)})
 	}
 	return Message{
 		Descriptor:  msg,

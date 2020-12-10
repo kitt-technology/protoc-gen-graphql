@@ -31,17 +31,17 @@ type BookService struct {
 }
 
 func (s BookService) GetBooksByAuthor(ctx context.Context, request *books.GetBooksRequest) (*books.GetBooksByAuthorResponse, error) {
-	var bs []*books.BooksByAuthor
+	var bs = make(map[string]*books.BooksByAuthor)
 
 	for _, authorId := range request.Ids {
-		booksByAuthor := books.BooksByAuthor{AuthorId: authorId}
+		booksByAuthor := books.BooksByAuthor{}
 		for _, book := range booksDb {
 			if book.AuthorId == authorId {
-				booksByAuthor.Books = append(booksByAuthor.Books, book)
+				booksByAuthor.Results = append(booksByAuthor.Results, book)
 			}
 		}
 
-		bs = append(bs, &booksByAuthor)
+		bs[authorId] = &booksByAuthor
 	}
 
 	return &books.GetBooksByAuthorResponse{Results: bs}, nil
@@ -50,7 +50,9 @@ func (s BookService) GetBooksByAuthor(ctx context.Context, request *books.GetBoo
 func (s BookService) GetBooks(ctx context.Context, request *books.GetBooksRequest) (*books.GetBooksResponse, error) {
 	var bs []*books.Book
 
-	if len(request.Ids) > 0 {
+	if request.HardbackOnly != nil && request.HardbackOnly.GetValue() {
+		bs = append(bs, booksDb["3"])
+	} else if len(request.Ids) > 0 {
 		for _, id := range request.Ids {
 			for _, b := range booksDb {
 				if b.Id == id {

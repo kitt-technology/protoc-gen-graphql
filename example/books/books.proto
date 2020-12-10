@@ -3,6 +3,7 @@ syntax = "proto3";
 package books;
 
 import "graphql/graphql.proto";
+import "google/protobuf/wrappers.proto";
 
 option go_package = "example/books;books";
 
@@ -15,13 +16,13 @@ service Books {
   rpc getBooksByAuthor(GetBooksRequest) returns (GetBooksByAuthorResponse) {
     option (graphql.batch) = {
       keys: "ids",
-      results: "results",
     };
   }
 }
 
 message GetBooksRequest {
   repeated string ids = 1;
+  google.protobuf.BoolValue hardback_only = 14;
 }
 
 message GetBooksResponse {
@@ -29,14 +30,13 @@ message GetBooksResponse {
 }
 
 message GetBooksByAuthorResponse {
-  repeated BooksByAuthor results = 1;
+  map<string, BooksByAuthor> results = 1;
 }
 
 message BooksByAuthor {
-  string author_id = 1;
-  repeated Book books = 2;
-}
+  repeated Book results = 2;
 
+}
 message Book {
   string id = 1;
   string name = 2;

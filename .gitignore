@@ -1,3 +1,4 @@
 .idea
 tests/out
 vendor
+*.graphql.go

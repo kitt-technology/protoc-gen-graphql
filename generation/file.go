@@ -44,7 +44,7 @@ func New(file *protogen.File) (f File) {
 	for _, dep := range file.Proto.Dependency {
 		switch dep {
 		case "google/protobuf/wrappers.proto":
-			f.Imports = append(f.Imports, "github.com/golang/protobuf/ptypes/wrappers")
+			//f.Imports = append(f.Imports, "github.com/golang/protobuf/ptypes/wrappers")
 		}
 	}
 

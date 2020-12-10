@@ -3,8 +3,7 @@ package books
 import (
 	"github.com/graphql-go/graphql"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-	"github.com/graph-gophers/dataloader"
-	"context"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var Fields []*graphql.Field
@@ -15,12 +14,18 @@ var GetBooksRequest_type = graphql.NewObject(graphql.ObjectConfig{
 		"ids": &graphql.Field{
 			Type: graphql.NewList(graphql.String),
 		},
+		"hardbackOnly": &graphql.Field{
+			Type: graphql.Boolean,
+		},
 	},
 })
 
 var GetBooksRequest_args = graphql.FieldConfigArgument{
 	"ids": &graphql.ArgumentConfig{
 		Type: graphql.NewList(graphql.String),
+	},
+	"hardbackOnly": &graphql.ArgumentConfig{
+		Type: graphql.Boolean,
 	},
 }
 
@@ -36,6 +41,10 @@ func GetBooksRequest_from_args(args map[string]interface{}) *GetBooksRequest {
 		}
 		objectFromArgs.Ids = ids
 
+	}
+
+	if args["hardbackOnly"] != nil {
+		objectFromArgs.HardbackOnly = wrapperspb.Bool(args["hardbackOnly"].(bool))
 	}
 
 	return &objectFromArgs
@@ -76,31 +85,20 @@ func GetBooksResponse_from_args(args map[string]interface{}) *GetBooksResponse {
 var GetBooksByAuthorResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetBooksByAuthorResponse",
 	Fields: graphql.Fields{
-		"results": &graphql.Field{
-			Type: graphql.NewList(BooksByAuthor_type),
+		"message": &graphql.Field{
+			Type: graphql.String,
 		},
 	},
 })
 
 var GetBooksByAuthorResponse_args = graphql.FieldConfigArgument{
-	"results": &graphql.ArgumentConfig{
-		Type: graphql.NewList(BooksByAuthor_type),
+	"message": &graphql.ArgumentConfig{
+		Type: graphql.String,
 	},
 }
 
 func GetBooksByAuthorResponse_from_args(args map[string]interface{}) *GetBooksByAuthorResponse {
 	objectFromArgs := GetBooksByAuthorResponse{}
-	if args["results"] != nil {
-
-		resultsInterfaceList := args["results"].([]interface{})
-
-		var results []*BooksByAuthor
-		for _, item := range resultsInterfaceList {
-			results = append(results, item.(*BooksByAuthor))
-		}
-		objectFromArgs.Results = results
-
-	}
 
 	return &objectFromArgs
 }
@@ -108,36 +106,29 @@ func GetBooksByAuthorResponse_from_args(args map[string]interface{}) *GetBooksBy
 var BooksByAuthor_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "BooksByAuthor",
 	Fields: graphql.Fields{
-		"authorId": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
-		},
-		"books": &graphql.Field{
+		"results": &graphql.Field{
 			Type: graphql.NewList(Book_type),
 		},
 	},
 })
 
 var BooksByAuthor_args = graphql.FieldConfigArgument{
-	"authorId": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.String),
-	},
-	"books": &graphql.ArgumentConfig{
+	"results": &graphql.ArgumentConfig{
 		Type: graphql.NewList(Book_type),
 	},
 }
 
 func BooksByAuthor_from_args(args map[string]interface{}) *BooksByAuthor {
 	objectFromArgs := BooksByAuthor{}
-	objectFromArgs.AuthorId = args["authorId"].(string)
-	if args["books"] != nil {
+	if args["results"] != nil {
 
-		booksInterfaceList := args["books"].([]interface{})
+		resultsInterfaceList := args["results"].([]interface{})
 
-		var books []*Book
-		for _, item := range booksInterfaceList {
-			books = append(books, item.(*Book))
+		var results []*Book
+		for _, item := range resultsInterfaceList {
+			results = append(results, item.(*Book))
 		}
-		objectFromArgs.Books = books
+		objectFromArgs.Results = results
 
 	}
 
@@ -173,8 +164,11 @@ var Book_args = graphql.FieldConfigArgument{
 
 func Book_from_args(args map[string]interface{}) *Book {
 	objectFromArgs := Book{}
+
 	objectFromArgs.Id = args["id"].(string)
+
 	objectFromArgs.Name = args["name"].(string)
+
 	objectFromArgs.AuthorId = args["authorId"].(string)
 
 	return &objectFromArgs
@@ -202,75 +196,4 @@ func init() {
 		},
 	})
 
-}
-
-func LoadBooksByAuthor(originalContext context.Context, key string) (func() (interface{}, error), error) {
-	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-		var results []*dataloader.Result
-
-		resp, err := client.GetBooksByAuthor(ctx, &GetBooksRequest{
-			Ids: keys.Keys(),
-		})
-
-		if err != nil {
-			return results
-		}
-
-		for _, item := range resp.Results {
-			results = append(results, &dataloader.Result{Data: item})
-		}
-
-		return results
-	}
-
-	loader := dataloader.NewBatchedLoader(batchFn)
-
-	thunk := loader.Load(originalContext, dataloader.StringKey(key))
-	return func() (interface{}, error) {
-		res, err := thunk()
-		if err != nil {
-			return nil, err
-		}
-		return res.(*BooksByAuthor), nil
-	}, nil
-}
-
-func LoadManyBooksByAuthor(originalContext context.Context, keys []string) (func() (interface{}, error), error) {
-	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-		var results []*dataloader.Result
-
-		resp, err := client.GetBooksByAuthor(ctx, &GetBooksRequest{
-			Ids: keys.Keys(),
-		})
-
-		if err != nil {
-			return results
-		}
-
-		for _, item := range resp.Results {
-			results = append(results, &dataloader.Result{Data: item})
-		}
-
-		return results
-	}
-
-	loader := dataloader.NewBatchedLoader(batchFn)
-
-	thunk := loader.LoadMany(originalContext, dataloader.NewKeysFromStrings(keys))
-	return func() (interface{}, error) {
-		resSlice, errSlice := thunk()
-
-		for _, err := range errSlice {
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		var results []*BooksByAuthor
-		for _, res := range resSlice {
-			results = append(results, res.(*BooksByAuthor))
-		}
-
-		return results, nil
-	}, nil
 }

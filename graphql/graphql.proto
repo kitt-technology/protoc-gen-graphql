@@ -36,5 +36,8 @@ message FieldResolver {
 message BatchOptions {
   string keys = 1;
   string results = 2;
-  string results_secondary   = 3;
+}
+
+message BatchRequest {
+  repeated string keys = 1;
 }

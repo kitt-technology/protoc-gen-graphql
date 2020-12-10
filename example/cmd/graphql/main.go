@@ -67,8 +67,8 @@ func init() {
 		},
 	})
 
-	authors.Author_type.AddFieldConfig("booksByAuthor", &graphql.Field{
-		Type: books.BooksByAuthor_type,
+	authors.Author_type.AddFieldConfig("books", &graphql.Field{
+		Type: graphql.NewList(books.Book_type),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return books.LoadBooksByAuthor(p.Context, p.Source.(*authors.Author).Id)
 		},
