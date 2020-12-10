@@ -20,7 +20,6 @@ build-examples:
 		--go_out=./graphql/
 	rm -rf tests/out || true
 	mkdir tests/out/
-	rm -rf auth.graphql.go
 
 	@go install .
 

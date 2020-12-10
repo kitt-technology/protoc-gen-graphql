@@ -55,6 +55,7 @@ RUN go get -d ${PGG_PKG} \
   && cd - \
   && rm -rf ${PGG_PATH}
 
+COPY Makefile ./
 COPY go.* ./
 
 RUN make deps
