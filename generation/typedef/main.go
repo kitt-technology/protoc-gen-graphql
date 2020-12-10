@@ -129,7 +129,7 @@ func (m Message) Generate() string {
 						Type:       fmt.Sprintf("graphql.NewList(%s_type)", nestedTypeKey),
 						Optional:   true,
 						StructKey:  toGoStruct(field),
-						StructType: "*" + toGoType(field),
+						StructType: toGoType(field),
 						IsList:     true,
 					})
 				}
@@ -137,7 +137,7 @@ func (m Message) Generate() string {
 			default:
 				m.Fields = append(m.Fields, Field{
 					Key:        *field.JsonName,
-					Type:       fmt.Sprintf("graphql.NewList(graphql.%s)", protoToGraphqlType(field.Type.String())),
+					Type:       fmt.Sprintf("graphql.NewList(%s)", protoToGraphqlType(field.Type.String())),
 					Optional:   true,
 					StructKey:  toGoStruct(field),
 					StructType: toGoType(field),
@@ -152,7 +152,7 @@ func (m Message) Generate() string {
 
 				m.Fields = append(m.Fields, Field{
 					Key:        *field.JsonName,
-					Type:       fmt.Sprintf("graphql.%s", protoToGraphqlType(*field.TypeName)),
+					Type:       fmt.Sprintf("%s_type", protoToGraphqlType(*field.TypeName)),
 					Optional:   true,
 					StructKey:  toGoStruct(field),
 					StructType: toGoType(field),
@@ -161,7 +161,7 @@ func (m Message) Generate() string {
 			} else {
 				m.Fields = append(m.Fields, Field{
 					Key:        *field.JsonName,
-					Type:       fmt.Sprintf("graphql.%s", protoToGraphqlType(field.Type.String())),
+					Type:       fmt.Sprintf("%s", protoToGraphqlType(field.Type.String())),
 					Optional:   false,
 					StructKey:  toGoStruct(field),
 					StructType: toGoType(field),
@@ -194,15 +194,19 @@ func (m Message) Generate() string {
 func protoToGraphqlType(protoType string) string {
 	switch protoType {
 	case "TYPE_STRING":
-		return "String"
+		return "graphql.String"
 	case "TYPE_INT32":
-		return "Int"
+		return "graphql.Int"
+	case "TYPE_FLOAT":
+		return "graphql.Float"
+	case "TYPE_BYTES":
+		return "graphql.String"
 	case "TYPE_BOOL":
-		return "Boolean"
+		return "graphql.Boolean"
 	case ".google.protobuf.StringValue":
-		return "String"
+		return "graphql.String"
 	}
-	return protoType
+	return last(protoType)
 }
 
 func toGoStruct(field *descriptorpb.FieldDescriptorProto) string {
@@ -218,7 +222,11 @@ func toGoType(field *descriptorpb.FieldDescriptorProto) string {
 
 		}
 
-		return last(*field.TypeName)
+		if strings.Contains(last(*field.TypeName), "*") {
+			return last(*field.TypeName)
+		}
+
+		return "*" + last(*field.TypeName)
 	}
 
 	switch field.Type.String() {
@@ -226,8 +234,12 @@ func toGoType(field *descriptorpb.FieldDescriptorProto) string {
 		return "string"
 	case "TYPE_INT32":
 		return "int32"
+	case "TYPE_FLOAT":
+		return "float32"
 	case "TYPE_BOOL":
 		return "bool"
+	case "TYPE_BYTES":
+		return "[]byte"
 	}
 	return ""
 }

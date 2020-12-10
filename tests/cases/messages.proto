@@ -8,54 +8,33 @@ import "google/protobuf/wrappers.proto";
 option go_package = "cases;cases";
 
 service MyService {
-  rpc getSomething(GetSomethingRequest) returns (GetSomethingResponse) {
-    option (graphql.dataloader_service) = {
-      name: "something_else_by_id_loader",
-    };
-  }
+  rpc getSomething(GetSomethingRequest) returns (GetSomethingResponse) { }
 }
 
 message GetSomethingRequest {
-  repeated string id = 1 [(graphql.dataloader) = {
-    ids: true
-  }];
+  repeated string id = 1;
 }
 
 message GetSomethingResponse {
   string id = 1;
-  string something_id = 2 [(graphql.field_resolver) = {
-    field_name: "something"
-    dataloader_name: "something_by_id_loader"
-  }];
-  repeated string some_id_list = 3 [(graphql.field_resolver) = {
-    field_name: "something"
-    dataloader_name: "something_by_id_loader"
-  }];
+  string something_id = 2;
+  repeated string some_id_list = 3;
 }
 
 message TestCommand {
-  option (graphql.mutation_options) = {
-    name: "openDoor",
-    success: "CommandSuccess",
-    failure: "CommandFailed",
-  };
-
   string id = 1;
   int32 some_int = 2;
   bool some_bool = 3;
-  map<string, SomeObject> id_object_map = 4;
-  repeated SomeObject id_object_list = 5;
+  map<string, SomeSmallObject> id_object_map = 4;
+  repeated SomeSmallObject id_object_list = 5;
   repeated string string_list = 6;
   map<string, string> string_map = 7;
   google.protobuf.StringValue optional_id = 8;
 }
 
-message SomeObject {
+message SomeSmallObject {
   string some_id = 1;
 }
 
-message CommandSuccess {}
-
-message CommandFailed {}
 
 

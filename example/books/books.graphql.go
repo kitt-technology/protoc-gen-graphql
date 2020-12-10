@@ -3,8 +3,8 @@ package books
 import (
 	"github.com/graphql-go/graphql"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-	"context"
 	"github.com/graph-gophers/dataloader"
+	"context"
 )
 
 var Fields []*graphql.Field
