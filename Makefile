@@ -52,7 +52,7 @@ test:
 		--go_out=./graphql/
 	rm -rf tests/out || true
 	mkdir tests/out/
-	@go install .
+	go install .
 	protoc \
 		--proto_path tests/cases \
 		-I=. \
