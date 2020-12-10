@@ -33,6 +33,7 @@ type GraphqlMessage interface {
 	proto.Message
 	XXX_type() *graphql.Object
 	XXX_args() graphql.FieldConfigArgument
+	From_args(args map[string]interface{})
 }
 
 type Svc interface {
