@@ -18,7 +18,8 @@ service Books {
 
 message GetBooksRequest {
   repeated string ids = 1;
-  google.protobuf.BoolValue hardback_only = 14;
+  google.protobuf.BoolValue hardback_only = 2;
+  google.protobuf.FloatValue price = 3;
 }
 
 message GetBooksResponse {
