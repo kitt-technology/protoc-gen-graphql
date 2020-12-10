@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"github.com/golang/protobuf/proto"
 	"github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
 	"time"
@@ -29,6 +30,7 @@ type ProtoConfig struct {
 }
 
 type GraphqlMessage interface {
+	proto.Message
 	XXX_type() *graphql.Object
 	XXX_args() graphql.FieldConfigArgument
 }
