@@ -199,6 +199,8 @@ func protoToGraphqlType(protoType string) string {
 		return "graphql.Int"
 	case "TYPE_FLOAT":
 		return "graphql.Float"
+	case "TYPE_DOUBLE":
+		return "graphql.Float"
 	case "TYPE_BYTES":
 		return "graphql.String"
 	case "TYPE_BOOL":
@@ -211,6 +213,7 @@ func protoToGraphqlType(protoType string) string {
 
 func toGoStruct(field *descriptorpb.FieldDescriptorProto) string {
 	name := *field.JsonName
+
 	return strings.ToUpper(string(name[0])) + name[1:]
 }
 
@@ -238,6 +241,8 @@ func toGoType(field *descriptorpb.FieldDescriptorProto) string {
 		return "float32"
 	case "TYPE_BOOL":
 		return "bool"
+	case "TYPE_DOUBLE":
+		return "float64"
 	case "TYPE_BYTES":
 		return "[]byte"
 	}

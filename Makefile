@@ -20,11 +20,14 @@ build-examples:
 		--go_out=./graphql/
 	rm -rf tests/out || true
 	mkdir tests/out/
+	rm -rf auth.graphql.go
+
 	@go install .
 
 	protoc \
 		--proto_path ./example/authors/ \
 		-I . \
+		-I ${GOPATH}/src \
 		./example/authors/authors.proto \
 		--go_out=. \
 		--go-grpc_out=. \
@@ -32,6 +35,7 @@ build-examples:
 	protoc \
 		--proto_path ./example/books \
 		-I . \
+		-I ${GOPATH}/src \
 		./example/books/books.proto \
 		--go_out=. \
 		--go-grpc_out=. \

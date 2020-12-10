@@ -36,7 +36,7 @@ func main() {
 }
 
 func shouldProcess(file *protogen.File) bool {
-	ignoredFiles := []string{"graphql/graphql.proto", "graphql.proto", "google/protobuf/descriptor.proto", "google/protobuf/wrappers.proto"}
+	ignoredFiles := []string{"graphql/graphql.proto", "graphql.proto", "google/protobuf/descriptor.proto", "google/protobuf/wrappers.proto", "google/protobuf/timestamp.proto"}
 	for _, ignored := range ignoredFiles {
 		if *file.Proto.Name == ignored {
 			return false
