@@ -3,13 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/graphql-go/graphql"
 	"github.com/kitt-technology/protoc-gen-graphql/example/authors"
 	"github.com/kitt-technology/protoc-gen-graphql/example/books"
-	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"log"
 	"net/http"
-
-	"github.com/graphql-go/graphql"
 )
 
 type postData struct {
@@ -18,39 +16,14 @@ type postData struct {
 	Variables map[string]interface{} `json:"variables"`
 }
 
-func AddFieldResolver(fieldName string, root *graphql.Object, returnType graphql.Output, resolve func(p graphql.ResolveParams) (interface{}, error)) {
-	root.AddFieldConfig(fieldName, &graphql.Field{
-		Name:    fieldName,
-		Type:    returnType,
-		Resolve: resolve,
-	})
-}
-
 func main() {
-	config := pg.ProtoConfig{}
-
-	AddFieldResolver("author", books.Book_type, authors.Author_type, func(p graphql.ResolveParams) (interface{}, error) {
-		book := p.Source.(*books.Book)
-		resp, err := authors.Get().GetAuthors(p.Context, &authors.GetAuthorsRequest{
-			Ids: []string{book.AuthorId},
-		})
-
-		if err != nil {
-			return nil, err
-		}
-		return resp.Authors[0], err
-	})
-
-	config = authors.Register(config)
-	config = books.Register(config)
-
+	fields := append(authors.Fields, books.Fields...)
 	field := graphql.Fields{}
-	for _, query := range config.Queries {
-		field[query.Name] = query
+	for _, f := range fields {
+		field[f.Name] = f
 	}
 
 	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: field}
-
 	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
 
 	schema, err := graphql.NewSchema(schemaConfig)
@@ -84,4 +57,21 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func init() {
+	books.Book_type.AddFieldConfig("author", &graphql.Field{
+		Name: "author",
+		Type: authors.Author_type,
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			return authors.LoadAuthor(p.Context, p.Source.(*books.Book).AuthorId)
+		},
+	})
+	authors.Author_type.AddFieldConfig("books", &graphql.Field{
+		Name: "books",
+		Type: graphql.NewList(books.Book_type),
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			return books.LoadBook(p.Context, p.Source.(*authors.Author).Id)
+		},
+	})
 }

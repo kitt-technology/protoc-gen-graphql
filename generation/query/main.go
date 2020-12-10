@@ -2,7 +2,7 @@ package query
 
 import (
 	"bytes"
-	"fmt"
+	"github.com/iancoleman/strcase"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -12,92 +12,112 @@ import (
 
 const msgTpl = `
 
-var {{ .Descriptor.Name }} {{ .Descriptor.Name }}Client
-
-func Get() {{ .Descriptor.Name }}Client {
-	return {{ .Descriptor.Name }}
-}
-
+var client {{ .Descriptor.Name }}Client
 
 func init() {
-	{{ .Descriptor.Name }} = New{{ .Descriptor.Name }}Client(pg.GrpcConnection("{{ .Dns }}"))
+	client = New{{ .Descriptor.Name }}Client(pg.GrpcConnection("{{ .Dns }}"))
 	{{- range $method := .Methods }}
-	queries = append(queries, &graphql.Field{
+	Fields = append(Fields, &graphql.Field{
 		Name: "{{ $.ServiceName }}_{{ $method.Name }}",
 		Type: {{ $method.Output }}_type,
 		Args: {{ $method.Input }}_args,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return {{ $.ServiceName }}.{{ $method.Name }}(p.Context, {{ $method.Input }}_from_args(p.Args))
+			return client.{{ $method.Name }}(p.Context, {{ $method.Input }}_from_args(p.Args))
 		},
 	})
 	{{ end }}
+}
 
-	{{- range $dataloader := .RequiredDataloaders }}
-	if dataloadersToRegister == nil {
-		dataloadersToRegister = make(map[string][]pg.RegisterDataloaderFn)
-	}
 
-	if _, ok := dataloadersToRegister["{{ $dataloader.Name }}"]; !ok {
-		dataloadersToRegister["{{ $dataloader.Name }}"] = []pg.RegisterDataloaderFn{}
-	}
+{{ range $loader :=.Loaders }}
+func Load{{ $loader.ResultsType }}(originalContext context.Context, key string) (func() (interface{}, error), error) {
+	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+		var results []*dataloader.Result
 
-	dataloadersToRegister["{{ $dataloader.Name }}"] = append(dataloadersToRegister["{{ $dataloader.Name }}"], func(dl pg.Dataloader) {
-		{{ $dataloader.Source }}_type.AddFieldConfig("{{ $dataloader.FieldName }}", &graphql.Field{
-			Type: dl.Output,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				source, _ := p.Source.(*{{ $dataloader.Source }})
-				return dl.Fn(p.Context, {{ $dataloader.IdFieldName }})
-			},
+		resp, err := client.{{ $loader.Method }}(ctx, &{{ $loader.RequestType }}{
+			{{ $loader.KeysField }}: keys.Keys(),
 		})
-	})
 
-	{{ end }}
+		if err != nil {
+			return results
+		}
 
-	{{- range $dataloader := .DataloadersToProvide }}
-	if dataloadersToProvide == nil {
-		dataloadersToProvide = make(map[string]pg.Dataloader)
+		for _, item := range resp.{{ $loader.ResultsField }} {
+			results = append(results, &dataloader.Result{Data: item})
+		}
+
+		return results
 	}
-	dataloadersToProvide["{{ $dataloader.Name }}"] = pg.Dataloader{
-		Fn: func(ctx context.Context, ids []string) (interface{}, error) {
-			resp, err := {{ $.Descriptor.Name }}.{{ $dataloader.MethodName }}(ctx, &{{ $dataloader.Input }}{ {{ $dataloader.IdField }}: ids})
 
+	loader := dataloader.NewBatchedLoader(batchFn)
+
+	thunk := loader.Load(originalContext, dataloader.StringKey(key))
+	return func() (interface{}, error) {
+				res, err := thunk()
+				if err != nil {
+					return nil, err
+				}
+				return res.(*{{ $loader.ResultsType }}), nil
+	}, nil
+}
+
+func LoadMany{{ $loader.ResultsType }}(originalContext context.Context, keys []string) (func() (interface{}, error), error) {
+	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+		var results []*dataloader.Result
+
+		resp, err := client.{{ $loader.Method }}(ctx, &{{ $loader.RequestType }}{
+			{{ $loader.KeysField }}: keys.Keys(),
+		})
+
+		if err != nil {
+			return results
+		}
+
+		for _, item := range resp.{{ $loader.ResultsField }} {
+			results = append(results, &dataloader.Result{Data: item})
+		}
+
+		return results
+	}
+
+	loader := dataloader.NewBatchedLoader(batchFn)
+
+	thunk := loader.LoadMany(originalContext, dataloader.NewKeysFromStrings(keys))
+	return func() (interface{}, error) {
+		resSlice, errSlice := thunk()
+		
+		for _, err := range errSlice {
 			if err != nil {
 				return nil, err
 			}
-			return resp.{{ $dataloader.ObjectField }}, nil
-		},
-		Output: graphql.NewList({{ $dataloader.ReturnType }}_type),
-	}
-	{{- end }}
+		}
+		
+		var results []*{{ $loader.ResultsType }}
+		for _, res := range resSlice {
+			results = append(results, res.(*{{ $loader.ResultsType }}))
+		}
 
+		return results, nil
+	}, nil
 }
+{{ end }}
 `
 
-type DataloaderConfig struct {
-	Name        string
-	IdFieldName string
-	FieldName   string
-	Source      string
-}
-
-type DataloaderProviderConfig struct {
-	Name        string
-	IdField     string
-	MethodName  string
-	Input       string
-	Output      string
-	ObjectField string
-	ReturnType  string
+type Loader struct {
+	Method       string
+	RequestType  string
+	KeysField    string
+	ResultsField string
+	ResultsType  string
 }
 
 type Message struct {
-	Descriptor           *descriptorpb.ServiceDescriptorProto
-	Options              *graphql.MutationOption
-	Methods              []Method
-	DataloadersToProvide []DataloaderProviderConfig
-	RequiredDataloaders  []DataloaderConfig
-	ServiceName          string
-	Dns                  string
+	Descriptor  *descriptorpb.ServiceDescriptorProto
+	Options     *graphql.MutationOption
+	Methods     []Method
+	ServiceName string
+	Dns         string
+	Loaders     []Loader
 }
 
 func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescriptorProto) (m Message) {
@@ -105,10 +125,8 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 
 	dns := proto.GetExtension(msg.Options, graphql.E_Host).(string)
 
-	var dataloaders []DataloaderConfig
-	var dataloadersToProvider []DataloaderProviderConfig
 	for _, method := range msg.Method {
-		// See if output has any dataloaded fields
+		// Get output type of method
 		var output *descriptorpb.DescriptorProto
 		for _, msgType := range root.MessageType {
 			if last(*method.OutputType) == *msgType.Name {
@@ -116,94 +134,42 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 			}
 		}
 
-		// See if method is a dataloader service method
-		if proto.HasExtension(method.Options, graphql.E_DataloaderService) {
-			serviceOptions := proto.GetExtension(method.Options, graphql.E_DataloaderService).(*graphql.DataloaderServiceOptions)
+		// See if method is a batch loader
+		if proto.HasExtension(method.Options, graphql.E_Batch) {
+			batchOptions := proto.GetExtension(method.Options, graphql.E_Batch).(*graphql.BatchOptions)
 
-			providerConfig := DataloaderProviderConfig{
-				Name:       serviceOptions.Name,
-				MethodName: strings.Title(*method.Name),
-				Input:      strings.Title(last(*method.InputType)),
-				Output:     strings.Title(last(*method.OutputType)),
-			}
-
-			var input *descriptorpb.DescriptorProto
-			for _, msgType := range root.MessageType {
-				if last(*method.InputType) == *msgType.Name {
-					input = msgType
-				}
-			}
-			for _, field := range input.Field {
-				if proto.HasExtension(field.Options, graphql.E_DataloaderIds) {
-					dataloader := proto.GetExtension(field.Options, graphql.E_DataloaderIds).(bool)
-					if dataloader {
-						providerConfig.IdField = strings.Title(*field.JsonName)
-					}
-				}
-			}
+			// Find result field type
+			var resultType string
 			for _, field := range output.Field {
-				if proto.HasExtension(field.Options, graphql.E_DataloaderObject) {
-					object := proto.GetExtension(field.Options, graphql.E_DataloaderObject).(bool)
-					if object {
-						providerConfig.ObjectField = strings.Title(*field.JsonName)
-						providerConfig.ReturnType = last(*field.TypeName)
-					}
+				if *field.Name == batchOptions.Results {
+					resultType = strings.Title(last(*field.TypeName))
 				}
 			}
-			dataloadersToProvider = append(dataloadersToProvider, providerConfig)
-			// Find id field
 
-		}
+			m.Loaders = append(m.Loaders, Loader{
+				Method:       strings.Title(*method.Name),
+				RequestType:  strings.Title(last(*method.InputType)),
+				KeysField:    strcase.ToCamel(batchOptions.Keys),
+				ResultsField: strcase.ToCamel(batchOptions.Results),
+				ResultsType:  resultType,
+			})
 
-		for _, field := range output.Field {
-			dataloaders = getDataloaders(root, *output.Name, field, dataloaders)
 		}
 
 		methods = append(methods, Method{Input: last(*method.InputType), Output: last(*method.OutputType), Name: strings.Title(*method.Name)})
 	}
 	return Message{
-		Descriptor:           msg,
-		Methods:              methods,
-		ServiceName:          *msg.Name,
-		RequiredDataloaders:  dataloaders,
-		DataloadersToProvide: dataloadersToProvider,
-		Dns:                  dns,
+		Descriptor:  msg,
+		Methods:     methods,
+		ServiceName: *msg.Name,
+		Dns:         dns,
+		Loaders:     m.Loaders,
 	}
-}
-
-func getDataloaders(root *descriptorpb.FileDescriptorProto, outputName string, field *descriptorpb.FieldDescriptorProto, dataloaders []DataloaderConfig) []DataloaderConfig {
-
-	if field.TypeName != nil {
-		for _, msgType := range root.MessageType {
-			if last(*field.TypeName) == *msgType.Name {
-				for _, field := range msgType.Field {
-					dataloaders = getDataloaders(root, *msgType.Name, field, dataloaders)
-				}
-			}
-		}
-	}
-
-	if proto.HasExtension(field.Options, graphql.E_FieldResolver) {
-		fieldResolver := proto.GetExtension(field.Options, graphql.E_FieldResolver).(*graphql.FieldResolver)
-
-		IdFieldName := fmt.Sprintf("[]string{source.%s}", strings.Title(*field.JsonName))
-		if field.Label.String() == "LABEL_REPEATED" {
-			IdFieldName = fmt.Sprintf("source.%s", strings.Title(*field.JsonName))
-		}
-
-		dataloaders = append(dataloaders, DataloaderConfig{
-			Name:        fieldResolver.DataloaderName,
-			IdFieldName: IdFieldName,
-			FieldName:   fieldResolver.FieldName,
-			Source:      outputName,
-		})
-	}
-	return dataloaders
 }
 
 func (m Message) Imports() []string {
-	if len(m.DataloadersToProvide) > 0 {
-		return []string{"context"}
+	if len(m.Loaders) > 0 {
+		return []string{"context", "github.com/graph-gophers/dataloader"}
 	}
 	return []string{}
 }

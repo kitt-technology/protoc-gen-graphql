@@ -1,20 +1,13 @@
 package authors
 
-import "github.com/graphql-go/graphql"
-import pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-import "google.golang.org/protobuf/proto"
+import (
+	"github.com/graphql-go/graphql"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"context"
+	"github.com/graph-gophers/dataloader"
+)
 
-var mutations []*graphql.Field
-var queries []*graphql.Field
-
-var mutationResolver func(command proto.Message, success proto.Message) (proto.Message, error)
-var dataloadersToRegister map[string][]pg.RegisterDataloaderFn
-var dataloadersToProvide map[string]pg.Dataloader
-
-func Register(config pg.ProtoConfig) pg.ProtoConfig {
-	config.Queries = append(config.Queries, queries...)
-	return config
-}
+var Fields []*graphql.Field
 
 var GetAuthorsRequest_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetAuthorsRequest",
@@ -32,9 +25,17 @@ var GetAuthorsRequest_args = graphql.FieldConfigArgument{
 }
 
 func GetAuthorsRequest_from_args(args map[string]interface{}) *GetAuthorsRequest {
-	return &GetAuthorsRequest{
-		Ids: args["ids"].([]string),
+	objectFromArgs := GetAuthorsRequest{}
+
+	idsInterfaceList := args["ids"].([]interface{})
+
+	var ids []string
+	for _, item := range idsInterfaceList {
+		ids = append(ids, item.(string))
 	}
+	objectFromArgs.Ids = ids
+
+	return &objectFromArgs
 }
 
 var GetAuthorsResponse_type = graphql.NewObject(graphql.ObjectConfig{
@@ -53,9 +54,17 @@ var GetAuthorsResponse_args = graphql.FieldConfigArgument{
 }
 
 func GetAuthorsResponse_from_args(args map[string]interface{}) *GetAuthorsResponse {
-	return &GetAuthorsResponse{
-		Authors: args["authors"].([]*Author),
+	objectFromArgs := GetAuthorsResponse{}
+
+	authorsInterfaceList := args["authors"].([]interface{})
+
+	var authors []*Author
+	for _, item := range authorsInterfaceList {
+		authors = append(authors, item.(*Author))
 	}
+	objectFromArgs.Authors = authors
+
+	return &objectFromArgs
 }
 
 var Author_type = graphql.NewObject(graphql.ObjectConfig{
@@ -80,27 +89,95 @@ var Author_args = graphql.FieldConfigArgument{
 }
 
 func Author_from_args(args map[string]interface{}) *Author {
-	return &Author{
-		Id:   args["id"].(string),
-		Name: args["name"].(string),
-	}
+	objectFromArgs := Author{}
+	objectFromArgs.Id = args["id"].(string)
+	objectFromArgs.Name = args["name"].(string)
+
+	return &objectFromArgs
 }
 
-var Authors AuthorsClient
-
-func Get() AuthorsClient {
-	return Authors
-}
+var client AuthorsClient
 
 func init() {
-	Authors = NewAuthorsClient(pg.GrpcConnection("localhost:50052"))
-	queries = append(queries, &graphql.Field{
+	client = NewAuthorsClient(pg.GrpcConnection("localhost:50052"))
+	Fields = append(Fields, &graphql.Field{
 		Name: "Authors_GetAuthors",
 		Type: GetAuthorsResponse_type,
 		Args: GetAuthorsRequest_args,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return Authors.GetAuthors(p.Context, GetAuthorsRequest_from_args(p.Args))
+			return client.GetAuthors(p.Context, GetAuthorsRequest_from_args(p.Args))
 		},
 	})
 
+}
+
+func LoadAuthor(originalContext context.Context, key string) (func() (interface{}, error), error) {
+	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+		var results []*dataloader.Result
+
+		resp, err := client.GetAuthors(ctx, &GetAuthorsRequest{
+			Ids: keys.Keys(),
+		})
+
+		if err != nil {
+			return results
+		}
+
+		for _, item := range resp.Authors {
+			results = append(results, &dataloader.Result{Data: item})
+		}
+
+		return results
+	}
+
+	loader := dataloader.NewBatchedLoader(batchFn)
+
+	thunk := loader.Load(originalContext, dataloader.StringKey(key))
+	return func() (interface{}, error) {
+		res, err := thunk()
+		if err != nil {
+			return nil, err
+		}
+		return res.(*Author), nil
+	}, nil
+}
+
+func LoadManyAuthor(originalContext context.Context, keys []string) (func() (interface{}, error), error) {
+	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+		var results []*dataloader.Result
+
+		resp, err := client.GetAuthors(ctx, &GetAuthorsRequest{
+			Ids: keys.Keys(),
+		})
+
+		if err != nil {
+			return results
+		}
+
+		for _, item := range resp.Authors {
+			results = append(results, &dataloader.Result{Data: item})
+		}
+
+		return results
+	}
+
+	loader := dataloader.NewBatchedLoader(batchFn)
+
+	thunk := loader.LoadMany(originalContext, dataloader.NewKeysFromStrings(keys))
+	return func() (interface{}, error) {
+		resSlice, errSlice := thunk()
+
+		for _, err := range errSlice {
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		var results []*Author
+		for _, res := range resSlice {
+			results = append(results, res.(*Author))
+		}
+
+		return results, nil
+	}, nil
 }

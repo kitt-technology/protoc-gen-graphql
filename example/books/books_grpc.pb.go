@@ -18,6 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BooksClient interface {
 	GetBooks(ctx context.Context, in *GetBooksRequest, opts ...grpc.CallOption) (*GetBooksResponse, error)
+	GetBooksByAuthor(ctx context.Context, in *GetBooksRequest, opts ...grpc.CallOption) (*GetBooksByAuthorResponse, error)
 }
 
 type booksClient struct {
@@ -37,11 +38,21 @@ func (c *booksClient) GetBooks(ctx context.Context, in *GetBooksRequest, opts ..
 	return out, nil
 }
 
+func (c *booksClient) GetBooksByAuthor(ctx context.Context, in *GetBooksRequest, opts ...grpc.CallOption) (*GetBooksByAuthorResponse, error) {
+	out := new(GetBooksByAuthorResponse)
+	err := c.cc.Invoke(ctx, "/books.Books/getBooksByAuthor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BooksServer is the server API for Books service.
 // All implementations must embed UnimplementedBooksServer
 // for forward compatibility
 type BooksServer interface {
 	GetBooks(context.Context, *GetBooksRequest) (*GetBooksResponse, error)
+	GetBooksByAuthor(context.Context, *GetBooksRequest) (*GetBooksByAuthorResponse, error)
 	mustEmbedUnimplementedBooksServer()
 }
 
@@ -51,6 +62,9 @@ type UnimplementedBooksServer struct {
 
 func (UnimplementedBooksServer) GetBooks(context.Context, *GetBooksRequest) (*GetBooksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBooks not implemented")
+}
+func (UnimplementedBooksServer) GetBooksByAuthor(context.Context, *GetBooksRequest) (*GetBooksByAuthorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBooksByAuthor not implemented")
 }
 func (UnimplementedBooksServer) mustEmbedUnimplementedBooksServer() {}
 
@@ -83,6 +97,24 @@ func _Books_GetBooks_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Books_GetBooksByAuthor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BooksServer).GetBooksByAuthor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/books.Books/getBooksByAuthor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BooksServer).GetBooksByAuthor(ctx, req.(*GetBooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Books_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "books.Books",
 	HandlerType: (*BooksServer)(nil),
@@ -90,6 +122,10 @@ var _Books_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "getBooks",
 			Handler:    _Books_GetBooks_Handler,
+		},
+		{
+			MethodName: "getBooksByAuthor",
+			Handler:    _Books_GetBooksByAuthor_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

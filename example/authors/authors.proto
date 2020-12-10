@@ -9,7 +9,12 @@ service Authors {
   option (graphql.host) =
       "localhost:50052";
 
-  rpc getAuthors(GetAuthorsRequest) returns (GetAuthorsResponse) {}
+  rpc getAuthors(GetAuthorsRequest) returns (GetAuthorsResponse) {
+    option (graphql.batch) = {
+      keys: "ids",
+      results: "authors",
+    };
+  }
 }
 
 message GetAuthorsRequest {

@@ -16,7 +16,7 @@ extend google.protobuf.FieldOptions {
 }
 
 extend google.protobuf.MethodOptions {
-  DataloaderServiceOptions dataloader_service = 1087;
+  BatchOptions batch = 1087;
 }
 
 extend google.protobuf.ServiceOptions {
@@ -33,6 +33,7 @@ message FieldResolver {
   string dataloader_name = 2;
 }
 
-message DataloaderServiceOptions {
-  string name = 1;
+message BatchOptions {
+  string keys = 1;
+  string results = 2;
 }

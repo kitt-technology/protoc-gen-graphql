@@ -10,11 +10,24 @@ service Books {
   "localhost:50051";
 
   rpc getBooks(GetBooksRequest) returns (GetBooksResponse) {}
+
+  rpc getBooksByAuthor(GetBooksRequest) returns (GetBooksByAuthorResponse) {
+    option (graphql.batch) = {
+      keys: "ids",
+      results: "books",
+    };
+  }
 }
 
-message GetBooksRequest {}
+message GetBooksRequest {
+  repeated string ids = 1;
+}
 
 message GetBooksResponse {
+  repeated Book books = 1;
+}
+
+message GetBooksByAuthorResponse {
   repeated Book books = 1;
 }
 

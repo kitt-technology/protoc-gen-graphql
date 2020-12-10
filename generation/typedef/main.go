@@ -41,13 +41,30 @@ var {{ .Descriptor.GetName }}_args = graphql.FieldConfigArgument{
 }
 
 func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descriptor.GetName }} {
-	return &{{ .Descriptor.GetName }}{
-		{{- range $field := .Fields }}
-		{{- if $field.StructKey }}
-			{{ $field.StructKey }}: args["{{ $field.Key }}"].({{ $field.StructType }}),
+	objectFromArgs := {{ .Descriptor.GetName }}{}
+	{{- range $field := .Fields }}
+		{{- if $field.StructKey }}	
+			
+			{{- if $field.IsList }}
+
+			{{ $field.Key }}InterfaceList := args["{{ $field.Key }}"].([]interface{})
+		
+			var {{ $field.Key }} []{{ $field.StructType }}
+			for _, item := range {{ $field.Key }}InterfaceList {
+				{{ $field.Key }} = append({{ $field.Key }}, item.({{ $field.StructType }}))
+			}
+			objectFromArgs.{{ $field.StructKey }} = {{ $field.Key }}
+
+			{{- else }}
+			objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
+
+			{{- end }}
+			
 		{{- end }}
-		{{- end }}
-	}
+	{{- end }}
+
+
+	return &objectFromArgs
 }
 `
 
@@ -109,7 +126,8 @@ func (m Message) Generate() string {
 						Type:       fmt.Sprintf("graphql.NewList(%s_type)", nestedTypeKey),
 						Optional:   false,
 						StructKey:  toGoStruct(field),
-						StructType: "[]*" + toGoType(field),
+						StructType: "*" + toGoType(field),
+						IsList:     true,
 					})
 				}
 				break
@@ -119,7 +137,8 @@ func (m Message) Generate() string {
 					Type:       fmt.Sprintf("graphql.NewList(graphql.%s)", protoToGraphqlType(field.Type.String())),
 					Optional:   false,
 					StructKey:  toGoStruct(field),
-					StructType: "[]" + toGoType(field),
+					StructType: toGoType(field),
+					IsList:     true,
 				})
 				log.Printf("%d is a list of %s", *field.Number, field.Type.String())
 			}
@@ -147,7 +166,6 @@ func (m Message) Generate() string {
 			}
 
 		}
-		log.Println()
 	}
 
 	if len(m.Fields) == 0 {
@@ -217,4 +235,5 @@ type Field struct {
 	Type       string
 	StructKey  string
 	StructType string
+	IsList     bool
 }

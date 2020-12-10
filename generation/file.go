@@ -14,26 +14,16 @@ import (
 const fileTpl = `
 package {{ .Package }}
 
-import "github.com/graphql-go/graphql"
-import pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-import "google.golang.org/protobuf/proto"
+import (
+	"github.com/graphql-go/graphql"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	{{- range $import := .Imports }}
+	"{{ $import }}"
+	{{- end }}
+)
 
-{{- range $import := .Imports }}
-import "{{ $import }}"
-{{ end }}
 
-var mutations []*graphql.Field
-var queries []*graphql.Field
-
-var mutationResolver func(command proto.Message, success proto.Message) (proto.Message, error)
-var dataloadersToRegister map[string][]pg.RegisterDataloaderFn
-var dataloadersToProvide map[string]pg.Dataloader
-
-func Register(config pg.ProtoConfig) pg.ProtoConfig {
-	config.Queries = append(config.Queries, queries...)
-	return config
-}
-
+var Fields []*graphql.Field
 `
 
 type Message interface {

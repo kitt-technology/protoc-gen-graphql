@@ -47,7 +47,7 @@ func init() {
 	authorsDb = map[string]authors.Author{
 		"1": {
 			Id:   "1",
-			Name: "authorsDb",
+			Name: "Leo Tolstoy",
 		},
 		"2": {
 			Id:   "3",

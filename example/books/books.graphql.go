@@ -1,38 +1,41 @@
 package books
 
-import "github.com/graphql-go/graphql"
-import pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-import "google.golang.org/protobuf/proto"
+import (
+	"github.com/graphql-go/graphql"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"context"
+	"github.com/graph-gophers/dataloader"
+)
 
-var mutations []*graphql.Field
-var queries []*graphql.Field
-
-var mutationResolver func(command proto.Message, success proto.Message) (proto.Message, error)
-var dataloadersToRegister map[string][]pg.RegisterDataloaderFn
-var dataloadersToProvide map[string]pg.Dataloader
-
-func Register(config pg.ProtoConfig) pg.ProtoConfig {
-	config.Queries = append(config.Queries, queries...)
-	return config
-}
+var Fields []*graphql.Field
 
 var GetBooksRequest_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetBooksRequest",
 	Fields: graphql.Fields{
-		"message": &graphql.Field{
-			Type: graphql.String,
+		"ids": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.String)),
 		},
 	},
 })
 
 var GetBooksRequest_args = graphql.FieldConfigArgument{
-	"message": &graphql.ArgumentConfig{
-		Type: graphql.String,
+	"ids": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.NewList(graphql.String)),
 	},
 }
 
 func GetBooksRequest_from_args(args map[string]interface{}) *GetBooksRequest {
-	return &GetBooksRequest{}
+	objectFromArgs := GetBooksRequest{}
+
+	idsInterfaceList := args["ids"].([]interface{})
+
+	var ids []string
+	for _, item := range idsInterfaceList {
+		ids = append(ids, item.(string))
+	}
+	objectFromArgs.Ids = ids
+
+	return &objectFromArgs
 }
 
 var GetBooksResponse_type = graphql.NewObject(graphql.ObjectConfig{
@@ -51,9 +54,46 @@ var GetBooksResponse_args = graphql.FieldConfigArgument{
 }
 
 func GetBooksResponse_from_args(args map[string]interface{}) *GetBooksResponse {
-	return &GetBooksResponse{
-		Books: args["books"].([]*Book),
+	objectFromArgs := GetBooksResponse{}
+
+	booksInterfaceList := args["books"].([]interface{})
+
+	var books []*Book
+	for _, item := range booksInterfaceList {
+		books = append(books, item.(*Book))
 	}
+	objectFromArgs.Books = books
+
+	return &objectFromArgs
+}
+
+var GetBooksByAuthorResponse_type = graphql.NewObject(graphql.ObjectConfig{
+	Name: "GetBooksByAuthorResponse",
+	Fields: graphql.Fields{
+		"books": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.NewList(Book_type)),
+		},
+	},
+})
+
+var GetBooksByAuthorResponse_args = graphql.FieldConfigArgument{
+	"books": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.NewList(Book_type)),
+	},
+}
+
+func GetBooksByAuthorResponse_from_args(args map[string]interface{}) *GetBooksByAuthorResponse {
+	objectFromArgs := GetBooksByAuthorResponse{}
+
+	booksInterfaceList := args["books"].([]interface{})
+
+	var books []*Book
+	for _, item := range booksInterfaceList {
+		books = append(books, item.(*Book))
+	}
+	objectFromArgs.Books = books
+
+	return &objectFromArgs
 }
 
 var Book_type = graphql.NewObject(graphql.ObjectConfig{
@@ -84,28 +124,105 @@ var Book_args = graphql.FieldConfigArgument{
 }
 
 func Book_from_args(args map[string]interface{}) *Book {
-	return &Book{
-		Id:       args["id"].(string),
-		Name:     args["name"].(string),
-		AuthorId: args["authorId"].(string),
-	}
+	objectFromArgs := Book{}
+	objectFromArgs.Id = args["id"].(string)
+	objectFromArgs.Name = args["name"].(string)
+	objectFromArgs.AuthorId = args["authorId"].(string)
+
+	return &objectFromArgs
 }
 
-var Books BooksClient
-
-func Get() BooksClient {
-	return Books
-}
+var client BooksClient
 
 func init() {
-	Books = NewBooksClient(pg.GrpcConnection("localhost:50051"))
-	queries = append(queries, &graphql.Field{
+	client = NewBooksClient(pg.GrpcConnection("localhost:50051"))
+	Fields = append(Fields, &graphql.Field{
 		Name: "Books_GetBooks",
 		Type: GetBooksResponse_type,
 		Args: GetBooksRequest_args,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return Books.GetBooks(p.Context, GetBooksRequest_from_args(p.Args))
+			return client.GetBooks(p.Context, GetBooksRequest_from_args(p.Args))
 		},
 	})
 
+	Fields = append(Fields, &graphql.Field{
+		Name: "Books_GetBooksByAuthor",
+		Type: GetBooksByAuthorResponse_type,
+		Args: GetBooksRequest_args,
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			return client.GetBooksByAuthor(p.Context, GetBooksRequest_from_args(p.Args))
+		},
+	})
+
+}
+
+func LoadBook(originalContext context.Context, key string) (func() (interface{}, error), error) {
+	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+		var results []*dataloader.Result
+
+		resp, err := client.GetBooksByAuthor(ctx, &GetBooksRequest{
+			Ids: keys.Keys(),
+		})
+
+		if err != nil {
+			return results
+		}
+
+		for _, item := range resp.Books {
+			results = append(results, &dataloader.Result{Data: item})
+		}
+
+		return results
+	}
+
+	loader := dataloader.NewBatchedLoader(batchFn)
+
+	thunk := loader.Load(originalContext, dataloader.StringKey(key))
+	return func() (interface{}, error) {
+		res, err := thunk()
+		if err != nil {
+			return nil, err
+		}
+		return res.(*Book), nil
+	}, nil
+}
+
+func LoadManyBook(originalContext context.Context, keys []string) (func() (interface{}, error), error) {
+	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+		var results []*dataloader.Result
+
+		resp, err := client.GetBooksByAuthor(ctx, &GetBooksRequest{
+			Ids: keys.Keys(),
+		})
+
+		if err != nil {
+			return results
+		}
+
+		for _, item := range resp.Books {
+			results = append(results, &dataloader.Result{Data: item})
+		}
+
+		return results
+	}
+
+	loader := dataloader.NewBatchedLoader(batchFn)
+
+	thunk := loader.LoadMany(originalContext, dataloader.NewKeysFromStrings(keys))
+	return func() (interface{}, error) {
+		resSlice, errSlice := thunk()
+
+		for _, err := range errSlice {
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		var results []*Book
+		for _, res := range resSlice {
+			results = append(results, res.(*Book))
+		}
+
+		return results, nil
+	}, nil
 }
