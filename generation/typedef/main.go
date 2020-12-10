@@ -78,8 +78,39 @@ func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descr
 	return &objectFromArgs
 }
 
-func (msg *{{ .Descriptor.GetName }}) From_args(args map[string]interface{}) *{{ .Descriptor.GetName }} {
-	return {{ .Descriptor.GetName }}_from_args(args)
+func (objectFromArgs *{{ .Descriptor.GetName }}) From_args(args map[string]interface{}) {
+		{{- range $field := .Fields }}
+		{{- if $field.StructKey }}	
+			
+			{{- if $field.IsList }}
+			if args["{{ $field.Key }}"] != nil {
+	
+				{{ $field.Key }}InterfaceList := args["{{ $field.Key }}"].([]interface{})
+			
+				var {{ $field.Key }} []{{ $field.StructType }}
+				for _, item := range {{ $field.Key }}InterfaceList {
+					{{ $field.Key }} = append({{ $field.Key }}, item.({{ $field.StructType }}))
+				}
+				objectFromArgs.{{ $field.StructKey }} = {{ $field.Key }}
+
+			}
+		
+			{{- else }}
+				
+				{{ if $field.WrapperType }}
+					if args["{{ $field.Key }}"] != nil {
+						objectFromArgs.{{ $field.StructKey }} = wrapperspb.{{ $field.WrapperType.Type }}(args["{{ $field.Key }}"].({{ $field.WrapperType.Primitive }}))
+					}
+				{{ else }}
+					objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
+	
+				{{ end }}
+				
+			{{- end }}
+			
+		{{- end }}
+	{{- end }}
+
 }
 
 func (msg *{{ .Descriptor.GetName }}) XXX_type() *graphql.Object {
