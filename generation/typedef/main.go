@@ -242,6 +242,8 @@ func protoToGraphqlType(protoType string) string {
 		return "graphql.String"
 	case ".google.protobuf.BoolValue":
 		return "graphql.Bool"
+	case ".google.protobuf.FloatValue":
+		return "graphql.Float"
 	}
 	return last(protoType)
 }
@@ -274,6 +276,8 @@ func toGoType(field *descriptorpb.FieldDescriptorProto) string {
 			return "*wrappers.StringValue"
 		case ".google.protobuf.BoolValue":
 			return "*wrappers.BoolValue"
+		case ".google.protobuf.FloatValue":
+			return "*wrappers.FloatValue"
 
 		}
 
