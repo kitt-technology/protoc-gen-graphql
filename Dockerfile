@@ -44,6 +44,17 @@ RUN go get -d ${PGG_PKG} \
   && cd - \
   && rm -rf ${PGG_PATH}
 
+# protoc-gen-grpc-go
+ENV PGG_PKG "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
+ENV PGG_PATH "${GOPATH}/src/${PGG_PKG}"
+ENV PGG_VER=v1.34.0
+RUN go get -d ${PGG_PKG} \
+  && cd ${PGG_PATH} \
+  && git checkout ${PGG_VER} \
+  && go install \
+  && cd - \
+  && rm -rf ${PGG_PATH}
+
 COPY go.* ./
 
 RUN make deps
