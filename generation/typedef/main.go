@@ -77,6 +77,14 @@ func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descr
 
 	return &objectFromArgs
 }
+
+func (msg *{{ .Descriptor.GetName }}) XXX_type() *graphql.Object {
+	return {{ .Descriptor.GetName }}_type
+}
+
+func (msg *{{ .Descriptor.GetName }}) XXX_args() graphql.FieldConfigArgument {
+	return {{ .Descriptor.GetName }}_args
+}
 `
 
 type Message struct {
