@@ -3,6 +3,7 @@ package graphql
 import (
 	"context"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
 	"time"
@@ -24,6 +25,15 @@ var Timestamp_type = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 	},
 })
+
+func ToTimestamp(field interface{}) *timestamp.Timestamp {
+	timeMap := field.(map[string]string)
+	t, _ := time.Parse("2006-01-02T15:04:05", timeMap["ISOString"])
+	ts := timestamp.Timestamp{
+		Seconds: t.Unix(),
+	}
+	return &ts
+}
 
 type Dataloader struct {
 	Output graphql.Output
