@@ -7,6 +7,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
 	"log"
+	"reflect"
 	"time"
 )
 
@@ -32,11 +33,8 @@ var Timestamp_type = graphql.NewObject(graphql.ObjectConfig{
 		"ISOString": &graphql.Field{
 			Type: graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-
-				log.Print(p)
-				log.Print(p.Source)
-				log.Print(p.Context)
-				log.Print(p.Args)
+				log.Print(reflect.TypeOf(p.Source.(*timestamp.Timestamp)))
+				log.Print(p.Source.(*timestamp.Timestamp))
 				return nil, nil
 			},
 		},
