@@ -28,13 +28,28 @@ var {{ .Descriptor.GetName }}_type = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var {{ .Descriptor.GetName }}_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "{{ .Descriptor.GetName }}",
+	Fields: graphql.InputObjectConfigFieldMap{
+		{{- range $field := .Fields }}
+		"{{ $field.Key }}": &graphql.InputObjectFieldConfig{
+			{{- if $field.Optional }}
+			Type: {{ replace $field.Type "type" "input_type" }},
+			{{- else }}
+			Type: graphql.NewNonNull({{ replace $field.Type "type" "input_type" }}),
+			{{- end }}
+		},
+		{{- end }}
+	},
+})
+
 var {{ .Descriptor.GetName }}_args = graphql.FieldConfigArgument{
 	{{- range $field := .Fields }}
 	"{{ $field.Key }}": &graphql.ArgumentConfig{
 		{{- if $field.Optional }}
-		Type: {{ $field.Type }},
+		Type: {{ replace $field.Type "type" "input_type" }},
 		{{- else }}
-		Type: graphql.NewNonNull({{ $field.Type }}),
+		Type: graphql.NewNonNull({{ replace $field.Type "type" "input_type" }}),
 		{{- end }}
 	},
 	{{- end }}
@@ -59,14 +74,20 @@ func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descr
 			}
 		
 			{{- else }}
+				{{ if $field.IsTimestamp }}
 				
-				{{ if $field.WrapperType }}
-					if args["{{ $field.Key }}"] != nil {
-						objectFromArgs.{{ $field.StructKey }} = wrapperspb.{{ $field.WrapperType.Type }}(args["{{ $field.Key }}"].({{ $field.WrapperType.Primitive }}))
-					}
 				{{ else }}
-					objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
+
+					{{ if $field.WrapperType }}
+						if args["{{ $field.Key }}"] != nil {
+							objectFromArgs.{{ $field.StructKey }} = wrapperspb.{{ $field.WrapperType.Type }}(args["{{ $field.Key }}"].({{ $field.WrapperType.Primitive }}))
+						}
+					{{ end }}
 	
+					{{ if not $field.WrapperType }}
+						objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
+					{{ end }}
+					
 				{{ end }}
 				
 			{{- end }}
@@ -96,16 +117,23 @@ func (objectFromArgs *{{ .Descriptor.GetName }}) From_args(args map[string]inter
 			}
 		
 			{{- else }}
-				
-				{{ if $field.WrapperType }}
-					if args["{{ $field.Key }}"] != nil {
-						objectFromArgs.{{ $field.StructKey }} = wrapperspb.{{ $field.WrapperType.Type }}(args["{{ $field.Key }}"].({{ $field.WrapperType.Primitive }}))
-					}
+				{{ if $field.IsTimestamp }}
+					objectFromArgs.{{ $field.StructKey }} = pg.ToTimestamp(args["{{ $field.Key }}"])
 				{{ else }}
-					objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
+
+					{{ if $field.WrapperType }}
+						if args["{{ $field.Key }}"] != nil {
+							objectFromArgs.{{ $field.StructKey }} = wrapperspb.{{ $field.WrapperType.Type }}(args["{{ $field.Key }}"].({{ $field.WrapperType.Primitive }}))
+						}
+					{{ end }}
 	
+					{{ if not $field.WrapperType }}
+						objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
+					{{ end }}
+					
 				{{ end }}
-				
+
+
 			{{- end }}
 			
 		{{- end }}
@@ -181,6 +209,7 @@ func (m Message) Generate() string {
 						hasMapEntry = true
 					}
 				}
+
 				if !hasMapEntry {
 					m.Fields = append(m.Fields, Field{
 						Key:        *field.JsonName,
@@ -193,15 +222,24 @@ func (m Message) Generate() string {
 				}
 				break
 			default:
+				t := fmt.Sprintf("graphql.NewList(%s)", protoToGraphqlType(field.Type.String()))
+
+				structType := toGoType(field)
+				if field.Type.String() == "TYPE_ENUM" {
+					t = fmt.Sprintf("%s_type", protoToGraphqlType(*field.TypeName))
+					t = strings.Replace(t, "_type", "_enum", -1)
+					t = fmt.Sprintf("graphql.NewList(%s)", t)
+					structType = strings.Replace(structType, "*", "", -1)
+				}
+
 				m.Fields = append(m.Fields, Field{
 					Key:        *field.JsonName,
-					Type:       fmt.Sprintf("graphql.NewList(%s)", protoToGraphqlType(field.Type.String())),
+					Type:       t,
 					Optional:   true,
 					StructKey:  toGoStruct(field),
-					StructType: toGoType(field),
+					StructType: structType,
 					IsList:     true,
 				})
-				log.Printf("%d is a list of %s", *field.Number, field.Type.String())
 			}
 			break
 		// Its a normal type
@@ -215,17 +253,30 @@ func (m Message) Generate() string {
 					t = fmt.Sprintf("graphql.%s", wrapperType.GraphqlType)
 				}
 
+				structType := toGoType(field)
+				if field.Type.String() == "TYPE_ENUM" {
+					structType = strings.Replace(structType, "*", "", -1)
+					t = strings.Replace(t, "_type", "_enum", -1)
+				}
+
+				isTimestamp := false
+				if structType == "*Timestamp" {
+					isTimestamp = true
+				}
+
 				m.Fields = append(m.Fields, Field{
 					Key:         *field.JsonName,
 					Type:        t,
 					Optional:    true,
 					StructKey:   toGoStruct(field),
-					StructType:  toGoType(field),
+					StructType:  structType,
 					WrapperType: wrapperType,
+					IsTimestamp: isTimestamp,
 				})
 
 			} else {
 				wrapperType := IsWrapper(field)
+
 				m.Fields = append(m.Fields, Field{
 					Key:         *field.JsonName,
 					Type:        fmt.Sprintf("%s", protoToGraphqlType(field.Type.String())),
@@ -239,6 +290,8 @@ func (m Message) Generate() string {
 		}
 	}
 
+	log.Println(m.Fields)
+
 	if len(m.Fields) == 0 {
 		m.Fields = append(m.Fields, Field{
 			Key:        "message",
@@ -250,7 +303,12 @@ func (m Message) Generate() string {
 	}
 
 	var buf bytes.Buffer
-	mTpl, err := template.New("msg").Parse(msgTpl)
+
+	funcMap := template.FuncMap{
+		"replace": replace,
+	}
+
+	mTpl, err := template.New("msg").Funcs(funcMap).Parse(msgTpl)
 	if err != nil {
 		panic(err)
 	}
@@ -259,7 +317,11 @@ func (m Message) Generate() string {
 	return buf.String()
 }
 
+func replace(input, from, to string) string {
+	return strings.Replace(input, from, to, -1)
+}
 func protoToGraphqlType(protoType string) string {
+	log.Println(protoType)
 	switch protoType {
 	case "TYPE_STRING":
 		return "graphql.String"
@@ -271,6 +333,8 @@ func protoToGraphqlType(protoType string) string {
 		return "graphql.Float"
 	case "TYPE_BYTES":
 		return "graphql.String"
+	case "TYPE_ENUM":
+		return protoType + "_enum"
 	case "TYPE_BOOL":
 		return "graphql.Boolean"
 	case ".google.protobuf.StringValue":
@@ -279,6 +343,8 @@ func protoToGraphqlType(protoType string) string {
 		return "graphql.Bool"
 	case ".google.protobuf.FloatValue":
 		return "graphql.Float"
+	case ".google.protobuf.Timestamp":
+		return "pg.Timestamp"
 	}
 	return last(protoType)
 }
@@ -348,6 +414,7 @@ type Field struct {
 	StructType  string
 	IsList      bool
 	WrapperType *WrapperType
+	IsTimestamp bool
 }
 
 type WrapperType struct {

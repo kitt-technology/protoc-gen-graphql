@@ -135,6 +135,10 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 			}
 		}
 
+		if last(*method.OutputType) == "Empty" {
+			continue
+		}
+
 		// See if method is a batch loader
 		if *method.InputType == ".graphql.BatchRequest" {
 			// Find type of map

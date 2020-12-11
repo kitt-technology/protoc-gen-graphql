@@ -2,6 +2,7 @@ package generation
 
 import (
 	"bytes"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/enum"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/mutation"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/query"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/typedef"
@@ -51,6 +52,11 @@ func New(file *protogen.File) (f File) {
 	for _, service := range file.Proto.Service {
 		f.Message = append(f.Message, query.New(service, file.Proto))
 	}
+
+	for _, e := range file.Proto.EnumType {
+		f.TypeDefs = append(f.TypeDefs, enum.New(e))
+	}
+
 	for _, msg := range file.Proto.MessageType {
 		if msg.Options != nil {
 			if proto.HasExtension(msg.Options, graphql.E_MutationOptions) {

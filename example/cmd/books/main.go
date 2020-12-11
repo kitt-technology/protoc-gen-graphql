@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/kitt-technology/protoc-gen-graphql/example/books"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"golang.org/x/net/context"
@@ -79,31 +80,38 @@ func init() {
 			Id:       "1",
 			Name:     "Philosophers Stone",
 			AuthorId: "3",
+			Genre:    0,
 		},
 		"2": {
 			Id:       "2",
 			Name:     "Chamber of Secrets ",
 			AuthorId: "3",
+			Genre:    1,
 		},
 		"3": {
 			Id:       "3",
 			Name:     "Prisoner of Azkaban",
 			AuthorId: "3",
+			Genre:    0,
 		},
 		"4": {
 			Id:       "4",
 			Name:     "The Kreutzer Sonata",
 			AuthorId: "1",
+			Genre:    0,
 		},
 		"5": {
-			Id:       "5",
-			Name:     "James and the Giant Peach",
-			AuthorId: "2",
+			Id:          "5",
+			Name:        "James and the Giant Peach",
+			AuthorId:    "2",
+			Genre:       1,
+			ReleaseDate: &timestamp.Timestamp{},
 		},
 		"6": {
 			Id:       "6",
 			Name:     "The BFG",
 			AuthorId: "2",
+			Genre:    1,
 		},
 	}
 }
