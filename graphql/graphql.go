@@ -18,7 +18,7 @@ type Mutation interface {
 }
 
 var Timestamp_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "Timestamp",
+	Name: "TimestampInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"ISOString": &graphql.InputObjectFieldConfig{
 			Type: graphql.String,
