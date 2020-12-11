@@ -17,10 +17,18 @@ type Mutation interface {
 	GetFailureEvent() *string
 }
 
-var Timestamp_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var Timestamp_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "Timestamp",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"ISOString": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+	},
+})
+var Timestamp_type = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Timestamp",
+	Fields: graphql.Fields{
+		"ISOString": &graphql.Field{
 			Type: graphql.String,
 		},
 	},
