@@ -16,6 +16,15 @@ type Mutation interface {
 	GetFailureEvent() *string
 }
 
+var Timestamp_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "Timestamp",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"ISOString": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+	},
+})
+
 type Dataloader struct {
 	Output graphql.Output
 	Fn     DataloaderFn
