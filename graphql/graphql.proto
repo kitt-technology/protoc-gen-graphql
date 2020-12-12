@@ -13,6 +13,10 @@ extend google.protobuf.ServiceOptions {
   string host = 1088;
 }
 
+extend google.protobuf.EnumOptions {
+  string enum_name = 1086;
+}
+
 message BatchRequest {
   repeated string keys = 1;
 }
