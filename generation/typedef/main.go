@@ -179,8 +179,11 @@ func (m Message) Imports() []string {
 }
 
 func (m Message) Generate() string {
-	name := proto.GetExtension(m.Descriptor.Options, graphql.E_ObjectName).(string)
-	m.ObjectName = name
+	if proto.HasExtension(m.Descriptor.Options, graphql.E_ObjectName) {
+		m.ObjectName = proto.GetExtension(m.Descriptor.Options, graphql.E_ObjectName).(string)
+	} else {
+		m.ObjectName = *m.Descriptor.Name
+	}
 
 	for _, field := range m.Descriptor.Field {
 		switch field.Label.String() {
