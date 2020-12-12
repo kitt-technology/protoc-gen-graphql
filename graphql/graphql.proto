@@ -12,3 +12,7 @@ extend google.protobuf.MessageOptions {
 extend google.protobuf.ServiceOptions {
   string host = 1088;
 }
+
+message BatchRequest {
+  repeated string keys = 1;
+}
