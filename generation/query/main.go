@@ -114,7 +114,6 @@ type Loader struct {
 
 type Message struct {
 	Descriptor  *descriptorpb.ServiceDescriptorProto
-	Options     *graphql.MutationOption
 	Methods     []Method
 	ServiceName string
 	Dns         string

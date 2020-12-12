@@ -152,7 +152,6 @@ func (msg *{{ .Descriptor.GetName }}) XXX_args() graphql.FieldConfigArgument {
 
 type Message struct {
 	Descriptor *descriptorpb.DescriptorProto
-	Options    *graphql.MutationOption
 	Fields     []Field
 	Import     map[string]string
 	ObjectName    string
@@ -161,7 +160,6 @@ type Message struct {
 func New(msg *descriptorpb.DescriptorProto) (m Message) {
 	return Message{
 		Import:     make(map[string]string),
-		Options:    proto.GetExtension(msg.Options, graphql.E_MutationOptions).(*graphql.MutationOption),
 		Descriptor: msg,
 	}
 }
