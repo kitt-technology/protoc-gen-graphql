@@ -3,7 +3,6 @@ package enum
 import (
 	"bytes"
 	"fmt"
-	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"html/template"
 	"strings"
@@ -39,7 +38,6 @@ var {{ .Descriptor.GetName }}_type = graphql.NewScalar(graphql.ScalarConfig{
 
 type Message struct {
 	Descriptor *descriptorpb.EnumDescriptorProto
-	Options    *graphql.MutationOption
 	Import     map[string]string
 	Values     map[string]string
 }

@@ -3,12 +3,9 @@ package generation
 import (
 	"bytes"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/enum"
-	"github.com/kitt-technology/protoc-gen-graphql/generation/mutation"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/query"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/typedef"
-	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/compiler/protogen"
-	"google.golang.org/protobuf/proto"
 	"text/template"
 )
 
@@ -58,11 +55,6 @@ func New(file *protogen.File) (f File) {
 	}
 
 	for _, msg := range file.Proto.MessageType {
-		if msg.Options != nil {
-			if proto.HasExtension(msg.Options, graphql.E_MutationOptions) {
-				f.Message = append(f.Message, mutation.New(msg))
-			}
-		}
 		f.TypeDefs = append(f.TypeDefs, typedef.New(msg))
 
 	}
