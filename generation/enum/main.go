@@ -3,6 +3,8 @@ package enum
 import (
 	"bytes"
 	"fmt"
+	"github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"html/template"
 	"strings"
@@ -11,7 +13,7 @@ import (
 const msgTpl = `
 
 var {{ .Descriptor.GetName }}_enum = graphql.NewEnum(graphql.EnumConfig{
-	Name: "{{ .Descriptor.GetName }}",
+	Name: "{{ .EnumName }}",
 	Values: graphql.EnumValueConfigMap{
 		{{- range $key, $val := .Values }}
 		"{{ $key }}": &graphql.EnumValueConfig{
@@ -22,7 +24,7 @@ var {{ .Descriptor.GetName }}_enum = graphql.NewEnum(graphql.EnumConfig{
 })
 
 var {{ .Descriptor.GetName }}_type = graphql.NewScalar(graphql.ScalarConfig{
-	Name: "{{ .Descriptor.GetName }}",
+	Name: "{{ .EnumName }}",
 	ParseValue: func(value interface{}) interface{} {
 		return nil
 
@@ -40,9 +42,16 @@ type Message struct {
 	Descriptor *descriptorpb.EnumDescriptorProto
 	Import     map[string]string
 	Values     map[string]string
+	EnumName  string
 }
 
 func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
+	if proto.HasExtension(m.Descriptor.Options, graphql.E_ObjectName) {
+		m.EnumName = proto.GetExtension(m.Descriptor.Options, graphql.E_EnumName).(string)
+	} else {
+		m.EnumName = *m.Descriptor.Name
+	}
+
 	return Message{
 		Import:     make(map[string]string),
 		Values:     make(map[string]string),
