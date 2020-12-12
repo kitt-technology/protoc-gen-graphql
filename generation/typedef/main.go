@@ -14,7 +14,7 @@ import (
 const msgTpl = `
 
 var {{ .Descriptor.GetName }}_type = graphql.NewObject(graphql.ObjectConfig{
-	Name: "{{ .Descriptor.GetName }}",
+	Name: "{{ .ObjectName }}",
 	Fields: graphql.Fields{
 		{{- range $field := .Fields }}
 		"{{ $field.Key }}": &graphql.Field{
@@ -29,7 +29,7 @@ var {{ .Descriptor.GetName }}_type = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var {{ .Descriptor.GetName }}_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "{{ .Descriptor.GetName }}",
+	Name: "{{ .ObjectName }}",
 	Fields: graphql.InputObjectConfigFieldMap{
 		{{- range $field := .Fields }}
 		"{{ $field.Key }}": &graphql.InputObjectFieldConfig{
@@ -155,6 +155,7 @@ type Message struct {
 	Options    *graphql.MutationOption
 	Fields     []Field
 	Import     map[string]string
+	ObjectName    string
 }
 
 func New(msg *descriptorpb.DescriptorProto) (m Message) {
@@ -180,6 +181,9 @@ func (m Message) Imports() []string {
 }
 
 func (m Message) Generate() string {
+	name := proto.GetExtension(m.Descriptor.Options, graphql.E_ObjectName).(string)
+	m.ObjectName = name
+
 	for _, field := range m.Descriptor.Field {
 		switch field.Label.String() {
 
