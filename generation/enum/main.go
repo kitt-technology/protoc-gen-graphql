@@ -46,7 +46,7 @@ type Message struct {
 }
 
 func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
-	if proto.HasExtension(m.Descriptor.Options, graphql.E_ObjectName) {
+	if proto.HasExtension(msg.Options, graphql.E_ObjectName) {
 		m.EnumName = proto.GetExtension(msg.Options, graphql.E_EnumName).(string)
 	} else {
 		m.EnumName = *msg.Name
