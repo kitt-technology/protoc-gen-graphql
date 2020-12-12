@@ -6,38 +6,9 @@ import "google/protobuf/descriptor.proto";
 option go_package = "github.com/kitt-technology/protoc-gen-graphql/graphql;graphql";
 
 extend google.protobuf.MessageOptions {
-  MutationOption mutation_options = 1084;
-}
-
-extend google.protobuf.FieldOptions {
-  bool dataloader_ids = 1086;
-  bool dataloader_object = 1087;
-  FieldResolver field_resolver = 1085;
-}
-
-extend google.protobuf.MethodOptions {
-  BatchOptions batch = 1087;
+  string object_name = 1085;
 }
 
 extend google.protobuf.ServiceOptions {
   string host = 1088;
-}
-
-message MutationOption {
-  string name = 1;
-  string success = 2;
-  string failure = 3;
-}
-message FieldResolver {
-  string field_name = 1;
-  string dataloader_name = 2;
-}
-
-message BatchOptions {
-  string keys = 1;
-  string results = 2;
-}
-
-message BatchRequest {
-  repeated string keys = 1;
 }
