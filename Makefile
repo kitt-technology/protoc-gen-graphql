@@ -56,6 +56,7 @@ test:
 	protoc \
 		--proto_path tests/cases \
 		-I=. \
+		-I ${GOPATH}/src \
 		./tests/cases/messages.proto \
 		--go_out=./tests/out \
 		--go-grpc_out=./tests/out \
