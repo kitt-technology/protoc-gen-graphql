@@ -1,40 +1,63 @@
 syntax = "proto3";
 
-package cases;
+package books;
 
-import "graphql/graphql.proto";
+import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "cases;cases";
 
-service MyService {
-  rpc getSomething(GetSomethingRequest) returns (GetSomethingResponse) { }
+service Books {
+  option (graphql.host) =
+      "localhost:50051";
+
+  rpc getBooks(GetBooksRequest) returns (GetBooksResponse) {}
+
+  rpc getBooksByAuthor(graphql.BatchRequest) returns (GetBooksByAuthorResponse) {}
 }
 
-message GetSomethingRequest {
-  repeated string id = 1;
+message GetBooksRequest {
+  option (graphql.object_name) = "BooksRequest";
+  repeated string ids = 1;
+  google.protobuf.BoolValue hardback_only = 2;
+  google.protobuf.FloatValue price = 3;
+  repeated Genre genres = 4;
+  google.protobuf.Timestamp released_after = 5;
+  PaginationOptions pagination = 6;
+  repeated Filter filters = 7;
 }
 
-message GetSomethingResponse {
+message PaginationOptions {
+  int32 page = 1;
+  int32 per_page = 2;
+}
+
+message Filter {
+  string query = 1;
+}
+
+message GetBooksResponse {
+  repeated Book books = 1;
+}
+
+message GetBooksByAuthorResponse {
+  map<string, BooksByAuthor> results = 1;
+}
+
+message BooksByAuthor {
+  repeated Book results = 2;
+
+}
+message Book {
   string id = 1;
-  string something_id = 2;
-  repeated string some_id_list = 3;
+  string name = 2;
+  string author_id = 3;
+  Genre genre = 4;
+  google.protobuf.Timestamp release_date = 5;
 }
 
-message TestCommand {
-  string id = 1;
-  int32 some_int = 2;
-  bool some_bool = 3;
-  map<string, SomeSmallObject> id_object_map = 4;
-  repeated SomeSmallObject id_object_list = 5;
-  repeated string string_list = 6;
-  map<string, string> string_map = 7;
-  google.protobuf.StringValue optional_id = 8;
+enum Genre {
+  Fiction = 0;
+  Biography = 1;
 }
-
-message SomeSmallObject {
-  string some_id = 1;
-}
-
-
-

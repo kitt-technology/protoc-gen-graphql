@@ -85,8 +85,15 @@ func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descr
 					{{ end }}
 	
 					{{ if not $field.WrapperType }}
-						objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
+						{{ if $field.IsObject }}
+							if args["{{ $field.Key }}"] != nil {
+								objectFromArgs.{{ $field.StructKey }} = {{ replace $field.StructType "*" "" }}_from_args(args["{{ $field.Key }}"].(map[string]interface{}))
+							}
+						{{ else }}
+							objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
+						{{ end }}
 					{{ end }}
+
 					
 				{{ end }}
 				
@@ -100,44 +107,7 @@ func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descr
 }
 
 func (objectFromArgs *{{ .Descriptor.GetName }}) From_args(args map[string]interface{}) {
-		{{- range $field := .Fields }}
-		{{- if $field.StructKey }}	
-			
-			{{- if $field.IsList }}
-			if args["{{ $field.Key }}"] != nil {
-	
-				{{ $field.Key }}InterfaceList := args["{{ $field.Key }}"].([]interface{})
-			
-				var {{ $field.Key }} []{{ $field.StructType }}
-				for _, item := range {{ $field.Key }}InterfaceList {
-					{{ $field.Key }} = append({{ $field.Key }}, item.({{ $field.StructType }}))
-				}
-				objectFromArgs.{{ $field.StructKey }} = {{ $field.Key }}
-
-			}
-		
-			{{- else }}
-				{{ if $field.IsTimestamp }}
-					objectFromArgs.{{ $field.StructKey }} = pg.ToTimestamp(args["{{ $field.Key }}"])
-				{{ else }}
-
-					{{ if $field.WrapperType }}
-						if args["{{ $field.Key }}"] != nil {
-							objectFromArgs.{{ $field.StructKey }} = wrapperspb.{{ $field.WrapperType.Type }}(args["{{ $field.Key }}"].({{ $field.WrapperType.Primitive }}))
-						}
-					{{ end }}
-	
-					{{ if not $field.WrapperType }}
-						objectFromArgs.{{ $field.StructKey }} = args["{{ $field.Key }}"].({{ $field.StructType }})
-					{{ end }}
-					
-				{{ end }}
-
-
-			{{- end }}
-			
-		{{- end }}
-	{{- end }}
+		objectFromArgs = {{ .Descriptor.GetName }}_from_args(args)
 
 }
 
@@ -229,12 +199,14 @@ func (m Message) Generate() string {
 			default:
 				t := fmt.Sprintf("graphql.NewList(%s)", protoToGraphqlType(field.Type.String()))
 
+				isEnum := false
 				structType := toGoType(field)
 				if field.Type.String() == "TYPE_ENUM" {
 					t = fmt.Sprintf("%s_type", protoToGraphqlType(*field.TypeName))
 					t = strings.Replace(t, "_type", "_enum", -1)
 					t = fmt.Sprintf("graphql.NewList(%s)", t)
 					structType = strings.Replace(structType, "*", "", -1)
+					isEnum = true
 				}
 
 				m.Fields = append(m.Fields, Field{
@@ -244,6 +216,7 @@ func (m Message) Generate() string {
 					StructKey:  toGoStruct(field),
 					StructType: structType,
 					IsList:     true,
+					IsEnum: isEnum,
 				})
 			}
 			break
@@ -251,6 +224,7 @@ func (m Message) Generate() string {
 		default:
 			if field.TypeName != nil {
 				wrapperType := IsWrapper(field)
+				isObject := IsObject(field)
 
 				t := fmt.Sprintf("%s_type", protoToGraphqlType(*field.TypeName))
 				if wrapperType != nil {
@@ -259,9 +233,11 @@ func (m Message) Generate() string {
 				}
 
 				structType := toGoType(field)
+				isEnum := false
 				if field.Type.String() == "TYPE_ENUM" {
 					structType = strings.Replace(structType, "*", "", -1)
 					t = strings.Replace(t, "_type", "_enum", -1)
+					isEnum = true
 				}
 
 				isTimestamp := false
@@ -277,10 +253,13 @@ func (m Message) Generate() string {
 					StructType:  structType,
 					WrapperType: wrapperType,
 					IsTimestamp: isTimestamp,
+					IsObject: isObject,
+					IsEnum: isEnum,
 				})
 
 			} else {
 				wrapperType := IsWrapper(field)
+				isObject := IsObject(field)
 
 				m.Fields = append(m.Fields, Field{
 					Key:         *field.JsonName,
@@ -289,6 +268,7 @@ func (m Message) Generate() string {
 					StructKey:   toGoStruct(field),
 					StructType:  toGoType(field),
 					WrapperType: wrapperType,
+					IsObject: isObject,
 				})
 			}
 
@@ -360,6 +340,10 @@ func toGoStruct(field *descriptorpb.FieldDescriptorProto) string {
 	return strings.ToUpper(string(name[0])) + name[1:]
 }
 
+func IsObject(field *descriptorpb.FieldDescriptorProto) bool {
+	return field.TypeName != nil && field.Type.String() != "TYPE_ENUM"
+}
+
 func IsWrapper(field *descriptorpb.FieldDescriptorProto) *WrapperType {
 	if field.TypeName != nil {
 		if strings.Contains(*field.TypeName, "google.protobuf.") {
@@ -398,7 +382,7 @@ func toGoType(field *descriptorpb.FieldDescriptorProto) string {
 	case "TYPE_STRING":
 		return "string"
 	case "TYPE_INT32":
-		return "int32"
+		return "int"
 	case "TYPE_FLOAT":
 		return "float32"
 	case "TYPE_BOOL":
@@ -420,6 +404,8 @@ type Field struct {
 	IsList      bool
 	WrapperType *WrapperType
 	IsTimestamp bool
+	IsObject bool
+	IsEnum bool
 }
 
 type WrapperType struct {
