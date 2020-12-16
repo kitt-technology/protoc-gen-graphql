@@ -41,8 +41,8 @@ var Timestamp_type = graphql.NewObject(graphql.ObjectConfig{
 })
 
 func ToTimestamp(field interface{}) *timestamp.Timestamp {
-	timeMap := field.(map[string]string)
-	t, _ := time.Parse("2006-01-02T15:04:05", timeMap["ISOString"])
+	timeMap := field.(map[string]interface{})
+	t, _ := time.Parse("2006-01-02T15:04:05", timeMap["ISOString"].(string))
 	ts := timestamp.Timestamp{
 		Seconds: t.Unix(),
 	}
