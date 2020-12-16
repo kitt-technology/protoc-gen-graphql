@@ -24,7 +24,7 @@ const typeTpl = `
 const goFromArgs = `
 {{- if eq .TypeOfType "Object" }}{{ .GoType  }}_from_args(val.(map[string]interface{})){{- end }}
 {{- if eq .TypeOfType "Primitive" }}{{  .GoType }}(val.({{ strip_precision .GoType }})){{- end }}
-{{- if eq .TypeOfType "Wrapper" }}{{  .GoType }}(val.({{ wrapper_to_primitive .GoType }})){{- end }}
+{{- if eq .TypeOfType "Wrapper" }}{{  .GoType }}({{ primitive_to_wrapper .GoType }}(val.({{ wrapper_to_primitive .GoType }}))){{- end }}
 {{- if eq .TypeOfType "Enum" }}val.({{ .GoType }}){{- end }}
 {{- if eq .TypeOfType "Timestamp" }}pg.ToTimestamp(val){{- end }}`
 
@@ -175,14 +175,9 @@ func (m Message) Generate() string {
 	}
 
 	funcMap := template.FuncMap{
-		"strip_precision": func (arg GoType) string {
-			if strings.Contains(string(arg), "int") {
-				output := strings.Replace(string(arg), "64", "", -1)
-				return strings.Replace(output, "32", "", -1)
-			}
-			return string(arg)
-		},
+		"strip_precision": stripPrecision,
 		"wrapper_to_primitive": wrapperToPrimitive,
+		"primitive_to_wrapper": primitiveToWrapper,
 	}
 
 	for _, field := range m.Descriptor.Field {
@@ -333,9 +328,30 @@ func wrapperToPrimitive(wrapperType GoType) string {
 	case "wrapperspb.Bool":
 		return "bool"
 	case "wrapperspb.Float":
-		return "float32"
+		return "float64"
 	}
 	return ""
+}
+func stripPrecision(arg GoType) string {
+	if strings.Contains(string(arg), "int") {
+		output := strings.Replace(string(arg), "64", "", -1)
+		return strings.Replace(output, "32", "", -1)
+	}
+	if strings.Contains(string(arg), "float") {
+		return "float64"
+	}
+	return string(arg)
+}
+func primitiveToWrapper(wrapperType GoType) string {
+	switch wrapperType {
+	case "wrapperspb.Float":
+		return "float32"
+	case "wrapperspb.String":
+		return "string"
+	case "wrapperspb.Bool":
+		return "bool"
+	}
+	return string(wrapperType)
 }
 
 func types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, GqlType, FieldType) {
@@ -357,6 +373,8 @@ func types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, Gq
 		return "string", "graphql.String", Primitive
 	case "TYPE_INT32":
 		return "int32", "graphql.Int", Primitive
+	case "TYPE_INT64":
+		return "int64", "graphql.Int", Primitive
 	case "TYPE_FLOAT":
 		return "float32", "graphql.Float", Primitive
 	case "TYPE_BOOL":

@@ -24,6 +24,10 @@ message GetBooksRequest {
   google.protobuf.FloatValue price = 3;
   repeated Genre genres = 4;
   google.protobuf.Timestamp released_after = 5;
+  float price_greater_than = 6;
+  int64 copies_greater_than = 7;
+  int32 copies_less_than = 8;
+  double price_less_than = 9;
 }
 
 message GetBooksResponse {
@@ -44,6 +48,8 @@ message Book {
   string author_id = 3;
   Genre genre = 4;
   google.protobuf.Timestamp release_date = 5;
+  float price = 6;
+  int64 copies = 7;
 }
 
 enum Genre {
