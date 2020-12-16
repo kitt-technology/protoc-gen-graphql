@@ -17,6 +17,10 @@ extend google.protobuf.EnumOptions {
   string enum_name = 1086;
 }
 
+extend google.protobuf.FieldOptions {
+  bool optional = 1096;
+}
+
 message BatchRequest {
   repeated string keys = 1;
 }
