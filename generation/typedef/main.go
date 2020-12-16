@@ -31,6 +31,7 @@ const goFromArgs = `
 
 const msgTpl = `
 
+
 var {{ .Descriptor.GetName }}_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "{{ .ObjectName }}",
 	Fields: graphql.Fields{
@@ -114,7 +115,6 @@ func (msg *{{ .Descriptor.GetName }}) XXX_args() graphql.FieldConfigArgument {
 
 type Field struct {
 	GqlKey    string
-	GqlType    GqlType
 
 	GoKey  string
 	GoType  GoType
@@ -124,7 +124,6 @@ type Field struct {
 	InputType  string
 	ArgType  string
 
-	Optional bool
 	IsList      bool
 	TypeOfType string
 }
@@ -236,10 +235,7 @@ func (m Message) Generate() string {
 		}
 
 		fieldVars := Field{
-			Optional: optional,
 			GqlKey: *field.JsonName,
-			GqlType: gqlType,
-
 			GoKey: goKey(field),
 			GoType: goType,
 			TypeOfType: string(typeOfType),
@@ -289,8 +285,13 @@ func (m Message) Generate() string {
 		m.Fields = append(m.Fields, fieldVars)
 	}
 
+
 	if len(m.Fields) == 0 {
-		return ""
+		m.Fields = append(m.Fields, Field{
+			GqlKey: "_null",
+			Type: "graphql.Boolean",
+			InputType: "graphql.Boolean",
+		})
 	}
 
 	var buf bytes.Buffer
