@@ -16,7 +16,7 @@ service Authors {
 }
 
 message GetAuthorsRequest {
-  repeated string ids = 1;
+  repeated string ids = 1  [(graphql.optional) = true];
 }
 
 message GetAuthorsResponse {

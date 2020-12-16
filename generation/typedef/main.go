@@ -11,7 +11,7 @@ import (
 )
 
 const typeTpl = `
-{{- if eq .TypeOfType "Primitive" }}graphql.NewNonNull({{- end }}
+{{- if not .Optional }}graphql.NewNonNull({{- end }}
 			{{- if .IsList }}graphql.NewList({{- end }}
 			{{- if eq .TypeOfType "Object" }}{{ .GqlType }}_{{ .Suffix }}{{- end }}
 			{{- if eq .TypeOfType "Wrapper" }}{{ .GqlType }}{{- end }}
@@ -19,7 +19,7 @@ const typeTpl = `
 			{{- if eq .TypeOfType "Enum" }}{{ .GqlType }}_enum{{- end }}
 			{{- if eq .TypeOfType "Timestamp" }}pg.Timestamp_{{ .Suffix }}{{- end }}
  			{{- if .IsList }}){{- end }}
-			{{- if eq .TypeOfType "Primitive" }}){{- end }}`
+			{{- if not .Optional }}){{- end }}`
 
 const goFromArgs = `
 {{- if eq .TypeOfType "Object" }}{{ .GoType  }}_from_args(val.(map[string]interface{})){{- end }}
@@ -128,6 +128,7 @@ type Field struct {
 
 type FieldTypeVars struct {
 	TypeOfType string
+	Optional bool
 	IsList bool
 	GqlType GqlType
 	Suffix string
@@ -225,8 +226,16 @@ func (m Message) Generate() string {
 			m.Import["google.golang.org/protobuf/types/known/wrapperspb"] ="google.golang.org/protobuf/types/known/wrapperspb"
 		}
 
+		optional := field.TypeName != nil
+		if proto.HasExtension(field.Options, graphql.E_Optional)   {
+			val := proto.GetExtension(field.Options, graphql.E_Optional)
+			if val.(bool) {
+				optional = true
+			}
+		}
+
 		fieldVars := Field{
-			Optional: field.TypeName != nil, // Non primitives are optional
+			Optional: optional,
 			GqlKey: *field.JsonName,
 			GqlType: gqlType,
 
@@ -244,6 +253,7 @@ func (m Message) Generate() string {
 			GqlType: gqlType,
 			GqlKey: *field.JsonName,
 			Suffix: "input_type",
+			Optional: optional,
 		}
 		var buf bytes.Buffer
 		mTpl, err := template.New("input_type").Funcs(funcMap).Parse(typeTpl)
