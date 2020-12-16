@@ -223,7 +223,7 @@ func (m Message) Generate() string {
 		if typeOfType == Wrapper {
 			m.Import["google.golang.org/protobuf/types/known/wrapperspb"] ="google.golang.org/protobuf/types/known/wrapperspb"
 		}
-		if typeOfType == Timestamp {
+		if typeOfType == Timestamp && isList {
 			m.Import["github.com/golang/protobuf/ptypes/timestamp"] = "github.com/golang/protobuf/ptypes/timestamp"
 		}
 
