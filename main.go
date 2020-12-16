@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/kitt-technology/protoc-gen-graphql/generation"
+	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	_ "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
@@ -42,7 +43,10 @@ func shouldProcess(file *protogen.File) bool {
 			return false
 		}
 	}
-	return true
+	if proto.HasExtension(file.Proto.Options, graphql.E_Enabled) {
+		return proto.GetExtension(file.Proto.Options, graphql.E_Enabled).(bool)
+	}
+	return false
 }
 
 //func (x *TestCommand) MutationArgs() graphql.FieldConfigArgument {

@@ -9,6 +9,10 @@ extend google.protobuf.MessageOptions {
   string object_name = 1085;
 }
 
+extend google.protobuf.FileOptions {
+  bool enabled = 1055;
+}
+
 extend google.protobuf.ServiceOptions {
   string host = 1088;
 }
