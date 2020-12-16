@@ -19,7 +19,7 @@ service Books {
 
 message GetBooksRequest {
   option (graphql.object_name) = "BooksRequest";
-  repeated string ids = 1;
+  repeated string ids = 1 [(graphql.optional) = true];
   google.protobuf.BoolValue hardback_only = 2;
   google.protobuf.FloatValue price = 3;
   repeated Genre genres = 4;
