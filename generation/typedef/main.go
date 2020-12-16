@@ -72,7 +72,10 @@ func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descr
 				{{ $field.GqlKey }}InterfaceList := args["{{ $field.GqlKey }}"].([]interface{})
 
 				var {{ $field.GqlKey }} []
-				{{- if eq $field.TypeOfType "Object" }}*{{ $field.GoType }}{{- else }}{{ $field.GoType }}{{- end }}
+			{{- if eq $field.TypeOfType "Object" }}*{{- end }}
+			{{- if eq $field.TypeOfType "Wrapper" }}*{{- end }}
+			{{- if eq $field.TypeOfType "Timestamp" }}*{{- end }}
+			{{- $field.GoType }}
 
 				for _, val := range {{ $field.GqlKey }}InterfaceList {
 					itemResolved := {{ $field.GoFromArgs }}
@@ -219,6 +222,9 @@ func (m Message) Generate() string {
 
 		if typeOfType == Wrapper {
 			m.Import["google.golang.org/protobuf/types/known/wrapperspb"] ="google.golang.org/protobuf/types/known/wrapperspb"
+		}
+		if typeOfType == Timestamp {
+			m.Import["github.com/golang/protobuf/ptypes/timestamp"] = "github.com/golang/protobuf/ptypes/timestamp"
 		}
 
 		optional := field.TypeName != nil

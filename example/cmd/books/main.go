@@ -112,6 +112,9 @@ func init() {
 			Name:     "The BFG",
 			AuthorId: "2",
 			Genre:    1,
+			Copies: 10,
+			Price: 10,
 		},
+
 	}
 }
