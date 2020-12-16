@@ -15,9 +15,9 @@ package {{ .Package }}
 import (
 	"github.com/graphql-go/graphql"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-	{{- range $import := .Imports }}
-	"{{ $import }}"
-	{{- end }}
+	{{ range .Imports }}
+	"{{ . }}"
+	{{end}}
 )
 
 
@@ -55,7 +55,7 @@ func New(file *protogen.File) (f File) {
 	}
 
 	for _, msg := range file.Proto.MessageType {
-		f.TypeDefs = append(f.TypeDefs, typedef.New(msg))
+		f.TypeDefs = append(f.TypeDefs, typedef.New(msg, file.Proto))
 
 	}
 	return f
@@ -64,6 +64,7 @@ func New(file *protogen.File) (f File) {
 func (f File) ToString() string {
 	var extraImportMap = map[string]string{}
 	var extraImports = []string{}
+
 	for _, msg := range append(f.TypeDefs, f.Message...) {
 		for _, imp := range msg.Imports() {
 			extraImportMap[imp] = imp
@@ -72,6 +73,7 @@ func (f File) ToString() string {
 	for _, val := range extraImportMap {
 		extraImports = append(extraImports, val)
 	}
+
 
 	f.Imports = append(f.Imports, extraImports...)
 
