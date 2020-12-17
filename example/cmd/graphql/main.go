@@ -6,6 +6,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/kitt-technology/protoc-gen-graphql/example/authors"
 	"github.com/kitt-technology/protoc-gen-graphql/example/books"
+	"google.golang.org/grpc"
 	"log"
 	"net/http"
 )
@@ -17,7 +18,8 @@ type postData struct {
 }
 
 func main() {
-	fields := append(authors.Fields, books.Fields...)
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	fields := append(authors.Fields(opts...), books.Fields(opts...)...)
 	field := graphql.Fields{}
 	for _, f := range fields {
 		field[f.Name] = f

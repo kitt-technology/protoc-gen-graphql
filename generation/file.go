@@ -21,11 +21,11 @@ import (
 	{{end}}
 )
 
-var fieldInits func(...grpc.DialOption)
+var fieldInits []func(...grpc.DialOption)
 
 func Fields(opts ...grpc.DialOption) []*graphql.Field {
 	for _, fieldInit := range fieldInits {
-		fieldInit(opts)
+		fieldInit(opts...)
 	}
 	return fields
 }

@@ -32,6 +32,11 @@ type BookService struct {
 	books.UnimplementedBooksServer
 }
 
+func (s BookService) DoNothing(ctx context.Context, nothing *books.DoNothing) (*books.DoNothing, error) {
+	return &books.DoNothing{}, nil
+}
+
+
 func (s BookService) GetBooksByAuthor(ctx context.Context, request *graphql.BatchRequest) (*books.GetBooksByAuthorResponse, error) {
 	var bs = make(map[string]*books.BooksByAuthor)
 
