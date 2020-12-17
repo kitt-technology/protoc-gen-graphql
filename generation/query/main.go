@@ -13,17 +13,20 @@ import (
 
 const msgTpl = `
 
-var client {{ .Descriptor.Name }}Client
+var {{ .Descriptor.Name }}Client {{ .Descriptor.Name }}Client
 
 func init() {
-	client = New{{ .Descriptor.Name }}Client(pg.GrpcConnection("{{ .Dns }}"))
+	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
+		{{ .Descriptor.Name }}Client = New{{ .Descriptor.Name }}Client(pg.GrpcConnection("{{ .Dns }}", opts)
+	})
+	
 	{{- range $method := .Methods }}
-	Fields = append(Fields, &graphql.Field{
+	fields = append(fields, &graphql.Field{
 		Name: "{{ $.ServiceName }}_{{ $method.Name }}",
 		Type: {{ $method.Output }}_type,
 		Args: {{ $method.Input }}_args,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return client.{{ $method.Name }}(p.Context, {{ $method.Input }}_from_args(p.Args))
+			return {{ .Descriptor.Name }}Client.{{ $method.Name }}(p.Context, {{ $method.Input }}_from_args(p.Args))
 		},
 	})
 	{{ end }}
@@ -35,7 +38,7 @@ func Load{{ $loader.ResultsType }}(originalContext context.Context, key string) 
 	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 		var results []*dataloader.Result
 
-		resp, err := client.{{ $loader.Method }}(ctx, &pg.BatchRequest{
+		resp, err := {{ .Descriptor.Name }}Client.{{ $loader.Method }}(ctx, &pg.BatchRequest{
 			{{ $loader.KeysField }}: keys.Keys(),
 		})
 
@@ -66,7 +69,7 @@ func LoadMany{{ $loader.ResultsType }}(originalContext context.Context, keys []s
 	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 		var results []*dataloader.Result
 
-		resp, err := client.{{ $loader.Method }}(ctx, &pg.BatchRequest{
+		resp, err := {{ .Descriptor.Name }}Client.{{ $loader.Method }}(ctx, &pg.BatchRequest{
 			{{ $loader.KeysField }}: keys.Keys(),
 		})
 
