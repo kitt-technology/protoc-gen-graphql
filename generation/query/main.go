@@ -35,7 +35,10 @@ func init() {
 
 
 {{ range $loader :=.Loaders }}
-func Load{{ $loader.ResultsType }}(originalContext context.Context, key string) (func() (interface{}, error), error) {
+
+var {{ $loader.ResultsType }}Loader *dataloader.Loader
+
+func init() {
 	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 		var results []*dataloader.Result
 
@@ -53,10 +56,11 @@ func Load{{ $loader.ResultsType }}(originalContext context.Context, key string) 
 
 		return results
 	}
+	{{ $loader.ResultsType }}Loader = dataloader.NewBatchedLoader(batchFn)
+}
 
-	loader := dataloader.NewBatchedLoader(batchFn)
-
-	thunk := loader.Load(originalContext, dataloader.StringKey(key))
+func Load{{ $loader.ResultsType }}(originalContext context.Context, key string) (func() (interface{}, error), error) {
+	thunk := {{ $loader.ResultsType }}Loader.Load(originalContext, dataloader.StringKey(key))
 	return func() (interface{}, error) {
 				res, err := thunk()
 				if err != nil {
