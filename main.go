@@ -48,29 +48,3 @@ func shouldProcess(file *protogen.File) bool {
 	}
 	return false
 }
-
-//func (x *TestCommand) MutationArgs() graphql.FieldConfigArgument {
-//	return graphql.FieldConfigArgument{
-//		"id": &graphql.ArgumentConfig{
-//			Type: graphql.NewNonNull(graphql.String),
-//		},
-//		"some_int": &graphql.ArgumentConfig{
-//			Type: graphql.NewNonNull(graphql.Int),
-//		},
-//		"some_bool": &graphql.ArgumentConfig{
-//			Type: graphql.NewNonNull(graphql.Boolean),
-//		},
-//		"id_object_map": &graphql.ArgumentConfig{
-//			Type: graphql.NewNonNull(graphql.NewList(someObject_tuple)),
-//		},
-//		"id_object_list": &graphql.ArgumentConfig{
-//			Type:  graphql.NewNonNull(graphql.NewList(someObject_type)),
-//		},
-//		"string_list": &graphql.ArgumentConfig{
-//			Type: graphql.NewNonNull(graphql.NewList(graphql.String),
-//		},
-//		"optional_id": &graphql.ArgumentConfig{
-//			Type: graphql.NewNonNull(graphql.String),
-//		},
-//	}
-//}

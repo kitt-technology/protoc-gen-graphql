@@ -14,14 +14,23 @@ package {{ .Package }}
 
 import (
 	"github.com/graphql-go/graphql"
+	"google.golang.org/grpc"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	{{ range .Imports }}
 	"{{ . }}"
 	{{end}}
 )
 
+var fieldInits func(...grpc.DialOption)
 
-var Fields []*graphql.Field
+func Fields(opts ...grpc.DialOption) []*graphql.Field {
+	for _, fieldInit := range fieldInits {
+		fieldInit(opts)
+	}
+	return fields
+}
+
+var fields []*graphql.Field
 `
 
 type Message interface {

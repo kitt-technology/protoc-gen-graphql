@@ -73,11 +73,10 @@ type Svc interface {
 	AppendDataloaders(map[string]Dataloader) map[string]Dataloader
 }
 
-func GrpcConnection(host string) *grpc.ClientConn {
+func GrpcConnection(host string, option ...grpc.DialOption) *grpc.ClientConn {
 	conn, err := grpc.Dial(
 		host,
-		grpc.WithInsecure(),
-		grpc.WithBackoffMaxDelay(30*time.Second),
+		option...
 	)
 
 	if err != nil {
