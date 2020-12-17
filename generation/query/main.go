@@ -71,27 +71,7 @@ func Load{{ $loader.ResultsType }}(originalContext context.Context, key string) 
 }
 
 func LoadMany{{ $loader.ResultsType }}(originalContext context.Context, keys []string) (func() (interface{}, error), error) {
-	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-		var results []*dataloader.Result
-
-		resp, err := {{ lower $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
-			{{ $loader.KeysField }}: keys.Keys(),
-		})
-
-		if err != nil {
-			return results
-		}
-
-		for _, key := range keys.Keys() {
-			results = append(results, &dataloader.Result{Data: resp.{{ $loader.ResultsField }}[key]})
-		}
-
-		return results
-	}
-
-	loader := dataloader.NewBatchedLoader(batchFn)
-
-	thunk := loader.LoadMany(originalContext, dataloader.NewKeysFromStrings(keys))
+	thunk := {{ $loader.ResultsType }}Loader.LoadMany(originalContext, dataloader.NewKeysFromStrings(keys))
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 		
