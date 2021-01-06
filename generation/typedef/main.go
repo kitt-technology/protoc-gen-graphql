@@ -63,7 +63,10 @@ var {{ .Descriptor.GetName }}_args = graphql.FieldConfigArgument{
 }
 
 func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descriptor.GetName }} {
-	objectFromArgs := {{ .Descriptor.GetName }}{}
+	return {{ .Descriptor.GetName }}_instance_from_args(&{{ .Descriptor.GetName }}{}, args)
+}
+
+func {{ .Descriptor.GetName }}_instance_from_args(objectFromArgs *{{ .Descriptor.GetName }}, args map[string]interface{}) *{{ .Descriptor.GetName }} {
 	{{- range $field := .Fields }}
 		{{- if $field.GoKey }}	
 			
@@ -94,14 +97,12 @@ func {{ .Descriptor.GetName }}_from_args(args map[string]interface{}) *{{ .Descr
 			
 		{{- end }}
 	{{- end }}
-
-
-	return &objectFromArgs
+	return objectFromArgs
 }
 
-func (objectFromArgs *{{ .Descriptor.GetName }}) From_args(args map[string]interface{}) {
-		objectFromArgs = {{ .Descriptor.GetName }}_from_args(args)
 
+func (objectFromArgs *{{ .Descriptor.GetName }}) From_args(args map[string]interface{}) {
+	{{ .Descriptor.GetName }}_instance_from_args(objectFromArgs, args)
 }
 
 func (msg *{{ .Descriptor.GetName }}) XXX_type() *graphql.Object {
