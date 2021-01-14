@@ -34,33 +34,35 @@ func init() {
 }
 
 
-{{ range $loader :=.Loaders }}
-
-var {{ $loader.ResultsType }}Loader *dataloader.Loader
-
-func init() {
-	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-		var results []*dataloader.Result
-
-		resp, err := {{ lower $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
-			{{ $loader.KeysField }}: keys.Keys(),
-		})
-
-		if err != nil {
+func WithLoaders(ctx context.Context) context.Context {
+	{{- range $loader :=.Loaders }}
+	ctx = context.WithValue(ctx, "{{ $loader.ResultsType }}Loader", dataloader.NewBatchedLoader(
+		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+			var results []*dataloader.Result
+	
+			resp, err := {{ lower $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
+				{{ $loader.KeysField }}: keys.Keys(),
+			})
+	
+			if err != nil {
+				return results
+			}
+	
+			for _, key := range keys.Keys() {
+				results = append(results, &dataloader.Result{Data: resp.{{ $loader.ResultsField }}[key]})
+			}
+	
 			return results
-		}
-
-		for _, key := range keys.Keys() {
-			results = append(results, &dataloader.Result{Data: resp.{{ $loader.ResultsField }}[key]})
-		}
-
-		return results
-	}
-	{{ $loader.ResultsType }}Loader = dataloader.NewBatchedLoader(batchFn)
+		},
+	))
+	{{ end }}
+	return ctx
 }
 
-func Load{{ $loader.ResultsType }}(originalContext context.Context, key string) (func() (interface{}, error), error) {
-	thunk := {{ $loader.ResultsType }}Loader.Load(originalContext, dataloader.StringKey(key))
+{{ range $loader :=.Loaders }}
+func Load{{ $loader.ResultsType }}(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
+	loader := p.Context.Value("{{ $loader.ResultsType }}Loader").(*dataloader.Loader)
+	thunk := loader.Load(p.Context, dataloader.StringKey(key))
 	return func() (interface{}, error) {
 				res, err := thunk()
 				if err != nil {
@@ -70,8 +72,9 @@ func Load{{ $loader.ResultsType }}(originalContext context.Context, key string) 
 	}, nil
 }
 
-func LoadMany{{ $loader.ResultsType }}(originalContext context.Context, keys []string) (func() (interface{}, error), error) {
-	thunk := {{ $loader.ResultsType }}Loader.LoadMany(originalContext, dataloader.NewKeysFromStrings(keys))
+func LoadMany{{ $loader.ResultsType }}(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	loader := p.Context.Value("{{ $loader.ResultsType }}Loader").(*dataloader.Loader)
+	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 		

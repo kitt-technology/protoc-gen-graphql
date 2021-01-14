@@ -41,8 +41,13 @@ func main() {
 			w.WriteHeader(400)
 			return
 		}
+
+		// Initialise dataloaders
+		ctx := books.WithLoaders(req.Context())
+		ctx = authors.WithLoaders(ctx)
+
 		result := graphql.Do(graphql.Params{
-			Context:        req.Context(),
+			Context:        ctx,
 			Schema:         schema,
 			RequestString:  p.Query,
 			VariableValues: p.Variables,
@@ -65,14 +70,14 @@ func init() {
 	books.Book_type.AddFieldConfig("author", &graphql.Field{
 		Type: authors.Author_type,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return authors.LoadAuthor(p.Context, p.Source.(*books.Book).AuthorId)
+			return authors.LoadAuthor(p, p.Source.(*books.Book).AuthorId)
 		},
 	})
 
 	authors.Author_type.AddFieldConfig("books", &graphql.Field{
 		Type: books.BooksByAuthor_type,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return books.LoadBooksByAuthor(p.Context, p.Source.(*authors.Author).Id)
+			return books.LoadBooksByAuthor(p, p.Source.(*authors.Author).Id)
 		},
 	})
 }

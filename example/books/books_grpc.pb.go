@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BooksClient interface {
 	GetBooks(ctx context.Context, in *GetBooksRequest, opts ...grpc.CallOption) (*GetBooksResponse, error)
+	DoNothing(ctx context.Context, in *DoNothing, opts ...grpc.CallOption) (*DoNothing, error)
 	GetBooksByAuthor(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*GetBooksByAuthorResponse, error)
 }
 
@@ -39,6 +40,15 @@ func (c *booksClient) GetBooks(ctx context.Context, in *GetBooksRequest, opts ..
 	return out, nil
 }
 
+func (c *booksClient) DoNothing(ctx context.Context, in *DoNothing, opts ...grpc.CallOption) (*DoNothing, error) {
+	out := new(DoNothing)
+	err := c.cc.Invoke(ctx, "/books.Books/doNothing", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *booksClient) GetBooksByAuthor(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*GetBooksByAuthorResponse, error) {
 	out := new(GetBooksByAuthorResponse)
 	err := c.cc.Invoke(ctx, "/books.Books/getBooksByAuthor", in, out, opts...)
@@ -53,6 +63,7 @@ func (c *booksClient) GetBooksByAuthor(ctx context.Context, in *graphql.BatchReq
 // for forward compatibility
 type BooksServer interface {
 	GetBooks(context.Context, *GetBooksRequest) (*GetBooksResponse, error)
+	DoNothing(context.Context, *DoNothing) (*DoNothing, error)
 	GetBooksByAuthor(context.Context, *graphql.BatchRequest) (*GetBooksByAuthorResponse, error)
 	mustEmbedUnimplementedBooksServer()
 }
@@ -63,6 +74,9 @@ type UnimplementedBooksServer struct {
 
 func (UnimplementedBooksServer) GetBooks(context.Context, *GetBooksRequest) (*GetBooksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBooks not implemented")
+}
+func (UnimplementedBooksServer) DoNothing(context.Context, *DoNothing) (*DoNothing, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DoNothing not implemented")
 }
 func (UnimplementedBooksServer) GetBooksByAuthor(context.Context, *graphql.BatchRequest) (*GetBooksByAuthorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBooksByAuthor not implemented")
@@ -98,6 +112,24 @@ func _Books_GetBooks_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Books_DoNothing_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DoNothing)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BooksServer).DoNothing(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/books.Books/doNothing",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BooksServer).DoNothing(ctx, req.(*DoNothing))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Books_GetBooksByAuthor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(graphql.BatchRequest)
 	if err := dec(in); err != nil {
@@ -123,6 +155,10 @@ var _Books_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "getBooks",
 			Handler:    _Books_GetBooks_Handler,
+		},
+		{
+			MethodName: "doNothing",
+			Handler:    _Books_DoNothing_Handler,
 		},
 		{
 			MethodName: "getBooksByAuthor",
