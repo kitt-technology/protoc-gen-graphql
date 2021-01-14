@@ -33,7 +33,7 @@ func init() {
 	{{ end }}
 }
 
-
+{{ if .Loaders }}
 func WithLoaders(ctx context.Context) context.Context {
 	{{- range $loader :=.Loaders }}
 	ctx = context.WithValue(ctx, "{{ $loader.ResultsType }}Loader", dataloader.NewBatchedLoader(
@@ -58,6 +58,7 @@ func WithLoaders(ctx context.Context) context.Context {
 	{{ end }}
 	return ctx
 }
+{{ end }}
 
 {{ range $loader :=.Loaders }}
 func Load{{ $loader.ResultsType }}(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
