@@ -2,22 +2,161 @@ package books
 
 import (
 	"github.com/graphql-go/graphql"
+	"google.golang.org/grpc"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+
+	"github.com/graphql-go/graphql/language/ast"
+
 	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"context"
+
 	"github.com/graph-gophers/dataloader"
 )
 
-var Fields []*graphql.Field
+var fieldInits []func(...grpc.DialOption)
+
+func Fields(opts ...grpc.DialOption) []*graphql.Field {
+	for _, fieldInit := range fieldInits {
+		fieldInit(opts...)
+	}
+	return fields
+}
+
+var fields []*graphql.Field
+
+var Genre_enum = graphql.NewEnum(graphql.EnumConfig{
+	Name: "Genre",
+	Values: graphql.EnumValueConfigMap{
+		"Biography": &graphql.EnumValueConfig{
+			Value: Genre(1),
+		},
+		"Fiction": &graphql.EnumValueConfig{
+			Value: Genre(0),
+		},
+	},
+})
+
+var Genre_type = graphql.NewScalar(graphql.ScalarConfig{
+	Name: "Genre",
+	ParseValue: func(value interface{}) interface{} {
+		return nil
+
+	},
+	Serialize: func(value interface{}) interface{} {
+		return value.(Genre).String()
+	},
+	ParseLiteral: func(valueAST ast.Value) interface{} {
+		return nil
+	},
+})
+
+var DoNothing_type = graphql.NewObject(graphql.ObjectConfig{
+	Name: "DoNothing",
+	Fields: graphql.Fields{
+		"_null": &graphql.Field{
+			Type: graphql.Boolean,
+		},
+	},
+})
+
+var DoNothing_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "DoNothing",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"_null": &graphql.InputObjectFieldConfig{
+			Type: graphql.Boolean,
+		},
+	},
+})
+
+var DoNothing_args = graphql.FieldConfigArgument{
+	"_null": &graphql.ArgumentConfig{
+		Type: graphql.Boolean,
+	},
+}
+
+func DoNothing_from_args(args map[string]interface{}) *DoNothing {
+	return DoNothing_instance_from_args(&DoNothing{}, args)
+}
+
+func DoNothing_instance_from_args(objectFromArgs *DoNothing, args map[string]interface{}) *DoNothing {
+	return objectFromArgs
+}
+
+func (objectFromArgs *DoNothing) From_args(args map[string]interface{}) {
+	DoNothing_instance_from_args(objectFromArgs, args)
+}
+
+func (msg *DoNothing) XXX_type() *graphql.Object {
+	return DoNothing_type
+}
+
+func (msg *DoNothing) XXX_args() graphql.FieldConfigArgument {
+	return DoNothing_args
+}
 
 var GetBooksRequest_type = graphql.NewObject(graphql.ObjectConfig{
-	Name: "GetBooksRequest",
+	Name: "BooksRequest",
 	Fields: graphql.Fields{
 		"ids": &graphql.Field{
 			Type: graphql.NewList(graphql.String),
 		},
 		"hardbackOnly": &graphql.Field{
 			Type: graphql.Boolean,
+		},
+		"price": &graphql.Field{
+			Type: graphql.Float,
+		},
+		"genres": &graphql.Field{
+			Type: graphql.NewList(Genre_enum),
+		},
+		"releasedAfter": &graphql.Field{
+			Type: pg.Timestamp_type,
+		},
+		"priceGreaterThan": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Float),
+		},
+		"copiesGreaterThan": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+		"copiesLessThan": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+		"priceLessThan": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Float),
+		},
+	},
+})
+
+var GetBooksRequest_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "BooksRequest",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"ids": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewList(graphql.String),
+		},
+		"hardbackOnly": &graphql.InputObjectFieldConfig{
+			Type: graphql.Boolean,
+		},
+		"price": &graphql.InputObjectFieldConfig{
+			Type: graphql.Float,
+		},
+		"genres": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewList(Genre_enum),
+		},
+		"releasedAfter": &graphql.InputObjectFieldConfig{
+			Type: pg.Timestamp_input_type,
+		},
+		"priceGreaterThan": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.Float),
+		},
+		"copiesGreaterThan": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+		"copiesLessThan": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+		"priceLessThan": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.Float),
 		},
 	},
 })
@@ -29,27 +168,99 @@ var GetBooksRequest_args = graphql.FieldConfigArgument{
 	"hardbackOnly": &graphql.ArgumentConfig{
 		Type: graphql.Boolean,
 	},
+	"price": &graphql.ArgumentConfig{
+		Type: graphql.Float,
+	},
+	"genres": &graphql.ArgumentConfig{
+		Type: graphql.NewList(Genre_enum),
+	},
+	"releasedAfter": &graphql.ArgumentConfig{
+		Type: pg.Timestamp_input_type,
+	},
+	"priceGreaterThan": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.Float),
+	},
+	"copiesGreaterThan": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.Int),
+	},
+	"copiesLessThan": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.Int),
+	},
+	"priceLessThan": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.Float),
+	},
 }
 
 func GetBooksRequest_from_args(args map[string]interface{}) *GetBooksRequest {
-	objectFromArgs := GetBooksRequest{}
+	return GetBooksRequest_instance_from_args(&GetBooksRequest{}, args)
+}
+
+func GetBooksRequest_instance_from_args(objectFromArgs *GetBooksRequest, args map[string]interface{}) *GetBooksRequest {
 	if args["ids"] != nil {
 
 		idsInterfaceList := args["ids"].([]interface{})
 
 		var ids []string
-		for _, item := range idsInterfaceList {
-			ids = append(ids, item.(string))
+
+		for _, val := range idsInterfaceList {
+			itemResolved := string(val.(string))
+			ids = append(ids, itemResolved)
 		}
 		objectFromArgs.Ids = ids
-
 	}
-
 	if args["hardbackOnly"] != nil {
-		objectFromArgs.HardbackOnly = wrapperspb.Bool(args["hardbackOnly"].(bool))
+		val := args["hardbackOnly"]
+		objectFromArgs.HardbackOnly = wrapperspb.Bool(bool(val.(bool)))
 	}
+	if args["price"] != nil {
+		val := args["price"]
+		objectFromArgs.Price = wrapperspb.Float(float32(val.(float64)))
+	}
+	if args["genres"] != nil {
 
-	return &objectFromArgs
+		genresInterfaceList := args["genres"].([]interface{})
+
+		var genres []Genre
+
+		for _, val := range genresInterfaceList {
+			itemResolved := val.(Genre)
+			genres = append(genres, itemResolved)
+		}
+		objectFromArgs.Genres = genres
+	}
+	if args["releasedAfter"] != nil {
+		val := args["releasedAfter"]
+		objectFromArgs.ReleasedAfter = pg.ToTimestamp(val)
+	}
+	if args["priceGreaterThan"] != nil {
+		val := args["priceGreaterThan"]
+		objectFromArgs.PriceGreaterThan = float32(val.(float64))
+	}
+	if args["copiesGreaterThan"] != nil {
+		val := args["copiesGreaterThan"]
+		objectFromArgs.CopiesGreaterThan = int64(val.(int))
+	}
+	if args["copiesLessThan"] != nil {
+		val := args["copiesLessThan"]
+		objectFromArgs.CopiesLessThan = int32(val.(int))
+	}
+	if args["priceLessThan"] != nil {
+		val := args["priceLessThan"]
+		objectFromArgs.PriceLessThan = float64(val.(float64))
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *GetBooksRequest) From_args(args map[string]interface{}) {
+	GetBooksRequest_instance_from_args(objectFromArgs, args)
+}
+
+func (msg *GetBooksRequest) XXX_type() *graphql.Object {
+	return GetBooksRequest_type
+}
+
+func (msg *GetBooksRequest) XXX_args() graphql.FieldConfigArgument {
+	return GetBooksRequest_args
 }
 
 var GetBooksResponse_type = graphql.NewObject(graphql.ObjectConfig{
@@ -61,48 +272,95 @@ var GetBooksResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var GetBooksResponse_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "GetBooksResponse",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"books": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewList(Book_input_type),
+		},
+	},
+})
+
 var GetBooksResponse_args = graphql.FieldConfigArgument{
 	"books": &graphql.ArgumentConfig{
-		Type: graphql.NewList(Book_type),
+		Type: graphql.NewList(Book_input_type),
 	},
 }
 
 func GetBooksResponse_from_args(args map[string]interface{}) *GetBooksResponse {
-	objectFromArgs := GetBooksResponse{}
+	return GetBooksResponse_instance_from_args(&GetBooksResponse{}, args)
+}
+
+func GetBooksResponse_instance_from_args(objectFromArgs *GetBooksResponse, args map[string]interface{}) *GetBooksResponse {
 	if args["books"] != nil {
 
 		booksInterfaceList := args["books"].([]interface{})
 
 		var books []*Book
-		for _, item := range booksInterfaceList {
-			books = append(books, item.(*Book))
+
+		for _, val := range booksInterfaceList {
+			itemResolved := Book_from_args(val.(map[string]interface{}))
+			books = append(books, itemResolved)
 		}
 		objectFromArgs.Books = books
-
 	}
+	return objectFromArgs
+}
 
-	return &objectFromArgs
+func (objectFromArgs *GetBooksResponse) From_args(args map[string]interface{}) {
+	GetBooksResponse_instance_from_args(objectFromArgs, args)
+}
+
+func (msg *GetBooksResponse) XXX_type() *graphql.Object {
+	return GetBooksResponse_type
+}
+
+func (msg *GetBooksResponse) XXX_args() graphql.FieldConfigArgument {
+	return GetBooksResponse_args
 }
 
 var GetBooksByAuthorResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetBooksByAuthorResponse",
 	Fields: graphql.Fields{
-		"message": &graphql.Field{
-			Type: graphql.String,
+		"_null": &graphql.Field{
+			Type: graphql.Boolean,
+		},
+	},
+})
+
+var GetBooksByAuthorResponse_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "GetBooksByAuthorResponse",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"_null": &graphql.InputObjectFieldConfig{
+			Type: graphql.Boolean,
 		},
 	},
 })
 
 var GetBooksByAuthorResponse_args = graphql.FieldConfigArgument{
-	"message": &graphql.ArgumentConfig{
-		Type: graphql.String,
+	"_null": &graphql.ArgumentConfig{
+		Type: graphql.Boolean,
 	},
 }
 
 func GetBooksByAuthorResponse_from_args(args map[string]interface{}) *GetBooksByAuthorResponse {
-	objectFromArgs := GetBooksByAuthorResponse{}
+	return GetBooksByAuthorResponse_instance_from_args(&GetBooksByAuthorResponse{}, args)
+}
 
-	return &objectFromArgs
+func GetBooksByAuthorResponse_instance_from_args(objectFromArgs *GetBooksByAuthorResponse, args map[string]interface{}) *GetBooksByAuthorResponse {
+	return objectFromArgs
+}
+
+func (objectFromArgs *GetBooksByAuthorResponse) From_args(args map[string]interface{}) {
+	GetBooksByAuthorResponse_instance_from_args(objectFromArgs, args)
+}
+
+func (msg *GetBooksByAuthorResponse) XXX_type() *graphql.Object {
+	return GetBooksByAuthorResponse_type
+}
+
+func (msg *GetBooksByAuthorResponse) XXX_args() graphql.FieldConfigArgument {
+	return GetBooksByAuthorResponse_args
 }
 
 var BooksByAuthor_type = graphql.NewObject(graphql.ObjectConfig{
@@ -114,27 +372,51 @@ var BooksByAuthor_type = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var BooksByAuthor_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "BooksByAuthor",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"results": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewList(Book_input_type),
+		},
+	},
+})
+
 var BooksByAuthor_args = graphql.FieldConfigArgument{
 	"results": &graphql.ArgumentConfig{
-		Type: graphql.NewList(Book_type),
+		Type: graphql.NewList(Book_input_type),
 	},
 }
 
 func BooksByAuthor_from_args(args map[string]interface{}) *BooksByAuthor {
-	objectFromArgs := BooksByAuthor{}
+	return BooksByAuthor_instance_from_args(&BooksByAuthor{}, args)
+}
+
+func BooksByAuthor_instance_from_args(objectFromArgs *BooksByAuthor, args map[string]interface{}) *BooksByAuthor {
 	if args["results"] != nil {
 
 		resultsInterfaceList := args["results"].([]interface{})
 
 		var results []*Book
-		for _, item := range resultsInterfaceList {
-			results = append(results, item.(*Book))
+
+		for _, val := range resultsInterfaceList {
+			itemResolved := Book_from_args(val.(map[string]interface{}))
+			results = append(results, itemResolved)
 		}
 		objectFromArgs.Results = results
-
 	}
+	return objectFromArgs
+}
 
-	return &objectFromArgs
+func (objectFromArgs *BooksByAuthor) From_args(args map[string]interface{}) {
+	BooksByAuthor_instance_from_args(objectFromArgs, args)
+}
+
+func (msg *BooksByAuthor) XXX_type() *graphql.Object {
+	return BooksByAuthor_type
+}
+
+func (msg *BooksByAuthor) XXX_args() graphql.FieldConfigArgument {
+	return BooksByAuthor_args
 }
 
 var Book_type = graphql.NewObject(graphql.ObjectConfig{
@@ -149,6 +431,45 @@ var Book_type = graphql.NewObject(graphql.ObjectConfig{
 		"authorId": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
+		"genre": &graphql.Field{
+			Type: Genre_enum,
+		},
+		"releaseDate": &graphql.Field{
+			Type: pg.Timestamp_type,
+		},
+		"price": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Float),
+		},
+		"copies": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+	},
+})
+
+var Book_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "Book",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"id": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"name": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"authorId": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"genre": &graphql.InputObjectFieldConfig{
+			Type: Genre_enum,
+		},
+		"releaseDate": &graphql.InputObjectFieldConfig{
+			Type: pg.Timestamp_input_type,
+		},
+		"price": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.Float),
+		},
+		"copies": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
 	},
 })
 
@@ -162,57 +483,121 @@ var Book_args = graphql.FieldConfigArgument{
 	"authorId": &graphql.ArgumentConfig{
 		Type: graphql.NewNonNull(graphql.String),
 	},
+	"genre": &graphql.ArgumentConfig{
+		Type: Genre_enum,
+	},
+	"releaseDate": &graphql.ArgumentConfig{
+		Type: pg.Timestamp_input_type,
+	},
+	"price": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.Float),
+	},
+	"copies": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.Int),
+	},
 }
 
 func Book_from_args(args map[string]interface{}) *Book {
-	objectFromArgs := Book{}
-
-	objectFromArgs.Id = args["id"].(string)
-
-	objectFromArgs.Name = args["name"].(string)
-
-	objectFromArgs.AuthorId = args["authorId"].(string)
-
-	return &objectFromArgs
+	return Book_instance_from_args(&Book{}, args)
 }
 
-var client BooksClient
+func Book_instance_from_args(objectFromArgs *Book, args map[string]interface{}) *Book {
+	if args["id"] != nil {
+		val := args["id"]
+		objectFromArgs.Id = string(val.(string))
+	}
+	if args["name"] != nil {
+		val := args["name"]
+		objectFromArgs.Name = string(val.(string))
+	}
+	if args["authorId"] != nil {
+		val := args["authorId"]
+		objectFromArgs.AuthorId = string(val.(string))
+	}
+	if args["genre"] != nil {
+		val := args["genre"]
+		objectFromArgs.Genre = val.(Genre)
+	}
+	if args["releaseDate"] != nil {
+		val := args["releaseDate"]
+		objectFromArgs.ReleaseDate = pg.ToTimestamp(val)
+	}
+	if args["price"] != nil {
+		val := args["price"]
+		objectFromArgs.Price = float32(val.(float64))
+	}
+	if args["copies"] != nil {
+		val := args["copies"]
+		objectFromArgs.Copies = int64(val.(int))
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *Book) From_args(args map[string]interface{}) {
+	Book_instance_from_args(objectFromArgs, args)
+}
+
+func (msg *Book) XXX_type() *graphql.Object {
+	return Book_type
+}
+
+func (msg *Book) XXX_args() graphql.FieldConfigArgument {
+	return Book_args
+}
+
+var booksClientInstance BooksClient
 
 func init() {
-	client = NewBooksClient(pg.GrpcConnection("localhost:50051"))
-	Fields = append(Fields, &graphql.Field{
+	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
+		booksClientInstance = NewBooksClient(pg.GrpcConnection("localhost:50051", opts...))
+	})
+	fields = append(fields, &graphql.Field{
 		Name: "Books_GetBooks",
 		Type: GetBooksResponse_type,
 		Args: GetBooksRequest_args,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return client.GetBooks(p.Context, GetBooksRequest_from_args(p.Args))
+			return booksClientInstance.GetBooks(p.Context, GetBooksRequest_from_args(p.Args))
+		},
+	})
+
+	fields = append(fields, &graphql.Field{
+		Name: "Books_DoNothing",
+		Type: DoNothing_type,
+		Args: DoNothing_args,
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			return booksClientInstance.DoNothing(p.Context, DoNothing_from_args(p.Args))
 		},
 	})
 
 }
 
-func LoadBooksByAuthor(originalContext context.Context, key string) (func() (interface{}, error), error) {
-	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-		var results []*dataloader.Result
+func WithLoaders(ctx context.Context) context.Context {
+	ctx = context.WithValue(ctx, "BooksByAuthorLoader", dataloader.NewBatchedLoader(
+		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+			var results []*dataloader.Result
 
-		resp, err := client.GetBooksByAuthor(ctx, &pg.BatchRequest{
-			Keys: keys.Keys(),
-		})
+			resp, err := booksClientInstance.GetBooksByAuthor(ctx, &pg.BatchRequest{
+				Keys: keys.Keys(),
+			})
 
-		if err != nil {
+			if err != nil {
+				return results
+			}
+
+			for _, key := range keys.Keys() {
+				results = append(results, &dataloader.Result{Data: resp.Results[key]})
+			}
+
 			return results
-		}
+		},
+	))
 
-		for _, key := range keys.Keys() {
-			results = append(results, &dataloader.Result{Data: resp.Results[key]})
-		}
+	return ctx
+}
 
-		return results
-	}
-
-	loader := dataloader.NewBatchedLoader(batchFn)
-
-	thunk := loader.Load(originalContext, dataloader.StringKey(key))
+func LoadBooksByAuthor(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
+	loader := p.Context.Value("BooksByAuthorLoader").(*dataloader.Loader)
+	thunk := loader.Load(p.Context, dataloader.StringKey(key))
 	return func() (interface{}, error) {
 		res, err := thunk()
 		if err != nil {
@@ -222,28 +607,9 @@ func LoadBooksByAuthor(originalContext context.Context, key string) (func() (int
 	}, nil
 }
 
-func LoadManyBooksByAuthor(originalContext context.Context, keys []string) (func() (interface{}, error), error) {
-	batchFn := func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-		var results []*dataloader.Result
-
-		resp, err := client.GetBooksByAuthor(ctx, &pg.BatchRequest{
-			Keys: keys.Keys(),
-		})
-
-		if err != nil {
-			return results
-		}
-
-		for _, key := range keys.Keys() {
-			results = append(results, &dataloader.Result{Data: resp.Results[key]})
-		}
-
-		return results
-	}
-
-	loader := dataloader.NewBatchedLoader(batchFn)
-
-	thunk := loader.LoadMany(originalContext, dataloader.NewKeysFromStrings(keys))
+func LoadManyBooksByAuthor(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	loader := p.Context.Value("BooksByAuthorLoader").(*dataloader.Loader)
+	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 
