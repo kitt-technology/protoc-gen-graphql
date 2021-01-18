@@ -5,9 +5,9 @@ import (
 	"google.golang.org/grpc"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 
-	"github.com/graph-gophers/dataloader"
-
 	"context"
+
+	"github.com/graph-gophers/dataloader"
 )
 
 var fieldInits []func(...grpc.DialOption)

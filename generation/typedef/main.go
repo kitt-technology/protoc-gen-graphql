@@ -12,13 +12,13 @@ import (
 
 const typeTpl = `
 {{- if not .Optional }}graphql.NewNonNull({{- end }}
-			{{- if .IsList }}graphql.NewList({{- end }}
+			{{- if .IsList }}graphql.NewList(graphql.NewNonNull({{- end }}
 			{{- if eq .TypeOfType "Object" }}{{ .GqlType }}_{{ .Suffix }}{{- end }}
 			{{- if eq .TypeOfType "Wrapper" }}{{ .GqlType }}{{- end }}
 			{{- if eq .TypeOfType "Primitive" }}{{ .GqlType }}{{- end }}
 			{{- if eq .TypeOfType "Enum" }}{{ .GqlType }}_enum{{- end }}
 			{{- if eq .TypeOfType "Timestamp" }}pg.Timestamp_{{ .Suffix }}{{- end }}
- 			{{- if .IsList }}){{- end }}
+ 			{{- if .IsList }})){{- end }}
 			{{- if not .Optional }}){{- end }}`
 
 const goFromArgs = `

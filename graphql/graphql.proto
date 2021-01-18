@@ -10,7 +10,7 @@ extend google.protobuf.MessageOptions {
 }
 
 extend google.protobuf.FileOptions {
-  bool enabled = 1055;
+  bool disabled = 1055;
 }
 
 extend google.protobuf.ServiceOptions {
