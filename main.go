@@ -43,8 +43,8 @@ func shouldProcess(file *protogen.File) bool {
 			return false
 		}
 	}
-	if proto.HasExtension(file.Proto.Options, graphql.E_Enabled) {
-		return proto.GetExtension(file.Proto.Options, graphql.E_Enabled).(bool)
+	if proto.HasExtension(file.Proto.Options, graphql.E_Disabled) {
+		return !proto.GetExtension(file.Proto.Options, graphql.E_Disabled).(bool)
 	}
-	return false
+	return true
 }

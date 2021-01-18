@@ -62,7 +62,14 @@ func WithLoaders(ctx context.Context) context.Context {
 
 {{ range $loader :=.Loaders }}
 func Load{{ $loader.ResultsType }}(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
-	loader := p.Context.Value("{{ $loader.ResultsType }}Loader").(*dataloader.Loader)
+	var loader *dataloader.Loader
+	switch p.Context.Value("{{ $loader.ResultsType }}Loader").(type) {
+	case *dataloader.Loader:
+		loader = p.Context.Value("{{ $loader.ResultsType }}Loader").(*dataloader.Loader)
+	default:
+		panic("Please call {{ .Package }}.WithLoaders with the current context first")
+	}
+
 	thunk := loader.Load(p.Context, dataloader.StringKey(key))
 	return func() (interface{}, error) {
 				res, err := thunk()
@@ -74,7 +81,14 @@ func Load{{ $loader.ResultsType }}(p graphql.ResolveParams, key string) (func() 
 }
 
 func LoadMany{{ $loader.ResultsType }}(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	loader := p.Context.Value("{{ $loader.ResultsType }}Loader").(*dataloader.Loader)
+	var loader *dataloader.Loader
+	switch p.Context.Value("{{ $loader.ResultsType }}Loader").(type) {
+	case *dataloader.Loader:
+		loader = p.Context.Value("{{ $loader.ResultsType }}Loader").(*dataloader.Loader)
+	default:
+		panic("Please call {{ .Package }}.WithLoaders with the current context first")
+	}
+
 	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
@@ -105,6 +119,7 @@ type Loader struct {
 }
 
 type Message struct {
+	Package string
 	Descriptor  *descriptorpb.ServiceDescriptorProto
 	Methods     []Method
 	ServiceName string
@@ -166,6 +181,7 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 		}
 	}
 	return Message{
+		Package: *root.Package,
 		Descriptor:  msg,
 		Methods:     methods,
 		ServiceName: *msg.Name,
