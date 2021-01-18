@@ -67,7 +67,7 @@ func Load{{ $loader.ResultsType }}(p graphql.ResolveParams, key string) (func() 
 	case *dataloader.Loader:
 		loader = p.Context.Value("{{ $loader.ResultsType }}Loader").(*dataloader.Loader)
 	default:
-		panic("Please call {{ .Package }}.WithLoaders with the current context first")
+		panic("Please call {{ $.Package }}.WithLoaders with the current context first")
 	}
 
 	thunk := loader.Load(p.Context, dataloader.StringKey(key))
@@ -86,7 +86,7 @@ func LoadMany{{ $loader.ResultsType }}(p graphql.ResolveParams, keys []string) (
 	case *dataloader.Loader:
 		loader = p.Context.Value("{{ $loader.ResultsType }}Loader").(*dataloader.Loader)
 	default:
-		panic("Please call {{ .Package }}.WithLoaders with the current context first")
+		panic("Please call {{ $.Package }}.WithLoaders with the current context first")
 	}
 
 	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
