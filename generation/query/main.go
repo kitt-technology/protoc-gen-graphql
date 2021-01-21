@@ -9,16 +9,15 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 	"html/template"
 	"strings"
-	"unicode"
 )
 
 const msgTpl = `
 
-var {{ lower .Descriptor.Name }}ClientInstance {{ .Descriptor.Name }}Client
+var {{ .Descriptor.Name }}ClientInstance {{ .Descriptor.Name }}Client
 
 func init() {
 	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
-		{{ lower .Descriptor.Name }}ClientInstance = New{{ .Descriptor.Name }}Client(pg.GrpcConnection("{{ .Dns }}", opts...))
+		{{ .Descriptor.Name }}ClientInstance = New{{ .Descriptor.Name }}Client(pg.GrpcConnection("{{ .Dns }}", opts...))
 	})
 	
 	{{- range $method := .Methods }}
@@ -27,7 +26,7 @@ func init() {
 		Type: {{ $method.Output }}_type,
 		Args: {{ $method.Input }}_args,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return {{ lower $.Descriptor.Name }}ClientInstance.{{ $method.Name }}(p.Context, {{ $method.Input }}_from_args(p.Args))
+			return {{ $.Descriptor.Name }}ClientInstance.{{ $method.Name }}(p.Context, {{ $method.Input }}_from_args(p.Args))
 		},
 	})
 	{{ end }}
@@ -40,7 +39,7 @@ func WithLoaders(ctx context.Context) context.Context {
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result
 	
-			resp, err := {{ lower $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
+			resp, err := {{ $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
 				{{ $loader.KeysField }}: keys.Keys(),
 			})
 	
@@ -199,14 +198,7 @@ func (m Message) Imports() []string {
 
 func (m Message) Generate() string {
 	var buf bytes.Buffer
-	mTpl, err := template.New("msg").Funcs(map[string]interface{}{
-		"lower": func(input string) string {
-			for i, v := range input {
-				return string(unicode.ToLower(v)) + input[i+1:]
-			}
-			return ""
-		},
-	}).Parse(msgTpl)
+	mTpl, err := template.New("msg").Parse(msgTpl)
 	if err != nil {
 		panic(err)
 	}
