@@ -41,7 +41,15 @@ var Timestamp_type = graphql.NewObject(graphql.ObjectConfig{
 		"unix": &graphql.Field{
 			Type: graphql.Int,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return time.Unix(p.Source.(*timestamp.Timestamp).Seconds, 0), nil
+				return time.Unix(p.Source.(*timestamp.Timestamp).Seconds, 0).Unix(), nil
+			},
+		},
+		"msSinceEpoch": &graphql.Field{
+			Type: graphql.Int,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				t := time.Unix(p.Source.(*timestamp.Timestamp).Seconds, 0).UnixNano()
+				ms := t / int64(time.Millisecond)
+				return ms, nil
 			},
 		},
 		"format": &graphql.Field{
