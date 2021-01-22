@@ -66,7 +66,7 @@ var Timestamp_type = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.String,
 			// Mon Jan 2 15:04:05 -0700 MST 2006
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return time.Unix(p.Source.(*timestamp.Timestamp).Seconds, 0).Format(p.Args["format"].(string)), nil
+				return time.Unix(p.Source.(*timestamp.Timestamp).Seconds, 0).Format(p.Args["layout"].(string)), nil
 			},
 		},
 	},
