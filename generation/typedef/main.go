@@ -44,7 +44,7 @@ var {{ .Descriptor.GetName }}_type = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var {{ .Descriptor.GetName }}_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "{{ .ObjectName }}",
+	Name: "{{ .ObjectName }}Input",
 	Fields: graphql.InputObjectConfigFieldMap{
 		{{- range $field := .Fields }}
 		"{{ $field.GqlKey }}": &graphql.InputObjectFieldConfig{
