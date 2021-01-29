@@ -59,7 +59,7 @@ func (s BookService) GetBooks(ctx context.Context, request *books.GetBooksReques
 
 	v := request.FooBar
 
-	fmt.Println("FooBar", v)
+	fmt.Println("FooBar", v.GetValue())
 
 	if request.HardbackOnly != nil && request.HardbackOnly.GetValue() {
 		bs = append(bs, booksDb["3"])

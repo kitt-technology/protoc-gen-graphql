@@ -42,6 +42,7 @@ var WrappedString = graphql.NewScalar(graphql.ScalarConfig{
 		return value.(*wrapperspb.StringValue).GetValue()
 	},
 	ParseValue: func(value interface{}) interface{} {
+		fmt.Println("parsevalue, value:", value)
 		return value
 	},
 	ParseLiteral: func(valueAST ast.Value) interface{} {
