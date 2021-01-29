@@ -5,13 +5,13 @@ import (
 	"google.golang.org/grpc"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 
-	"context"
-
-	"github.com/graph-gophers/dataloader"
-
 	"github.com/graphql-go/graphql/language/ast"
 
 	"google.golang.org/protobuf/types/known/wrapperspb"
+
+	"context"
+
+	"github.com/graph-gophers/dataloader"
 )
 
 var fieldInits []func(...grpc.DialOption)
@@ -125,6 +125,9 @@ var GetBooksRequest_type = graphql.NewObject(graphql.ObjectConfig{
 		"priceLessThan": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.Float),
 		},
+		"fooBar": &graphql.Field{
+			Type: pg.WrappedString,
+		},
 	},
 })
 
@@ -158,6 +161,9 @@ var GetBooksRequest_input_type = graphql.NewInputObject(graphql.InputObjectConfi
 		"priceLessThan": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.Float),
 		},
+		"fooBar": &graphql.InputObjectFieldConfig{
+			Type: pg.WrappedString,
+		},
 	},
 })
 
@@ -188,6 +194,9 @@ var GetBooksRequest_args = graphql.FieldConfigArgument{
 	},
 	"priceLessThan": &graphql.ArgumentConfig{
 		Type: graphql.NewNonNull(graphql.Float),
+	},
+	"fooBar": &graphql.ArgumentConfig{
+		Type: pg.WrappedString,
 	},
 }
 
@@ -247,6 +256,10 @@ func GetBooksRequest_instance_from_args(objectFromArgs *GetBooksRequest, args ma
 	if args["priceLessThan"] != nil {
 		val := args["priceLessThan"]
 		objectFromArgs.PriceLessThan = float64(val.(float64))
+	}
+	if args["fooBar"] != nil {
+		val := args["fooBar"]
+		objectFromArgs.FooBar = wrapperspb.String(string(val.(string)))
 	}
 	return objectFromArgs
 }
