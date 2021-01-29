@@ -2,10 +2,8 @@ package graphql
 
 import (
 	"context"
-	"fmt"
 	"github.com/graphql-go/graphql/language/ast"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-	"reflect"
 	"time"
 
 	"strconv"
@@ -42,12 +40,11 @@ var WrappedString = graphql.NewScalar(graphql.ScalarConfig{
 		return value.(*wrapperspb.StringValue).GetValue()
 	},
 	ParseValue: func(value interface{}) interface{} {
-		fmt.Println("parsevalue, value:", value)
+		// value is of type string... expected.
 		return value
 	},
 	ParseLiteral: func(valueAST ast.Value) interface{} {
-		fmt.Println("Parse literal")
-		fmt.Println(reflect.TypeOf(valueAST.GetValue()))
+		// GetValue() is of type *wrapperspb.StringValue, why?
 		return valueAST.GetValue()
 	},
 })

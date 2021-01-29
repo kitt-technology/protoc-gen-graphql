@@ -57,10 +57,6 @@ func (s BookService) GetBooksByAuthor(ctx context.Context, request *graphql.Batc
 func (s BookService) GetBooks(ctx context.Context, request *books.GetBooksRequest) (*books.GetBooksResponse, error) {
 	var bs []*books.Book
 
-	v := request.FooBar
-
-	fmt.Println("FooBar", v.GetValue())
-
 	if request.HardbackOnly != nil && request.HardbackOnly.GetValue() {
 		bs = append(bs, booksDb["3"])
 	} else if len(request.Ids) > 0 {

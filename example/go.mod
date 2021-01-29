@@ -7,7 +7,7 @@ require (
 	github.com/graph-gophers/dataloader v5.0.0+incompatible
 	github.com/graphql-go/graphql v0.7.9
 	github.com/kitt-technology/protoc-gen-auth v0.0.22 // indirect
-	github.com/kitt-technology/protoc-gen-graphql v0.10.3-0.20210129143001-03f021d03f9a
+	github.com/kitt-technology/protoc-gen-graphql v0.10.3-0.20210129143300-9550339deb92
 	github.com/likexian/gokit v0.23.3 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
