@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	"log"
 	"net"
 )
@@ -35,7 +36,6 @@ type BookService struct {
 func (s BookService) DoNothing(ctx context.Context, nothing *books.DoNothing) (*books.DoNothing, error) {
 	return &books.DoNothing{}, nil
 }
-
 
 func (s BookService) GetBooksByAuthor(ctx context.Context, request *graphql.BatchRequest) (*books.GetBooksByAuthorResponse, error) {
 	var bs = make(map[string]*books.BooksByAuthor)
@@ -74,7 +74,9 @@ func (s BookService) GetBooks(ctx context.Context, request *books.GetBooksReques
 		}
 	}
 
-	return &books.GetBooksResponse{Books: bs}, nil
+	foobar := &wrapperspb.StringValue{Value: "Hello world"}
+
+	return &books.GetBooksResponse{Books: bs, Foobar: foobar}, nil
 }
 
 var booksDb map[string]*books.Book
@@ -117,9 +119,8 @@ func init() {
 			Name:     "The BFG",
 			AuthorId: "2",
 			Genre:    1,
-			Copies: 10,
-			Price: 10,
+			Copies:   10,
+			Price:    10,
 		},
-
 	}
 }
