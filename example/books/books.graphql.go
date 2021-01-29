@@ -5,13 +5,13 @@ import (
 	"google.golang.org/grpc"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 
-	"github.com/graphql-go/graphql/language/ast"
-
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"context"
 
 	"github.com/graph-gophers/dataloader"
+
+	"github.com/graphql-go/graphql/language/ast"
 )
 
 var fieldInits []func(...grpc.DialOption)
