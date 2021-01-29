@@ -31,6 +31,7 @@ message GetBooksRequest {
   int64 copies_greater_than = 7;
   int32 copies_less_than = 8;
   double price_less_than = 9;
+  google.protobuf.StringValue foo_bar = 10;
 }
 
 message GetBooksResponse {

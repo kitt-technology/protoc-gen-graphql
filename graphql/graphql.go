@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"github.com/graphql-go/graphql/language/ast"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"time"
 
@@ -37,6 +38,14 @@ var WrappedString = graphql.NewScalar(graphql.ScalarConfig{
 	Description: "protobuf string wrapper",
 	Serialize: func(value interface{}) interface{} {
 		return value.(*wrapperspb.StringValue).GetValue()
+	},
+	ParseValue: func(value interface{}) interface{} {
+		// value is of type string... expected.
+		return value
+	},
+	ParseLiteral: func(valueAST ast.Value) interface{} {
+		// GetValue() is of type *wrapperspb.StringValue, why?
+		return valueAST.GetValue()
 	},
 })
 
