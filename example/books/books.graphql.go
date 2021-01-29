@@ -2,8 +2,8 @@ package books
 
 import (
 	"github.com/graphql-go/graphql"
-	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/grpc"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 
 	"context"
 
