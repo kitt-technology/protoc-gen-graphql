@@ -362,6 +362,10 @@ func primitiveToWrapper(wrapperType GoType) string {
 		return "string"
 	case "wrapperspb.Bool":
 		return "bool"
+	case "wrapperspb.Int32":
+		return "int32"
+	case "wrapperspb.Int64":
+		return "int64"
 	}
 	return string(wrapperType)
 }
