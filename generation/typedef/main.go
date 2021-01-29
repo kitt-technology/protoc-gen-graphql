@@ -373,9 +373,9 @@ func types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, Gq
 			return "wrapperspb.Float", "graphql.Float", Wrapper
 		case ".google.protobuf.Timestamp":
 			return "timestamp.Timestamp", "pg.Timestamp", Timestamp
-		case ".google.protobuf.Int32":
+		case ".google.protobuf.Int32Value":
 			return "wrapperspb.Int32", "graphql.Int", Wrapper
-		case ".google.protobuf.Int64":
+		case ".google.protobuf.Int64Value":
 			return "wrapperspb.Int64", "graphql.Int", Wrapper
 		}
 	}
