@@ -4,8 +4,6 @@ package authors;
 
 import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
 
-option (graphql.enabled) = true;
-
 option go_package = "example/authors;authors";
 
 service Authors {
