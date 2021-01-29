@@ -2,8 +2,8 @@ package authors
 
 import (
 	"github.com/graphql-go/graphql"
-	"google.golang.org/grpc"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"google.golang.org/grpc"
 
 	"context"
 
@@ -25,23 +25,23 @@ var GetAuthorsRequest_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetAuthorsRequest",
 	Fields: graphql.Fields{
 		"ids": &graphql.Field{
-			Type: graphql.NewList(graphql.String),
+			Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
 		},
 	},
 })
 
 var GetAuthorsRequest_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "GetAuthorsRequest",
+	Name: "GetAuthorsRequestInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"ids": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewList(graphql.String),
+			Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
 		},
 	},
 })
 
 var GetAuthorsRequest_args = graphql.FieldConfigArgument{
 	"ids": &graphql.ArgumentConfig{
-		Type: graphql.NewList(graphql.String),
+		Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
 	},
 }
 
@@ -81,23 +81,23 @@ var GetAuthorsResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetAuthorsResponse",
 	Fields: graphql.Fields{
 		"authors": &graphql.Field{
-			Type: graphql.NewList(Author_type),
+			Type: graphql.NewList(graphql.NewNonNull(Author_type)),
 		},
 	},
 })
 
 var GetAuthorsResponse_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "GetAuthorsResponse",
+	Name: "GetAuthorsResponseInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"authors": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewList(Author_input_type),
+			Type: graphql.NewList(graphql.NewNonNull(Author_input_type)),
 		},
 	},
 })
 
 var GetAuthorsResponse_args = graphql.FieldConfigArgument{
 	"authors": &graphql.ArgumentConfig{
-		Type: graphql.NewList(Author_input_type),
+		Type: graphql.NewList(graphql.NewNonNull(Author_input_type)),
 	},
 }
 
@@ -137,23 +137,23 @@ var AuthorsBatchRequest_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "AuthorsBatchRequest",
 	Fields: graphql.Fields{
 		"ids": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(graphql.String)),
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
 		},
 	},
 })
 
 var AuthorsBatchRequest_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "AuthorsBatchRequest",
+	Name: "AuthorsBatchRequestInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"ids": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.NewList(graphql.String)),
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
 		},
 	},
 })
 
 var AuthorsBatchRequest_args = graphql.FieldConfigArgument{
 	"ids": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.NewList(graphql.String)),
+		Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
 	},
 }
 
@@ -199,7 +199,7 @@ var AuthorsBatchResponse_type = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var AuthorsBatchResponse_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "AuthorsBatchResponse",
+	Name: "AuthorsBatchResponseInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"_null": &graphql.InputObjectFieldConfig{
 			Type: graphql.Boolean,
@@ -246,7 +246,7 @@ var Author_type = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var Author_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "Author",
+	Name: "AuthorInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"id": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
@@ -294,18 +294,18 @@ func (msg *Author) XXX_args() graphql.FieldConfigArgument {
 	return Author_args
 }
 
-var authorsClientInstance AuthorsClient
+var AuthorsClientInstance AuthorsClient
 
 func init() {
 	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
-		authorsClientInstance = NewAuthorsClient(pg.GrpcConnection("localhost:50052", opts...))
+		AuthorsClientInstance = NewAuthorsClient(pg.GrpcConnection("localhost:50052", opts...))
 	})
 	fields = append(fields, &graphql.Field{
 		Name: "Authors_GetAuthors",
 		Type: GetAuthorsResponse_type,
 		Args: GetAuthorsRequest_args,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return authorsClientInstance.GetAuthors(p.Context, GetAuthorsRequest_from_args(p.Args))
+			return AuthorsClientInstance.GetAuthors(p.Context, GetAuthorsRequest_from_args(p.Args))
 		},
 	})
 
@@ -316,7 +316,7 @@ func WithLoaders(ctx context.Context) context.Context {
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result
 
-			resp, err := authorsClientInstance.LoadAuthors(ctx, &pg.BatchRequest{
+			resp, err := AuthorsClientInstance.LoadAuthors(ctx, &pg.BatchRequest{
 				Keys: keys.Keys(),
 			})
 
@@ -336,7 +336,14 @@ func WithLoaders(ctx context.Context) context.Context {
 }
 
 func LoadAuthor(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
-	loader := p.Context.Value("AuthorLoader").(*dataloader.Loader)
+	var loader *dataloader.Loader
+	switch p.Context.Value("AuthorLoader").(type) {
+	case *dataloader.Loader:
+		loader = p.Context.Value("AuthorLoader").(*dataloader.Loader)
+	default:
+		panic("Please call authors.WithLoaders with the current context first")
+	}
+
 	thunk := loader.Load(p.Context, dataloader.StringKey(key))
 	return func() (interface{}, error) {
 		res, err := thunk()
@@ -348,7 +355,14 @@ func LoadAuthor(p graphql.ResolveParams, key string) (func() (interface{}, error
 }
 
 func LoadManyAuthor(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	loader := p.Context.Value("AuthorLoader").(*dataloader.Loader)
+	var loader *dataloader.Loader
+	switch p.Context.Value("AuthorLoader").(type) {
+	case *dataloader.Loader:
+		loader = p.Context.Value("AuthorLoader").(*dataloader.Loader)
+	default:
+		panic("Please call authors.WithLoaders with the current context first")
+	}
+
 	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()

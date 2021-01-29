@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	"time"
 
 	"strconv"
@@ -30,6 +31,14 @@ var Timestamp_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 const name = "2006-01-02T15:04:05"
+
+var WrappedString = graphql.NewScalar(graphql.ScalarConfig{
+	Name:        "WrappedString",
+	Description: "protobuf string wrapper",
+	Serialize: func(value interface{}) interface{} {
+		return value.(*wrapperspb.StringValue).GetValue()
+	},
+})
 
 var Timestamp_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Timestamp",

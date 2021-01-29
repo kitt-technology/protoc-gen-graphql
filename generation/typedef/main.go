@@ -18,6 +18,7 @@ const typeTpl = `
 			{{- if eq .TypeOfType "Primitive" }}{{ .GqlType }}{{- end }}
 			{{- if eq .TypeOfType "Enum" }}{{ .GqlType }}_enum{{- end }}
 			{{- if eq .TypeOfType "Timestamp" }}pg.Timestamp_{{ .Suffix }}{{- end }}
+			{{- if eq .TypeOfType "WrappedString" }}pg.Timestamp_{{ .Suffix }}{{- end }}
  			{{- if .IsList }})){{- end }}
 			{{- if not .Optional }}){{- end }}`
 
@@ -27,7 +28,6 @@ const goFromArgs = `
 {{- if eq .TypeOfType "Wrapper" }}{{  .GoType }}({{ primitive_to_wrapper .GoType }}(val.({{ wrapper_to_primitive .GoType }}))){{- end }}
 {{- if eq .TypeOfType "Enum" }}val.({{ .GoType }}){{- end }}
 {{- if eq .TypeOfType "Timestamp" }}pg.ToTimestamp(val){{- end }}`
-
 
 const msgTpl = `
 
@@ -115,43 +115,43 @@ func (msg *{{ .Descriptor.GetName }}) XXX_args() graphql.FieldConfigArgument {
 `
 
 type Field struct {
-	GqlKey    string
+	GqlKey string
 
 	GoKey  string
-	GoType  GoType
+	GoType GoType
 
-	Type  string
-	GoFromArgs  string
+	Type       string
+	GoFromArgs string
 	InputType  string
-	ArgType  string
+	ArgType    string
 
-	IsList      bool
+	IsList     bool
 	TypeOfType string
 }
 
 type FieldTypeVars struct {
 	TypeOfType string
-	Optional bool
-	IsList bool
-	GqlType GqlType
-	Suffix string
-	GoType GoType
-	GqlKey string
+	Optional   bool
+	IsList     bool
+	GqlType    GqlType
+	Suffix     string
+	GoType     GoType
+	GqlKey     string
 }
 
 type Message struct {
 	Descriptor *descriptorpb.DescriptorProto
-	Root *descriptorpb.FileDescriptorProto
+	Root       *descriptorpb.FileDescriptorProto
 	Fields     []Field
 	Import     map[string]string
-	ObjectName    string
+	ObjectName string
 }
 
 func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto) (m Message) {
 	return Message{
 		Import:     make(map[string]string),
 		Descriptor: msg,
-		Root: file,
+		Root:       file,
 	}
 }
 
@@ -178,7 +178,7 @@ func (m Message) Generate() string {
 	}
 
 	funcMap := template.FuncMap{
-		"strip_precision": stripPrecision,
+		"strip_precision":      stripPrecision,
 		"wrapper_to_primitive": wrapperToPrimitive,
 		"primitive_to_wrapper": primitiveToWrapper,
 	}
@@ -221,14 +221,14 @@ func (m Message) Generate() string {
 		}
 
 		if typeOfType == Wrapper {
-			m.Import["google.golang.org/protobuf/types/known/wrapperspb"] ="google.golang.org/protobuf/types/known/wrapperspb"
+			m.Import["google.golang.org/protobuf/types/known/wrapperspb"] = "google.golang.org/protobuf/types/known/wrapperspb"
 		}
 		if typeOfType == Timestamp && isList {
 			m.Import["github.com/golang/protobuf/ptypes/timestamp"] = "github.com/golang/protobuf/ptypes/timestamp"
 		}
 
 		optional := field.TypeName != nil
-		if proto.HasExtension(field.Options, graphql.E_Optional)   {
+		if proto.HasExtension(field.Options, graphql.E_Optional) {
 			val := proto.GetExtension(field.Options, graphql.E_Optional)
 			if val.(bool) {
 				optional = true
@@ -236,22 +236,22 @@ func (m Message) Generate() string {
 		}
 
 		fieldVars := Field{
-			GqlKey: *field.JsonName,
-			GoKey: goKey(field),
-			GoType: goType,
+			GqlKey:     *field.JsonName,
+			GoKey:      goKey(field),
+			GoType:     goType,
 			TypeOfType: string(typeOfType),
-			IsList: isList,
+			IsList:     isList,
 		}
 
 		// Generate input type
 		typeVars := FieldTypeVars{
 			TypeOfType: string(typeOfType),
-			IsList: isList,
-			GoType: goType,
-			GqlType: gqlType,
-			GqlKey: *field.JsonName,
-			Suffix: "input_type",
-			Optional: optional,
+			IsList:     isList,
+			GoType:     goType,
+			GqlType:    gqlType,
+			GqlKey:     *field.JsonName,
+			Suffix:     "input_type",
+			Optional:   optional,
 		}
 		var buf bytes.Buffer
 		mTpl, err := template.New("input_type").Funcs(funcMap).Parse(typeTpl)
@@ -286,11 +286,10 @@ func (m Message) Generate() string {
 		m.Fields = append(m.Fields, fieldVars)
 	}
 
-
 	if len(m.Fields) == 0 {
 		m.Fields = append(m.Fields, Field{
-			GqlKey: "_null",
-			Type: "graphql.Boolean",
+			GqlKey:    "_null",
+			Type:      "graphql.Boolean",
 			InputType: "graphql.Boolean",
 		})
 	}
@@ -311,7 +310,6 @@ func goKey(field *descriptorpb.FieldDescriptorProto) string {
 	return strings.ToUpper(string(name[0])) + name[1:]
 }
 
-
 type Descriptor interface {
 	GetType() descriptorpb.FieldDescriptorProto_Type
 	GetTypeName() string
@@ -322,11 +320,11 @@ type GoType string
 type GqlType string
 
 const (
-	Wrapper FieldType = "Wrapper"
-	Object = "Object"
-	Primitive = "Primitive"
-	Enum = "Enum"
-	Timestamp = "Timestamp"
+	Wrapper   FieldType = "Wrapper"
+	Object              = "Object"
+	Primitive           = "Primitive"
+	Enum                = "Enum"
+	Timestamp           = "Timestamp"
 )
 
 func wrapperToPrimitive(wrapperType GoType) string {
@@ -370,7 +368,7 @@ func types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, Gq
 	if field.GetTypeName() != "" {
 		switch field.GetTypeName() {
 		case ".google.protobuf.StringValue":
-			return "wrapperspb.String", "graphql.String", Wrapper
+			return "wrapperspb.String", "pg.WrappedString", Wrapper
 		case ".google.protobuf.BoolValue":
 			return "wrapperspb.Bool", "graphql.Boolean", Wrapper
 		case ".google.protobuf.FloatValue":
