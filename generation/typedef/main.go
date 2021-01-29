@@ -337,6 +337,10 @@ func wrapperToPrimitive(wrapperType GoType) string {
 		return "bool"
 	case "wrapperspb.Float":
 		return "float64"
+	case "wrapperspb.Int32":
+		return "int32"
+	case "wrapperspb.Int64":
+		return "int64"
 	}
 	return ""
 }
