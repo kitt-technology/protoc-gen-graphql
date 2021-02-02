@@ -13,14 +13,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-type Mutation interface {
-	GetName() string
-	GetType() graphql.Object
-	GetArgs() graphql.FieldConfigArgument
-	GetSuccessEvent() *string
-	GetFailureEvent() *string
-}
-
 var Timestamp_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "TimestampInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -107,6 +99,7 @@ type GraphqlMessage interface {
 	proto.Message
 	XXX_type() *graphql.Object
 	XXX_args() graphql.FieldConfigArgument
+	XXX_package() string
 	From_args(args map[string]interface{})
 }
 
