@@ -18,7 +18,7 @@ const typeTpl = `
 			{{- if eq .TypeOfType "Primitive" }}{{ .GqlType }}{{- end }}
 			{{- if eq .TypeOfType "Enum" }}{{ .GqlType }}_enum{{- end }}
 			{{- if eq .TypeOfType "Timestamp" }}pg.Timestamp_{{ .Suffix }}{{- end }}
-			{{- if eq .TypeOfType "WrappedString" }}pg.Timestamp_{{ .Suffix }}{{- end }}
+			{{- if eq .TypeOfType "WrappedString" }}pg.WrappedString_{{ .Suffix }}{{- end }}
  			{{- if .IsList }})){{- end }}
 			{{- if not .Optional }}){{- end }}`
 

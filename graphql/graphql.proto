@@ -7,6 +7,7 @@ option go_package = "github.com/kitt-technology/protoc-gen-graphql/graphql;graph
 
 extend google.protobuf.MessageOptions {
   string object_name = 1085;
+  bool mutation = 1086;
 }
 
 extend google.protobuf.FileOptions {
