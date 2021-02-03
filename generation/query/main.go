@@ -179,11 +179,14 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 			methods = append(methods, Method{Input: last(*method.InputType), Output: last(*method.OutputType), Name: strings.Title(*method.Name)})
 		}
 	}
+	pkg := *root.Package
+	pkgPath := strings.Split(pkg, ".")
+
 	return Message{
 		Package: *root.Package,
 		Descriptor:  msg,
 		Methods:     methods,
-		ServiceName: *msg.Name,
+		ServiceName: pkgPath[len(pkgPath) - 1],
 		Dns:         dns,
 		Loaders:     m.Loaders,
 	}

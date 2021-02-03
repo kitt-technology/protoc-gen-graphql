@@ -112,6 +112,10 @@ func (msg *{{ .Descriptor.GetName }}) XXX_type() *graphql.Object {
 func (msg *{{ .Descriptor.GetName }}) XXX_args() graphql.FieldConfigArgument {
 	return {{ .Descriptor.GetName }}_args
 }
+
+func (msg *{{ .Descriptor.GetName }}) XXX_package() graphql.FieldConfigArgument {
+	return {{ .Package }}_args
+}
 `
 
 type Field struct {
@@ -141,6 +145,7 @@ type FieldTypeVars struct {
 
 type Message struct {
 	Descriptor *descriptorpb.DescriptorProto
+	Package string
 	Root       *descriptorpb.FileDescriptorProto
 	Fields     []Field
 	Import     map[string]string
@@ -148,10 +153,13 @@ type Message struct {
 }
 
 func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto) (m Message) {
+	pkg := file.Package
+	pkgPath := strings.Split(*pkg, ".")
 	return Message{
 		Import:     make(map[string]string),
 		Descriptor: msg,
 		Root:       file,
+		Package: pkgPath[len(pkgPath) - 1],
 	}
 }
 
