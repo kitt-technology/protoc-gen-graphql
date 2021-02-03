@@ -113,8 +113,8 @@ func (msg *{{ .Descriptor.GetName }}) XXX_args() graphql.FieldConfigArgument {
 	return {{ .Descriptor.GetName }}_args
 }
 
-func (msg *{{ .Descriptor.GetName }}) XXX_package() graphql.FieldConfigArgument {
-	return {{ .Package }}_args
+func (msg *{{ .Descriptor.GetName }}) XXX_package() string {
+	return "{{ .Package }}"
 }
 `
 
