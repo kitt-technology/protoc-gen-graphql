@@ -65,7 +65,6 @@ func New(file *protogen.File) (f File) {
 
 	for _, msg := range file.Proto.MessageType {
 		f.TypeDefs = append(f.TypeDefs, typedef.New(msg, file.Proto))
-
 	}
 	return f
 }

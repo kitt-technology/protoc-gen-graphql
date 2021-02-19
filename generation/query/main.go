@@ -117,6 +117,9 @@ type Loader struct {
 	ResultsType  string
 }
 
+type Connection struct {
+}
+
 type Message struct {
 	Package string
 	Descriptor  *descriptorpb.ServiceDescriptorProto
@@ -124,6 +127,7 @@ type Message struct {
 	ServiceName string
 	Dns         string
 	Loaders     []Loader
+	Connections     []Connection
 }
 
 func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescriptorProto) (m Message) {
@@ -174,9 +178,19 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 				ResultsField: strcase.ToCamel(*field.Name),
 				ResultsType:  resultType,
 			})
-
 		} else {
-			methods = append(methods, Method{Input: last(*method.InputType), Output: last(*method.OutputType), Name: strings.Title(*method.Name)})
+			inputType := last(*method.InputType)
+			switch *method.InputType {
+			case ".graphql.ConnectionRequest":
+				inputType = "pg.ConnectionRequest"
+			}
+			outputType := last(*method.OutputType)
+			switch *method.OutputType {
+			case ".graphql.ConnectionResponse":
+				outputType = "pg.ConnectionResponse"
+			}
+
+			methods = append(methods, Method{Input: inputType, Output: outputType, Name: strings.Title(*method.Name)})
 		}
 	}
 	pkg := *root.Package

@@ -77,6 +77,10 @@ func (msg *GetAuthorsRequest) XXX_args() graphql.FieldConfigArgument {
 	return GetAuthorsRequest_args
 }
 
+func (msg *GetAuthorsRequest) XXX_package() string {
+	return "authors"
+}
+
 var GetAuthorsResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetAuthorsResponse",
 	Fields: graphql.Fields{
@@ -133,60 +137,8 @@ func (msg *GetAuthorsResponse) XXX_args() graphql.FieldConfigArgument {
 	return GetAuthorsResponse_args
 }
 
-var AuthorsBatchRequest_type = graphql.NewObject(graphql.ObjectConfig{
-	Name: "AuthorsBatchRequest",
-	Fields: graphql.Fields{
-		"ids": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
-		},
-	},
-})
-
-var AuthorsBatchRequest_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "AuthorsBatchRequestInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"ids": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
-		},
-	},
-})
-
-var AuthorsBatchRequest_args = graphql.FieldConfigArgument{
-	"ids": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
-	},
-}
-
-func AuthorsBatchRequest_from_args(args map[string]interface{}) *AuthorsBatchRequest {
-	return AuthorsBatchRequest_instance_from_args(&AuthorsBatchRequest{}, args)
-}
-
-func AuthorsBatchRequest_instance_from_args(objectFromArgs *AuthorsBatchRequest, args map[string]interface{}) *AuthorsBatchRequest {
-	if args["ids"] != nil {
-
-		idsInterfaceList := args["ids"].([]interface{})
-
-		var ids []string
-
-		for _, val := range idsInterfaceList {
-			itemResolved := string(val.(string))
-			ids = append(ids, itemResolved)
-		}
-		objectFromArgs.Ids = ids
-	}
-	return objectFromArgs
-}
-
-func (objectFromArgs *AuthorsBatchRequest) From_args(args map[string]interface{}) {
-	AuthorsBatchRequest_instance_from_args(objectFromArgs, args)
-}
-
-func (msg *AuthorsBatchRequest) XXX_type() *graphql.Object {
-	return AuthorsBatchRequest_type
-}
-
-func (msg *AuthorsBatchRequest) XXX_args() graphql.FieldConfigArgument {
-	return AuthorsBatchRequest_args
+func (msg *GetAuthorsResponse) XXX_package() string {
+	return "authors"
 }
 
 var AuthorsBatchResponse_type = graphql.NewObject(graphql.ObjectConfig{
@@ -231,6 +183,10 @@ func (msg *AuthorsBatchResponse) XXX_type() *graphql.Object {
 
 func (msg *AuthorsBatchResponse) XXX_args() graphql.FieldConfigArgument {
 	return AuthorsBatchResponse_args
+}
+
+func (msg *AuthorsBatchResponse) XXX_package() string {
+	return "authors"
 }
 
 var Author_type = graphql.NewObject(graphql.ObjectConfig{
@@ -294,6 +250,10 @@ func (msg *Author) XXX_args() graphql.FieldConfigArgument {
 	return Author_args
 }
 
+func (msg *Author) XXX_package() string {
+	return "authors"
+}
+
 var AuthorsClientInstance AuthorsClient
 
 func init() {
@@ -301,11 +261,20 @@ func init() {
 		AuthorsClientInstance = NewAuthorsClient(pg.GrpcConnection("localhost:50052", opts...))
 	})
 	fields = append(fields, &graphql.Field{
-		Name: "Authors_GetAuthors",
+		Name: "authors_GetAuthors",
 		Type: GetAuthorsResponse_type,
 		Args: GetAuthorsRequest_args,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return AuthorsClientInstance.GetAuthors(p.Context, GetAuthorsRequest_from_args(p.Args))
+		},
+	})
+
+	fields = append(fields, &graphql.Field{
+		Name: "authors_AuthorsConnection",
+		Type: pg.ConnectionResponse_type,
+		Args: pg.ConnectionRequest_args,
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			return AuthorsClientInstance.AuthorsConnection(p.Context, pg.ConnectionRequest_from_args(p.Args))
 		},
 	})
 

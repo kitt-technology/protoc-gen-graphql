@@ -12,7 +12,6 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // AuthorsClient is the client API for Authors service.
@@ -21,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type AuthorsClient interface {
 	GetAuthors(ctx context.Context, in *GetAuthorsRequest, opts ...grpc.CallOption) (*GetAuthorsResponse, error)
 	LoadAuthors(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*AuthorsBatchResponse, error)
+	AuthorsConnection(ctx context.Context, in *graphql.ConnectionRequest, opts ...grpc.CallOption) (*graphql.ConnectionResponse, error)
 }
 
 type authorsClient struct {
@@ -49,12 +49,22 @@ func (c *authorsClient) LoadAuthors(ctx context.Context, in *graphql.BatchReques
 	return out, nil
 }
 
+func (c *authorsClient) AuthorsConnection(ctx context.Context, in *graphql.ConnectionRequest, opts ...grpc.CallOption) (*graphql.ConnectionResponse, error) {
+	out := new(graphql.ConnectionResponse)
+	err := c.cc.Invoke(ctx, "/authors.Authors/authorsConnection", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthorsServer is the server API for Authors service.
 // All implementations must embed UnimplementedAuthorsServer
 // for forward compatibility
 type AuthorsServer interface {
 	GetAuthors(context.Context, *GetAuthorsRequest) (*GetAuthorsResponse, error)
 	LoadAuthors(context.Context, *graphql.BatchRequest) (*AuthorsBatchResponse, error)
+	AuthorsConnection(context.Context, *graphql.ConnectionRequest) (*graphql.ConnectionResponse, error)
 	mustEmbedUnimplementedAuthorsServer()
 }
 
@@ -68,6 +78,9 @@ func (UnimplementedAuthorsServer) GetAuthors(context.Context, *GetAuthorsRequest
 func (UnimplementedAuthorsServer) LoadAuthors(context.Context, *graphql.BatchRequest) (*AuthorsBatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoadAuthors not implemented")
 }
+func (UnimplementedAuthorsServer) AuthorsConnection(context.Context, *graphql.ConnectionRequest) (*graphql.ConnectionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthorsConnection not implemented")
+}
 func (UnimplementedAuthorsServer) mustEmbedUnimplementedAuthorsServer() {}
 
 // UnsafeAuthorsServer may be embedded to opt out of forward compatibility for this service.
@@ -78,7 +91,7 @@ type UnsafeAuthorsServer interface {
 }
 
 func RegisterAuthorsServer(s grpc.ServiceRegistrar, srv AuthorsServer) {
-	s.RegisterService(&Authors_ServiceDesc, srv)
+	s.RegisterService(&_Authors_serviceDesc, srv)
 }
 
 func _Authors_GetAuthors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -117,10 +130,25 @@ func _Authors_LoadAuthors_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-// Authors_ServiceDesc is the grpc.ServiceDesc for Authors service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Authors_ServiceDesc = grpc.ServiceDesc{
+func _Authors_AuthorsConnection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(graphql.ConnectionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthorsServer).AuthorsConnection(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/authors.Authors/authorsConnection",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthorsServer).AuthorsConnection(ctx, req.(*graphql.ConnectionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Authors_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "authors.Authors",
 	HandlerType: (*AuthorsServer)(nil),
 	Methods: []grpc.MethodDesc{
@@ -131,6 +159,10 @@ var Authors_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "loadAuthors",
 			Handler:    _Authors_LoadAuthors_Handler,
+		},
+		{
+			MethodName: "authorsConnection",
+			Handler:    _Authors_AuthorsConnection_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

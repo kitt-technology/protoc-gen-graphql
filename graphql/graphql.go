@@ -128,3 +128,32 @@ func GrpcConnection(host string, option ...grpc.DialOption) *grpc.ClientConn {
 
 	return conn
 }
+
+var ConnectionResponse_type = graphql.NewObject(graphql.ObjectConfig{
+	Name: "ConnectionResponse",
+	Fields: graphql.Fields{},
+})
+
+var ConnectionRequest_args = graphql.FieldConfigArgument{
+	"ids": &graphql.ArgumentConfig{
+		Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+	},
+}
+
+func ConnectionRequest_from_args(args map[string]interface{}) *ConnectionRequest {
+	req := &ConnectionRequest{}
+	if args["authors"] != nil {
+		//authorsInterfaceList := args["authors"].([]interface{})
+		//
+		//var authors []*Author
+		//
+		//for _, val := range authorsInterfaceList {
+		//	itemResolved := Author_from_args(val.(map[string]interface{}))
+		//	authors = append(authors, itemResolved)
+		//}
+		//objectFromArgs.Authors = authors
+	}
+	return req
+}
+
+

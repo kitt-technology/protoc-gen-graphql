@@ -13,18 +13,16 @@ service Authors {
   rpc getAuthors(GetAuthorsRequest) returns (GetAuthorsResponse) {}
 
   rpc loadAuthors(graphql.BatchRequest) returns (AuthorsBatchResponse) {};
+
+  rpc authorsConnection(graphql.ConnectionRequest) returns (graphql.ConnectionResponse) {};
 }
 
 message GetAuthorsRequest {
-  repeated string ids = 1  [(graphql.optional) = true];
+  repeated string ids = 1 [(graphql.optional) = true];
 }
 
 message GetAuthorsResponse {
   repeated Author authors = 1;
-}
-
-message AuthorsBatchRequest {
-  repeated string ids = 1;
 }
 
 message AuthorsBatchResponse {
