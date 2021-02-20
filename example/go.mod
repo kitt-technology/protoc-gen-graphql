@@ -7,7 +7,7 @@ require (
 	github.com/graph-gophers/dataloader v5.0.0+incompatible
 	github.com/graphql-go/graphql v0.7.9
 	github.com/kitt-technology/protoc-gen-auth v0.0.22 // indirect
-	github.com/kitt-technology/protoc-gen-graphql v0.10.3-0.20210129143300-9550339deb92
+	github.com/kitt-technology/protoc-gen-graphql v0.14.1-0.20210219114021-a1172519e01a
 	github.com/likexian/gokit v0.23.3 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -15,5 +15,6 @@ require (
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	google.golang.org/grpc v1.35.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
 	google.golang.org/protobuf v1.25.0
 )

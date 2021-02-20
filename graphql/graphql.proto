@@ -2,6 +2,7 @@ syntax = "proto3";
 package graphql;
 
 import "google/protobuf/descriptor.proto";
+import "google/protobuf/any.proto";
 
 option go_package = "github.com/kitt-technology/protoc-gen-graphql/graphql;graphql";
 
@@ -28,4 +29,31 @@ extend google.protobuf.FieldOptions {
 
 message BatchRequest {
   repeated string keys = 1;
+}
+
+// Pagination
+message ConnectionRequest {
+  PaginationOptions pagination_options = 1;
+  google.protobuf.Any filters = 2;
+}
+
+message PaginationOptions {
+  string after = 1;
+  int32 first = 2;
+}
+
+message ConnectionResponse {
+  int32 total_count = 1;
+  repeated Edge edges = 2;
+  PageInfo page_info = 3;
+}
+
+message PageInfo {
+  string end_cursor = 1;
+  bool has_next_page = 2;
+}
+
+message Edge {
+  repeated google.protobuf.Any edge = 1;
+  string cursor = 2;
 }
