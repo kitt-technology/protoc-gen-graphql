@@ -77,6 +77,10 @@ func (msg *GetAuthorsRequest) XXX_args() graphql.FieldConfigArgument {
 	return GetAuthorsRequest_args
 }
 
+func (msg *GetAuthorsRequest) XXX_package() string {
+	return "authors"
+}
+
 var GetAuthorsResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetAuthorsResponse",
 	Fields: graphql.Fields{
@@ -131,6 +135,10 @@ func (msg *GetAuthorsResponse) XXX_type() *graphql.Object {
 
 func (msg *GetAuthorsResponse) XXX_args() graphql.FieldConfigArgument {
 	return GetAuthorsResponse_args
+}
+
+func (msg *GetAuthorsResponse) XXX_package() string {
+	return "authors"
 }
 
 var AuthorsBatchRequest_type = graphql.NewObject(graphql.ObjectConfig{
@@ -189,6 +197,10 @@ func (msg *AuthorsBatchRequest) XXX_args() graphql.FieldConfigArgument {
 	return AuthorsBatchRequest_args
 }
 
+func (msg *AuthorsBatchRequest) XXX_package() string {
+	return "authors"
+}
+
 var AuthorsBatchResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "AuthorsBatchResponse",
 	Fields: graphql.Fields{
@@ -231,6 +243,10 @@ func (msg *AuthorsBatchResponse) XXX_type() *graphql.Object {
 
 func (msg *AuthorsBatchResponse) XXX_args() graphql.FieldConfigArgument {
 	return AuthorsBatchResponse_args
+}
+
+func (msg *AuthorsBatchResponse) XXX_package() string {
+	return "authors"
 }
 
 var Author_type = graphql.NewObject(graphql.ObjectConfig{
@@ -294,6 +310,10 @@ func (msg *Author) XXX_args() graphql.FieldConfigArgument {
 	return Author_args
 }
 
+func (msg *Author) XXX_package() string {
+	return "authors"
+}
+
 var AuthorsClientInstance AuthorsClient
 
 func init() {
@@ -301,7 +321,7 @@ func init() {
 		AuthorsClientInstance = NewAuthorsClient(pg.GrpcConnection("localhost:50052", opts...))
 	})
 	fields = append(fields, &graphql.Field{
-		Name: "Authors_GetAuthors",
+		Name: "authors_GetAuthors",
 		Type: GetAuthorsResponse_type,
 		Args: GetAuthorsRequest_args,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -312,7 +332,7 @@ func init() {
 }
 
 func WithLoaders(ctx context.Context) context.Context {
-	ctx = context.WithValue(ctx, "AuthorLoader", dataloader.NewBatchedLoader(
+	ctx = context.WithValue(ctx, "LoadAuthorsLoader", dataloader.NewBatchedLoader(
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result
 
@@ -335,11 +355,11 @@ func WithLoaders(ctx context.Context) context.Context {
 	return ctx
 }
 
-func LoadAuthor(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
+func LoadAuthors(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
-	switch p.Context.Value("AuthorLoader").(type) {
+	switch p.Context.Value("LoadAuthorsLoader").(type) {
 	case *dataloader.Loader:
-		loader = p.Context.Value("AuthorLoader").(*dataloader.Loader)
+		loader = p.Context.Value("LoadAuthorsLoader").(*dataloader.Loader)
 	default:
 		panic("Please call authors.WithLoaders with the current context first")
 	}
@@ -354,11 +374,11 @@ func LoadAuthor(p graphql.ResolveParams, key string) (func() (interface{}, error
 	}, nil
 }
 
-func LoadManyAuthor(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func LoadAuthorsMany(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
-	switch p.Context.Value("AuthorLoader").(type) {
+	switch p.Context.Value("LoadAuthorsLoader").(type) {
 	case *dataloader.Loader:
-		loader = p.Context.Value("AuthorLoader").(*dataloader.Loader)
+		loader = p.Context.Value("LoadAuthorsLoader").(*dataloader.Loader)
 	default:
 		panic("Please call authors.WithLoaders with the current context first")
 	}

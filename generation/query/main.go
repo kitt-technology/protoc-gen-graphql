@@ -35,7 +35,7 @@ func init() {
 {{ if .Loaders }}
 func WithLoaders(ctx context.Context) context.Context {
 	{{- range $loader :=.Loaders }}
-	ctx = context.WithValue(ctx, "{{ $loader.ResultsType }}Loader", dataloader.NewBatchedLoader(
+	ctx = context.WithValue(ctx, "{{ $loader.Method }}Loader", dataloader.NewBatchedLoader(
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result
 	
@@ -60,11 +60,11 @@ func WithLoaders(ctx context.Context) context.Context {
 {{ end }}
 
 {{ range $loader :=.Loaders }}
-func Load{{ $loader.ResultsType }}(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
+func {{ $loader.Method }}(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
-	switch p.Context.Value("{{ $loader.ResultsType }}Loader").(type) {
+	switch p.Context.Value("{{ $loader.Method }}Loader").(type) {
 	case *dataloader.Loader:
-		loader = p.Context.Value("{{ $loader.ResultsType }}Loader").(*dataloader.Loader)
+		loader = p.Context.Value("{{ $loader.Method }}Loader").(*dataloader.Loader)
 	default:
 		panic("Please call {{ $.Package }}.WithLoaders with the current context first")
 	}
@@ -79,11 +79,11 @@ func Load{{ $loader.ResultsType }}(p graphql.ResolveParams, key string) (func() 
 	}, nil
 }
 
-func LoadMany{{ $loader.ResultsType }}(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func {{ $loader.Method }}Many(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
-	switch p.Context.Value("{{ $loader.ResultsType }}Loader").(type) {
+	switch p.Context.Value("{{ $loader.Method }}Loader").(type) {
 	case *dataloader.Loader:
-		loader = p.Context.Value("{{ $loader.ResultsType }}Loader").(*dataloader.Loader)
+		loader = p.Context.Value("{{ $loader.Method }}Loader").(*dataloader.Loader)
 	default:
 		panic("Please call {{ $.Package }}.WithLoaders with the current context first")
 	}

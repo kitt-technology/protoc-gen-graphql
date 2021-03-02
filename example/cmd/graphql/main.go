@@ -70,14 +70,14 @@ func init() {
 	books.Book_type.AddFieldConfig("author", &graphql.Field{
 		Type: authors.Author_type,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return authors.LoadAuthor(p, p.Source.(*books.Book).AuthorId)
+			return authors.LoadAuthors(p, p.Source.(*books.Book).AuthorId)
 		},
 	})
 
 	authors.Author_type.AddFieldConfig("books", &graphql.Field{
 		Type: books.BooksByAuthor_type,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return books.LoadBooksByAuthor(p, p.Source.(*authors.Author).Id)
+			return books.GetBooksByAuthor(p, p.Source.(*authors.Author).Id)
 		},
 	})
 }

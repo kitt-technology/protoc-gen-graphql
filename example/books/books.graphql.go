@@ -95,6 +95,10 @@ func (msg *DoNothing) XXX_args() graphql.FieldConfigArgument {
 	return DoNothing_args
 }
 
+func (msg *DoNothing) XXX_package() string {
+	return "books"
+}
+
 var GetBooksRequest_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "BooksRequest",
 	Fields: graphql.Fields{
@@ -276,6 +280,10 @@ func (msg *GetBooksRequest) XXX_args() graphql.FieldConfigArgument {
 	return GetBooksRequest_args
 }
 
+func (msg *GetBooksRequest) XXX_package() string {
+	return "books"
+}
+
 var GetBooksResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetBooksResponse",
 	Fields: graphql.Fields{
@@ -345,6 +353,10 @@ func (msg *GetBooksResponse) XXX_args() graphql.FieldConfigArgument {
 	return GetBooksResponse_args
 }
 
+func (msg *GetBooksResponse) XXX_package() string {
+	return "books"
+}
+
 var GetBooksByAuthorResponse_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "GetBooksByAuthorResponse",
 	Fields: graphql.Fields{
@@ -387,6 +399,10 @@ func (msg *GetBooksByAuthorResponse) XXX_type() *graphql.Object {
 
 func (msg *GetBooksByAuthorResponse) XXX_args() graphql.FieldConfigArgument {
 	return GetBooksByAuthorResponse_args
+}
+
+func (msg *GetBooksByAuthorResponse) XXX_package() string {
+	return "books"
 }
 
 var BooksByAuthor_type = graphql.NewObject(graphql.ObjectConfig{
@@ -443,6 +459,10 @@ func (msg *BooksByAuthor) XXX_type() *graphql.Object {
 
 func (msg *BooksByAuthor) XXX_args() graphql.FieldConfigArgument {
 	return BooksByAuthor_args
+}
+
+func (msg *BooksByAuthor) XXX_package() string {
+	return "books"
 }
 
 var Book_type = graphql.NewObject(graphql.ObjectConfig{
@@ -571,6 +591,10 @@ func (msg *Book) XXX_args() graphql.FieldConfigArgument {
 	return Book_args
 }
 
+func (msg *Book) XXX_package() string {
+	return "books"
+}
+
 var BooksClientInstance BooksClient
 
 func init() {
@@ -578,7 +602,7 @@ func init() {
 		BooksClientInstance = NewBooksClient(pg.GrpcConnection("localhost:50051", opts...))
 	})
 	fields = append(fields, &graphql.Field{
-		Name: "Books_GetBooks",
+		Name: "books_GetBooks",
 		Type: GetBooksResponse_type,
 		Args: GetBooksRequest_args,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -587,7 +611,7 @@ func init() {
 	})
 
 	fields = append(fields, &graphql.Field{
-		Name: "Books_DoNothing",
+		Name: "books_DoNothing",
 		Type: DoNothing_type,
 		Args: DoNothing_args,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -598,7 +622,7 @@ func init() {
 }
 
 func WithLoaders(ctx context.Context) context.Context {
-	ctx = context.WithValue(ctx, "BooksByAuthorLoader", dataloader.NewBatchedLoader(
+	ctx = context.WithValue(ctx, "GetBooksByAuthorLoader", dataloader.NewBatchedLoader(
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result
 
@@ -621,11 +645,11 @@ func WithLoaders(ctx context.Context) context.Context {
 	return ctx
 }
 
-func LoadBooksByAuthor(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
+func GetBooksByAuthor(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
-	switch p.Context.Value("BooksByAuthorLoader").(type) {
+	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
-		loader = p.Context.Value("BooksByAuthorLoader").(*dataloader.Loader)
+		loader = p.Context.Value("GetBooksByAuthorLoader").(*dataloader.Loader)
 	default:
 		panic("Please call books.WithLoaders with the current context first")
 	}
@@ -640,11 +664,11 @@ func LoadBooksByAuthor(p graphql.ResolveParams, key string) (func() (interface{}
 	}, nil
 }
 
-func LoadManyBooksByAuthor(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func GetBooksByAuthorMany(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
-	switch p.Context.Value("BooksByAuthorLoader").(type) {
+	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
-		loader = p.Context.Value("BooksByAuthorLoader").(*dataloader.Loader)
+		loader = p.Context.Value("GetBooksByAuthorLoader").(*dataloader.Loader)
 	default:
 		panic("Please call books.WithLoaders with the current context first")
 	}
