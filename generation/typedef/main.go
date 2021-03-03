@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"strings"
+	"github.com/golang/protobuf/protoc-gen-go/generator"
 )
 
 const typeTpl = `
@@ -314,8 +315,7 @@ func (m Message) Generate() string {
 }
 
 func goKey(field *descriptorpb.FieldDescriptorProto) string {
-	name := *field.JsonName
-	return strings.ToUpper(string(name[0])) + name[1:]
+	return generator.CamelCase(*field.Name)
 }
 
 type Descriptor interface {
