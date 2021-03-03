@@ -87,6 +87,9 @@ var GetAuthorsResponse_type = graphql.NewObject(graphql.ObjectConfig{
 		"authors": &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(Author_type)),
 		},
+		"capitalisation1111capitalisation": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
 	},
 })
 
@@ -96,12 +99,18 @@ var GetAuthorsResponse_input_type = graphql.NewInputObject(graphql.InputObjectCo
 		"authors": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewList(graphql.NewNonNull(Author_input_type)),
 		},
+		"capitalisation1111capitalisation": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
 	},
 })
 
 var GetAuthorsResponse_args = graphql.FieldConfigArgument{
 	"authors": &graphql.ArgumentConfig{
 		Type: graphql.NewList(graphql.NewNonNull(Author_input_type)),
+	},
+	"capitalisation1111capitalisation": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.String),
 	},
 }
 
@@ -121,6 +130,10 @@ func GetAuthorsResponse_instance_from_args(objectFromArgs *GetAuthorsResponse, a
 			authors = append(authors, itemResolved)
 		}
 		objectFromArgs.Authors = authors
+	}
+	if args["capitalisation1111capitalisation"] != nil {
+		val := args["capitalisation1111capitalisation"]
+		objectFromArgs.Capitalisation1111Capitalisation = string(val.(string))
 	}
 	return objectFromArgs
 }

@@ -21,6 +21,7 @@ message GetAuthorsRequest {
 
 message GetAuthorsResponse {
   repeated Author authors = 1;
+  string capitalisation1111capitalisation = 2;
 }
 
 message AuthorsBatchRequest {
