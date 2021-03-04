@@ -63,7 +63,10 @@ func (a AuthorService) GetAuthors(ctx context.Context, request *authors.GetAutho
 		}
 	}
 
-	return &authors.GetAuthorsResponse{Authors: as}, nil
+	return &authors.GetAuthorsResponse{
+		Authors: as,
+		Extra: &authors.GetAuthorsResponse_Something{Something: &authors.SomeThing{Hello: "world"}},
+	}, nil
 }
 
 var authorsDb map[string]*authors.Author

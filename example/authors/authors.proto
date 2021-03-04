@@ -22,6 +22,19 @@ message GetAuthorsRequest {
 message GetAuthorsResponse {
   repeated Author authors = 1;
   string capitalisation1111capitalisation = 2;
+  oneof extra {
+    SomeThing something = 3;
+    SomeOtherThing another_thing = 4;
+  }
+}
+
+message SomeThing {
+  string hello = 1;
+}
+
+
+message SomeOtherThing {
+  string world = 1;
 }
 
 message AuthorsBatchRequest {

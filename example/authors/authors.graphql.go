@@ -90,6 +90,9 @@ var GetAuthorsResponse_type = graphql.NewObject(graphql.ObjectConfig{
 		"capitalisation1111capitalisation": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
+		"extra": &graphql.Field{
+			Type: extra_type,
+		},
 	},
 })
 
@@ -151,6 +154,154 @@ func (msg *GetAuthorsResponse) XXX_args() graphql.FieldConfigArgument {
 }
 
 func (msg *GetAuthorsResponse) XXX_package() string {
+	return "authors"
+}
+
+var extra_type = graphql.NewUnion(graphql.UnionConfig{
+	Name:  "extra",
+	Types: []*graphql.Object{SomeOtherThing_type, SomeThing_type},
+	ResolveType: (func(p graphql.ResolveTypeParams) *graphql.Object {
+		switch p.Value.(type) {
+		case *GetAuthorsResponse_AnotherThing:
+			fields := graphql.Fields{}
+			for name, field := range SomeOtherThing_type.Fields() {
+				fields[name] = &graphql.Field{
+					Name: field.Name,
+					Type: field.Type,
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						wrapper := p.Source.(*GetAuthorsResponse_AnotherThing)
+						p.Source = wrapper.AnotherThing
+						return graphql.DefaultResolveFn(p)
+					},
+				}
+			}
+			return graphql.NewObject(graphql.ObjectConfig{
+				Name:   SomeOtherThing_type.Name(),
+				Fields: fields,
+			})
+		case *GetAuthorsResponse_Something:
+			fields := graphql.Fields{}
+			for name, field := range SomeThing_type.Fields() {
+				fields[name] = &graphql.Field{
+					Name: field.Name,
+					Type: field.Type,
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						wrapper := p.Source.(*GetAuthorsResponse_Something)
+						p.Source = wrapper.Something
+						return graphql.DefaultResolveFn(p)
+					},
+				}
+			}
+			return graphql.NewObject(graphql.ObjectConfig{
+				Name:   SomeThing_type.Name(),
+				Fields: fields,
+			})
+		}
+		return nil
+	}),
+})
+
+var SomeThing_type = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SomeThing",
+	Fields: graphql.Fields{
+		"hello": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var SomeThing_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SomeThingInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"hello": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var SomeThing_args = graphql.FieldConfigArgument{
+	"hello": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.String),
+	},
+}
+
+func SomeThing_from_args(args map[string]interface{}) *SomeThing {
+	return SomeThing_instance_from_args(&SomeThing{}, args)
+}
+
+func SomeThing_instance_from_args(objectFromArgs *SomeThing, args map[string]interface{}) *SomeThing {
+	if args["hello"] != nil {
+		val := args["hello"]
+		objectFromArgs.Hello = string(val.(string))
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *SomeThing) From_args(args map[string]interface{}) {
+	SomeThing_instance_from_args(objectFromArgs, args)
+}
+
+func (msg *SomeThing) XXX_type() *graphql.Object {
+	return SomeThing_type
+}
+
+func (msg *SomeThing) XXX_args() graphql.FieldConfigArgument {
+	return SomeThing_args
+}
+
+func (msg *SomeThing) XXX_package() string {
+	return "authors"
+}
+
+var SomeOtherThing_type = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SomeOtherThing",
+	Fields: graphql.Fields{
+		"world": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var SomeOtherThing_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SomeOtherThingInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"world": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var SomeOtherThing_args = graphql.FieldConfigArgument{
+	"world": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.String),
+	},
+}
+
+func SomeOtherThing_from_args(args map[string]interface{}) *SomeOtherThing {
+	return SomeOtherThing_instance_from_args(&SomeOtherThing{}, args)
+}
+
+func SomeOtherThing_instance_from_args(objectFromArgs *SomeOtherThing, args map[string]interface{}) *SomeOtherThing {
+	if args["world"] != nil {
+		val := args["world"]
+		objectFromArgs.World = string(val.(string))
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *SomeOtherThing) From_args(args map[string]interface{}) {
+	SomeOtherThing_instance_from_args(objectFromArgs, args)
+}
+
+func (msg *SomeOtherThing) XXX_type() *graphql.Object {
+	return SomeOtherThing_type
+}
+
+func (msg *SomeOtherThing) XXX_args() graphql.FieldConfigArgument {
+	return SomeOtherThing_args
+}
+
+func (msg *SomeOtherThing) XXX_package() string {
 	return "authors"
 }
 
