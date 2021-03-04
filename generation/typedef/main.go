@@ -31,14 +31,17 @@ const goFromArgs = `
 {{- if eq .TypeOfType "Timestamp" }}pg.ToTimestamp(val){{- end }}`
 
 const msgTpl = `
-
-
 var {{ .Descriptor.GetName }}_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "{{ .ObjectName }}",
 	Fields: graphql.Fields{
 		{{- range $field := .Fields }}
 		"{{ $field.GqlKey }}": &graphql.Field{
 			Type: {{- $field.Type }},
+		},
+		{{- end }}
+		{{- range $name, $fields := .OneOfFields }}
+		"{{ $name }}": &graphql.Field{
+			Type: {{ $name }}_type,
 		},
 		{{- end }}
 	},
@@ -117,6 +120,41 @@ func (msg *{{ .Descriptor.GetName }}) XXX_args() graphql.FieldConfigArgument {
 func (msg *{{ .Descriptor.GetName }}) XXX_package() string {
 	return "{{ .Package }}"
 }
+
+{{- range $name, $fields := .OneOfFields }}
+var {{ $name }}_type = graphql.NewUnion(graphql.UnionConfig{
+	Name: "{{ $name }}",
+	Types: []*graphql.Object{
+		{{- range $field := $fields }}
+		{{- $field.Type }},
+		{{- end }}
+	},
+	ResolveType: (func(p graphql.ResolveTypeParams) *graphql.Object {
+		switch p.Value.(type) {
+		{{- range $field := $fields }}
+		case *{{ $.Descriptor.GetName }}_{{- $field.GoKey }}:
+			fields := graphql.Fields{}
+			for name, field := range {{ $field.GoType }}_type.Fields() {
+				fields[name] = &graphql.Field{
+					Name: field.Name,
+					Type: field.Type,
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						wrapper := p.Source.(*{{ $.Descriptor.GetName }}_{{- $field.GoKey }})
+						p.Source = wrapper.{{- $field.GoKey }}
+						return graphql.DefaultResolveFn(p)
+					},
+				}
+			}
+			return  graphql.NewObject(graphql.ObjectConfig{
+				Name: {{- $field.GoType }}_type.Name(),
+				Fields: fields,
+			})
+		{{- end }}
+		}
+		return nil
+	}),
+})
+{{- end }}
 `
 
 type Field struct {
@@ -149,6 +187,7 @@ type Message struct {
 	Package string
 	Root       *descriptorpb.FileDescriptorProto
 	Fields     []Field
+	OneOfFields map[string]map[string]Field
 	Import     map[string]string
 	ObjectName string
 }
@@ -161,6 +200,7 @@ func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorPro
 		Descriptor: msg,
 		Root:       file,
 		Package: pkgPath[len(pkgPath) - 1],
+		OneOfFields: make(map[string]map[string]Field, 0),
 	}
 }
 
@@ -194,6 +234,7 @@ func (m Message) Generate() string {
 
 	for _, field := range m.Descriptor.Field {
 		isList := false
+
 		switch field.Label.String() {
 		// It's a list or a map
 		case "LABEL_REPEATED":
@@ -292,7 +333,18 @@ func (m Message) Generate() string {
 		fieldVars.InputType = string(inputType)
 		fieldVars.Type = string(normalType)
 
-		m.Fields = append(m.Fields, fieldVars)
+		if field.OneofIndex != nil {
+			key := *m.Descriptor.OneofDecl[*field.OneofIndex].Name
+
+			if _, ok := m.OneOfFields[key]; !ok {
+				m.OneOfFields[key] = make(map[string]Field, 0)
+			}
+			m.OneOfFields[key][*field.Name] = fieldVars
+
+		} else {
+			m.Fields = append(m.Fields, fieldVars)
+		}
+
 	}
 
 	if len(m.Fields) == 0 {
