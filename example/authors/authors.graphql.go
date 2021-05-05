@@ -413,6 +413,54 @@ func (msg *AuthorsBatchResponse) XXX_package() string {
 	return "authors"
 }
 
+var AuthorsBoolBatchResponse_type = graphql.NewObject(graphql.ObjectConfig{
+	Name: "AuthorsBoolBatchResponse",
+	Fields: graphql.Fields{
+		"_null": &graphql.Field{
+			Type: graphql.Boolean,
+		},
+	},
+})
+
+var AuthorsBoolBatchResponse_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "AuthorsBoolBatchResponseInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"_null": &graphql.InputObjectFieldConfig{
+			Type: graphql.Boolean,
+		},
+	},
+})
+
+var AuthorsBoolBatchResponse_args = graphql.FieldConfigArgument{
+	"_null": &graphql.ArgumentConfig{
+		Type: graphql.Boolean,
+	},
+}
+
+func AuthorsBoolBatchResponse_from_args(args map[string]interface{}) *AuthorsBoolBatchResponse {
+	return AuthorsBoolBatchResponse_instance_from_args(&AuthorsBoolBatchResponse{}, args)
+}
+
+func AuthorsBoolBatchResponse_instance_from_args(objectFromArgs *AuthorsBoolBatchResponse, args map[string]interface{}) *AuthorsBoolBatchResponse {
+	return objectFromArgs
+}
+
+func (objectFromArgs *AuthorsBoolBatchResponse) From_args(args map[string]interface{}) {
+	AuthorsBoolBatchResponse_instance_from_args(objectFromArgs, args)
+}
+
+func (msg *AuthorsBoolBatchResponse) XXX_type() *graphql.Object {
+	return AuthorsBoolBatchResponse_type
+}
+
+func (msg *AuthorsBoolBatchResponse) XXX_args() graphql.FieldConfigArgument {
+	return AuthorsBoolBatchResponse_args
+}
+
+func (msg *AuthorsBoolBatchResponse) XXX_package() string {
+	return "authors"
+}
+
 var Author_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Author",
 	Fields: graphql.Fields{
@@ -516,6 +564,26 @@ func WithLoaders(ctx context.Context) context.Context {
 		},
 	))
 
+	ctx = context.WithValue(ctx, "LoadAuthorsBoolLoader", dataloader.NewBatchedLoader(
+		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+			var results []*dataloader.Result
+
+			resp, err := AuthorsClientInstance.LoadAuthorsBool(ctx, &pg.BatchRequest{
+				Keys: keys.Keys(),
+			})
+
+			if err != nil {
+				return results
+			}
+
+			for _, key := range keys.Keys() {
+				results = append(results, &dataloader.Result{Data: resp.Results[key]})
+			}
+
+			return results
+		},
+	))
+
 	return ctx
 }
 
@@ -557,9 +625,56 @@ func LoadAuthorsMany(p graphql.ResolveParams, keys []string) (func() (interface{
 			}
 		}
 
-		var results []*Author
+		var results []**Author
 		for _, res := range resSlice {
-			results = append(results, res.(*Author))
+			results = append(results, res.(**Author))
+		}
+
+		return results, nil
+	}, nil
+}
+
+func LoadAuthorsBool(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
+	var loader *dataloader.Loader
+	switch p.Context.Value("LoadAuthorsBoolLoader").(type) {
+	case *dataloader.Loader:
+		loader = p.Context.Value("LoadAuthorsBoolLoader").(*dataloader.Loader)
+	default:
+		panic("Please call authors.WithLoaders with the current context first")
+	}
+
+	thunk := loader.Load(p.Context, dataloader.StringKey(key))
+	return func() (interface{}, error) {
+		res, err := thunk()
+		if err != nil {
+			return nil, err
+		}
+		return res.(bool), nil
+	}, nil
+}
+
+func LoadAuthorsBoolMany(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	var loader *dataloader.Loader
+	switch p.Context.Value("LoadAuthorsBoolLoader").(type) {
+	case *dataloader.Loader:
+		loader = p.Context.Value("LoadAuthorsBoolLoader").(*dataloader.Loader)
+	default:
+		panic("Please call authors.WithLoaders with the current context first")
+	}
+
+	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
+	return func() (interface{}, error) {
+		resSlice, errSlice := thunk()
+
+		for _, err := range errSlice {
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		var results []*bool
+		for _, res := range resSlice {
+			results = append(results, res.(*bool))
 		}
 
 		return results, nil

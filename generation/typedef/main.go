@@ -265,9 +265,9 @@ func (m Message) Generate() string {
 			}
 		}
 
-		goType, gqlType, typeOfType := types(field, m.Root)
+		goType, gqlType, typeOfType := Types(field, m.Root)
 		if isList {
-			goType, gqlType, typeOfType = types(field, m.Root)
+			goType, gqlType, typeOfType = Types(field, m.Root)
 		}
 
 		if typeOfType == Wrapper {
@@ -428,7 +428,7 @@ func primitiveToWrapper(wrapperType GoType) string {
 	return string(wrapperType)
 }
 
-func types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, GqlType, FieldType) {
+func Types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, GqlType, FieldType) {
 	if field.GetTypeName() != "" {
 		switch field.GetTypeName() {
 		case ".google.protobuf.StringValue":
