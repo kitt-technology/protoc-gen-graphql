@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type AuthorsClient interface {
 	GetAuthors(ctx context.Context, in *GetAuthorsRequest, opts ...grpc.CallOption) (*GetAuthorsResponse, error)
 	LoadAuthors(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*AuthorsBatchResponse, error)
+	LoadAuthorsBool(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*AuthorsBoolBatchResponse, error)
 }
 
 type authorsClient struct {
@@ -48,12 +49,22 @@ func (c *authorsClient) LoadAuthors(ctx context.Context, in *graphql.BatchReques
 	return out, nil
 }
 
+func (c *authorsClient) LoadAuthorsBool(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*AuthorsBoolBatchResponse, error) {
+	out := new(AuthorsBoolBatchResponse)
+	err := c.cc.Invoke(ctx, "/authors.Authors/loadAuthorsBool", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthorsServer is the server API for Authors service.
 // All implementations must embed UnimplementedAuthorsServer
 // for forward compatibility
 type AuthorsServer interface {
 	GetAuthors(context.Context, *GetAuthorsRequest) (*GetAuthorsResponse, error)
 	LoadAuthors(context.Context, *graphql.BatchRequest) (*AuthorsBatchResponse, error)
+	LoadAuthorsBool(context.Context, *graphql.BatchRequest) (*AuthorsBoolBatchResponse, error)
 	mustEmbedUnimplementedAuthorsServer()
 }
 
@@ -66,6 +77,9 @@ func (UnimplementedAuthorsServer) GetAuthors(context.Context, *GetAuthorsRequest
 }
 func (UnimplementedAuthorsServer) LoadAuthors(context.Context, *graphql.BatchRequest) (*AuthorsBatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoadAuthors not implemented")
+}
+func (UnimplementedAuthorsServer) LoadAuthorsBool(context.Context, *graphql.BatchRequest) (*AuthorsBoolBatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoadAuthorsBool not implemented")
 }
 func (UnimplementedAuthorsServer) mustEmbedUnimplementedAuthorsServer() {}
 
@@ -116,6 +130,24 @@ func _Authors_LoadAuthors_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Authors_LoadAuthorsBool_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(graphql.BatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthorsServer).LoadAuthorsBool(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/authors.Authors/loadAuthorsBool",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthorsServer).LoadAuthorsBool(ctx, req.(*graphql.BatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Authors_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "authors.Authors",
 	HandlerType: (*AuthorsServer)(nil),
@@ -127,6 +159,10 @@ var _Authors_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "loadAuthors",
 			Handler:    _Authors_LoadAuthors_Handler,
+		},
+		{
+			MethodName: "loadAuthorsBool",
+			Handler:    _Authors_LoadAuthorsBool_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

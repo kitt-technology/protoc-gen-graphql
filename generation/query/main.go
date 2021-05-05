@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/iancoleman/strcase"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/typedef"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -75,7 +76,7 @@ func {{ $loader.Method }}(p graphql.ResolveParams, key string) (func() (interfac
 				if err != nil {
 					return nil, err
 				}
-				return res.(*{{ $loader.ResultsType }}), nil
+				return res.({{ $loader.ResultsType }}), nil
 	}, nil
 }
 
@@ -160,10 +161,13 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 			for _, nestedType := range output.NestedType {
 				if *nestedType.Name == nestedTypeKey {
 					if nestedType.Field[1].TypeName != nil {
-						resultType = last(*nestedType.Field[1].TypeName)
+						resultType = "*" + last(*nestedType.Field[1].TypeName)
 					} else {
-						resultType = nestedType.Field[1].Type.String()
+
+						rt, _, _ := typedef.Types(nestedType.Field[1], root)
+						resultType = string(rt)
 					}
+
 				}
 			}
 

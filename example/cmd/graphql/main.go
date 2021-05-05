@@ -80,4 +80,11 @@ func init() {
 			return books.GetBooksByAuthor(p, p.Source.(*authors.Author).Id)
 		},
 	})
+
+	books.Book_type.AddFieldConfig("favoriteAuth", &graphql.Field{
+		Type: graphql.Boolean,
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			return authors.LoadAuthorsBool(p, p.Source.(*books.Book).Id)
+		},
+	})
 }
