@@ -31,6 +31,17 @@ type AuthorService struct {
 	authors.UnimplementedAuthorsServer
 }
 
+func (a AuthorService) LoadAuthorsBool(ctx context.Context, request *graphql.BatchRequest) (*authors.AuthorsBoolBatchResponse, error) {
+	bools := make(map[string]bool, 0)
+	for _, id := range request.Keys {
+		bools[id] = true
+	}
+	return &authors.AuthorsBoolBatchResponse{
+		Results: bools,
+	}, nil
+}
+
+
 func (a AuthorService) LoadAuthors(ctx context.Context, request *graphql.BatchRequest) (*authors.AuthorsBatchResponse, error) {
 	as := make(map[string]*authors.Author)
 

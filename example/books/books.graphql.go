@@ -683,9 +683,9 @@ func GetBooksByAuthorMany(p graphql.ResolveParams, keys []string) (func() (inter
 			}
 		}
 
-		var results []*BooksByAuthor
+		var results []**BooksByAuthor
 		for _, res := range resSlice {
-			results = append(results, res.(*BooksByAuthor))
+			results = append(results, res.(**BooksByAuthor))
 		}
 
 		return results, nil
