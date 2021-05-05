@@ -13,6 +13,7 @@ service Authors {
   rpc getAuthors(GetAuthorsRequest) returns (GetAuthorsResponse) {}
 
   rpc loadAuthors(graphql.BatchRequest) returns (AuthorsBatchResponse) {};
+  rpc loadAuthorsBool(graphql.BatchRequest) returns (AuthorsBoolBatchResponse) {};
 }
 
 message GetAuthorsRequest {
@@ -43,6 +44,10 @@ message AuthorsBatchRequest {
 
 message AuthorsBatchResponse {
   map<string, Author> results = 1;
+}
+
+message AuthorsBoolBatchResponse {
+  map<string, bool> results = 1;
 }
 
 message Author {
