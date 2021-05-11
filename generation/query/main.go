@@ -161,9 +161,13 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 			for _, nestedType := range output.NestedType {
 				if *nestedType.Name == nestedTypeKey {
 					if nestedType.Field[1].TypeName != nil {
-						resultType = "*" + last(*nestedType.Field[1].TypeName)
-					} else {
 
+						resultType = last(*nestedType.Field[1].TypeName)
+
+						if !strings.Contains(resultType, "*") {
+							resultType = "*" + resultType
+						}
+					} else {
 						rt, _, _ := typedef.Types(nestedType.Field[1], root)
 						resultType = string(rt)
 					}
