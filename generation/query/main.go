@@ -99,9 +99,9 @@ func {{ $loader.Method }}Many(p graphql.ResolveParams, keys []string) (func() (i
 			}
 		}
 		
-		var results []*{{ $loader.ResultsType }}
+		var results []{{ $loader.ResultsType }}
 		for _, res := range resSlice {
-			results = append(results, res.(*{{ $loader.ResultsType }}))
+			results = append(results, res.({{ $loader.ResultsType }}))
 		}
 
 		return results, nil
@@ -171,7 +171,6 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 						rt, _, _ := typedef.Types(nestedType.Field[1], root)
 						resultType = string(rt)
 					}
-
 				}
 			}
 
