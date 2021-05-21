@@ -49,7 +49,11 @@ func WithLoaders(ctx context.Context) context.Context {
 			}
 	
 			for _, key := range keys.Keys() {
-				results = append(results, &dataloader.Result{Data: resp.{{ $loader.ResultsField }}[key]})
+				if val, ok := resp.{{ $loader.ResultsField }}[key]; ok {
+					results = append(results, &dataloader.Result{Data: val})
+				} else {
+					results = append(results, &dataloader.Result{Error: fmt.Errorf("no result for %v", key)})
+				}
 			}
 	
 			return results
