@@ -52,7 +52,7 @@ func WithLoaders(ctx context.Context) context.Context {
 				if val, ok := resp.{{ $loader.ResultsField }}[key]; ok {
 					results = append(results, &dataloader.Result{Data: val})
 				} else {
-					results = append(results, &dataloader.Result{Error: fmt.Errorf("no result for %v", key)})
+					results = append(results, &dataloader.Result{Error: fmt.Errorf("no result for " + key)})
 				}
 			}
 	
