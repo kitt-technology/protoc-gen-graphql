@@ -41,6 +41,41 @@ var WrappedString = graphql.NewScalar(graphql.ScalarConfig{
 	},
 })
 
+var PageInfo_type = graphql.NewObject(graphql.ObjectConfig{
+	Name: "PageInfo",
+	Fields: graphql.Fields{
+		"total_count": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"end_cursor": &graphql.Field{
+			Type: graphql.String,
+		},
+		"has_next_page": &graphql.Field{
+			Type: graphql.Boolean,
+		},
+	},
+})
+
+var PageInfo_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "PageInfo",
+	Fields: graphql.Fields{
+		"total_count": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"end_cursor": &graphql.Field{
+			Type: graphql.String,
+		},
+		"has_next_page": &graphql.Field{
+			Type: graphql.Boolean,
+		},
+	},
+})
+
+func PageInfo_from_args(args map[string]interface{}) *PageInfo {
+	return &PageInfo{}
+
+}
+
 var Timestamp_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Timestamp",
 	Fields: graphql.Fields{
