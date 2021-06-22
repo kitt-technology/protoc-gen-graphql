@@ -29,3 +29,9 @@ extend google.protobuf.FieldOptions {
 message BatchRequest {
   repeated string keys = 1;
 }
+
+message PageInfo {
+  int32 total_count = 1;
+  string end_cursor = 2;
+  bool has_next_page = 3;
+}
