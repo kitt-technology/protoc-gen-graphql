@@ -12,6 +12,8 @@ import (
 	"context"
 
 	"github.com/graph-gophers/dataloader"
+
+	"fmt"
 )
 
 var fieldInits []func(...grpc.DialOption)
@@ -635,7 +637,11 @@ func WithLoaders(ctx context.Context) context.Context {
 			}
 
 			for _, key := range keys.Keys() {
-				results = append(results, &dataloader.Result{Data: resp.Results[key]})
+				if val, ok := resp.Results[key]; ok {
+					results = append(results, &dataloader.Result{Data: val})
+				} else {
+					results = append(results, &dataloader.Result{Error: fmt.Errorf("no result for " + key)})
+				}
 			}
 
 			return results
@@ -683,9 +689,9 @@ func GetBooksByAuthorMany(p graphql.ResolveParams, keys []string) (func() (inter
 			}
 		}
 
-		var results []**BooksByAuthor
+		var results []*BooksByAuthor
 		for _, res := range resSlice {
-			results = append(results, res.(**BooksByAuthor))
+			results = append(results, res.(*BooksByAuthor))
 		}
 
 		return results, nil

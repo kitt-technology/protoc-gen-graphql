@@ -8,6 +8,8 @@ import (
 	"context"
 
 	"github.com/graph-gophers/dataloader"
+
+	"fmt"
 )
 
 var fieldInits []func(...grpc.DialOption)
@@ -90,6 +92,9 @@ var GetAuthorsResponse_type = graphql.NewObject(graphql.ObjectConfig{
 		"capitalisation1111capitalisation": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
+		"pageInfo": &graphql.Field{
+			Type: pg.PageInfo_type,
+		},
 		"extra": &graphql.Field{
 			Type: extra_type,
 		},
@@ -105,6 +110,9 @@ var GetAuthorsResponse_input_type = graphql.NewInputObject(graphql.InputObjectCo
 		"capitalisation1111capitalisation": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
+		"pageInfo": &graphql.InputObjectFieldConfig{
+			Type: pg.PageInfo_input_type,
+		},
 	},
 })
 
@@ -114,6 +122,9 @@ var GetAuthorsResponse_args = graphql.FieldConfigArgument{
 	},
 	"capitalisation1111capitalisation": &graphql.ArgumentConfig{
 		Type: graphql.NewNonNull(graphql.String),
+	},
+	"pageInfo": &graphql.ArgumentConfig{
+		Type: pg.PageInfo_input_type,
 	},
 }
 
@@ -137,6 +148,10 @@ func GetAuthorsResponse_instance_from_args(objectFromArgs *GetAuthorsResponse, a
 	if args["capitalisation1111capitalisation"] != nil {
 		val := args["capitalisation1111capitalisation"]
 		objectFromArgs.Capitalisation1111Capitalisation = string(val.(string))
+	}
+	if args["pageInfo"] != nil {
+		val := args["pageInfo"]
+		objectFromArgs.PageInfo = pg.PageInfo_from_args(val.(map[string]interface{}))
 	}
 	return objectFromArgs
 }
@@ -557,7 +572,11 @@ func WithLoaders(ctx context.Context) context.Context {
 			}
 
 			for _, key := range keys.Keys() {
-				results = append(results, &dataloader.Result{Data: resp.Results[key]})
+				if val, ok := resp.Results[key]; ok {
+					results = append(results, &dataloader.Result{Data: val})
+				} else {
+					results = append(results, &dataloader.Result{Error: fmt.Errorf("no result for " + key)})
+				}
 			}
 
 			return results
@@ -577,7 +596,11 @@ func WithLoaders(ctx context.Context) context.Context {
 			}
 
 			for _, key := range keys.Keys() {
-				results = append(results, &dataloader.Result{Data: resp.Results[key]})
+				if val, ok := resp.Results[key]; ok {
+					results = append(results, &dataloader.Result{Data: val})
+				} else {
+					results = append(results, &dataloader.Result{Error: fmt.Errorf("no result for " + key)})
+				}
 			}
 
 			return results
@@ -625,9 +648,9 @@ func LoadAuthorsMany(p graphql.ResolveParams, keys []string) (func() (interface{
 			}
 		}
 
-		var results []**Author
+		var results []*Author
 		for _, res := range resSlice {
-			results = append(results, res.(**Author))
+			results = append(results, res.(*Author))
 		}
 
 		return results, nil
@@ -672,9 +695,9 @@ func LoadAuthorsBoolMany(p graphql.ResolveParams, keys []string) (func() (interf
 			}
 		}
 
-		var results []*bool
+		var results []bool
 		for _, res := range resSlice {
-			results = append(results, res.(*bool))
+			results = append(results, res.(bool))
 		}
 
 		return results, nil
