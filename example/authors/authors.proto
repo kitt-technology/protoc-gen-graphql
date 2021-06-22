@@ -27,6 +27,7 @@ message GetAuthorsResponse {
     SomeThing something = 3;
     SomeOtherThing another_thing = 4;
   }
+  graphql.PageInfo page_info = 5;
 }
 
 message SomeThing {

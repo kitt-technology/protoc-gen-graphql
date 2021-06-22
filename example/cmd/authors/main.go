@@ -77,6 +77,11 @@ func (a AuthorService) GetAuthors(ctx context.Context, request *authors.GetAutho
 	return &authors.GetAuthorsResponse{
 		Authors: as,
 		Extra: &authors.GetAuthorsResponse_Something{Something: &authors.SomeThing{Hello: "world"}},
+		PageInfo: &graphql.PageInfo{
+			TotalCount: 1,
+			EndCursor: "cursor",
+			HasNextPage: true,
+		},
 	}, nil
 }
 

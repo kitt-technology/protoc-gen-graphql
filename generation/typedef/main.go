@@ -476,5 +476,9 @@ func Types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, Gq
 			return GoType(last(field.GetTypeName())), GqlType(*enumType.Name), Enum
 		}
 	}
+
+	if field.GetTypeName() == ".graphql.PageInfo" {
+		return GoType("pg.PageInfo"), GqlType("pg.PageInfo"), Object
+	}
 	panic(field)
 }
