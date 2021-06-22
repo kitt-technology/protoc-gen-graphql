@@ -44,13 +44,13 @@ var WrappedString = graphql.NewScalar(graphql.ScalarConfig{
 var PageInfo_type = graphql.NewObject(graphql.ObjectConfig{
 	Name: "PageInfo",
 	Fields: graphql.Fields{
-		"total_count": &graphql.Field{
+		"totalCount": &graphql.Field{
 			Type: graphql.Int,
 		},
-		"end_cursor": &graphql.Field{
+		"endCursor": &graphql.Field{
 			Type: graphql.String,
 		},
-		"has_next_page": &graphql.Field{
+		"hasNextPage": &graphql.Field{
 			Type: graphql.Boolean,
 		},
 	},
@@ -59,13 +59,13 @@ var PageInfo_type = graphql.NewObject(graphql.ObjectConfig{
 var PageInfo_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "PageInfo",
 	Fields: graphql.Fields{
-		"total_count": &graphql.Field{
+		"totalCount": &graphql.Field{
 			Type: graphql.Int,
 		},
-		"end_cursor": &graphql.Field{
+		"endCursor": &graphql.Field{
 			Type: graphql.String,
 		},
-		"has_next_page": &graphql.Field{
+		"hasNextPage": &graphql.Field{
 			Type: graphql.Boolean,
 		},
 	},
