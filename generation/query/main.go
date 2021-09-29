@@ -205,7 +205,7 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 
 func (m Message) Imports() []string {
 	if len(m.Loaders) > 0 {
-		return []string{"context", "github.com/graph-gophers/dataloader", "fmt"}
+		return []string{"context", "github.com/graph-gophers/dataloader"}
 	}
 	return []string{}
 }
