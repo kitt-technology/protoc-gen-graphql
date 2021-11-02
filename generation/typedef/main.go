@@ -2,13 +2,13 @@ package typedef
 
 import (
 	"bytes"
+	"github.com/golang/protobuf/protoc-gen-go/generator"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"html/template"
 	"io/ioutil"
 	"strings"
-	"github.com/golang/protobuf/protoc-gen-go/generator"
 )
 
 const typeTpl = `
@@ -396,9 +396,9 @@ func wrapperToPrimitive(wrapperType GoType) string {
 	case "wrapperspb.Float":
 		return "float64"
 	case "wrapperspb.Int32":
-		return "int32"
+		return "int"
 	case "wrapperspb.Int64":
-		return "int64"
+		return "int"
 	}
 	return ""
 }
@@ -407,6 +407,7 @@ func stripPrecision(arg GoType) string {
 		output := strings.Replace(string(arg), "64", "", -1)
 		return strings.Replace(output, "32", "", -1)
 	}
+
 	if strings.Contains(string(arg), "float") {
 		return "float64"
 	}
