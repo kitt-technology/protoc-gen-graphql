@@ -1,49 +1,42 @@
 package books
 
 import (
-	"github.com/graphql-go/graphql"
+	gql "github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
-	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-
-	"github.com/graphql-go/graphql/language/ast"
-
-	"google.golang.org/protobuf/types/known/wrapperspb"
-
 	"context"
-
 	"github.com/graph-gophers/dataloader"
-
-	"fmt"
+	"github.com/graphql-go/graphql/language/ast"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
 
 var fieldInits []func(...grpc.DialOption)
 
-func Fields(opts ...grpc.DialOption) []*graphql.Field {
+func Fields(opts ...grpc.DialOption) []*gql.Field {
 	for _, fieldInit := range fieldInits {
 		fieldInit(opts...)
 	}
 	return fields
 }
 
-var fields []*graphql.Field
+var fields []*gql.Field
 
-var Genre_enum = graphql.NewEnum(graphql.EnumConfig{
+var GenreGraphqlEnum = gql.NewEnum(gql.EnumConfig{
 	Name: "Genre",
-	Values: graphql.EnumValueConfigMap{
-		"Biography": &graphql.EnumValueConfig{
+	Values: gql.EnumValueConfigMap{
+		"Biography": &gql.EnumValueConfig{
 			Value: Genre(1),
 		},
-		"Fiction": &graphql.EnumValueConfig{
+		"Fiction": &gql.EnumValueConfig{
 			Value: Genre(0),
 		},
 	},
 })
 
-var Genre_type = graphql.NewScalar(graphql.ScalarConfig{
+var GenreGraphqlType = gql.NewScalar(gql.ScalarConfig{
 	Name: "Genre",
 	ParseValue: func(value interface{}) interface{} {
 		return nil
-
 	},
 	Serialize: func(value interface{}) interface{} {
 		return value.(Genre).String()
@@ -53,168 +46,166 @@ var Genre_type = graphql.NewScalar(graphql.ScalarConfig{
 	},
 })
 
-var DoNothing_type = graphql.NewObject(graphql.ObjectConfig{
+var DoNothingGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "DoNothing",
-	Fields: graphql.Fields{
-		"_null": &graphql.Field{
-			Type: graphql.Boolean,
+	Fields: gql.Fields{
+		"_null": &gql.Field{
+			Type: gql.Boolean,
 		},
 	},
 })
 
-var DoNothing_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var DoNothingGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "DoNothingInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"_null": &graphql.InputObjectFieldConfig{
-			Type: graphql.Boolean,
+	Fields: gql.InputObjectConfigFieldMap{
+		"_null": &gql.InputObjectFieldConfig{
+			Type: gql.Boolean,
 		},
 	},
 })
 
-var DoNothing_args = graphql.FieldConfigArgument{
-	"_null": &graphql.ArgumentConfig{
-		Type: graphql.Boolean,
+var DoNothingGraphqlArgs = gql.FieldConfigArgument{
+	"_null": &gql.ArgumentConfig{
+		Type: gql.Boolean,
 	},
 }
 
-func DoNothing_from_args(args map[string]interface{}) *DoNothing {
-	return DoNothing_instance_from_args(&DoNothing{}, args)
+func DoNothingFromArgs(args map[string]interface{}) *DoNothing {
+	return DoNothingInstanceFromArgs(&DoNothing{}, args)
 }
 
-func DoNothing_instance_from_args(objectFromArgs *DoNothing, args map[string]interface{}) *DoNothing {
+func DoNothingInstanceFromArgs(objectFromArgs *DoNothing, args map[string]interface{}) *DoNothing {
 	return objectFromArgs
 }
 
-func (objectFromArgs *DoNothing) From_args(args map[string]interface{}) {
-	DoNothing_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *DoNothing) FromArgs(args map[string]interface{}) {
+	DoNothingInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *DoNothing) XXX_type() *graphql.Object {
-	return DoNothing_type
+func (msg *DoNothing) XXX_GraphqlType() *gql.Object {
+	return DoNothingGraphqlType
 }
 
-func (msg *DoNothing) XXX_args() graphql.FieldConfigArgument {
-	return DoNothing_args
+func (msg *DoNothing) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return DoNothingGraphqlArgs
 }
 
-func (msg *DoNothing) XXX_package() string {
+func (msg *DoNothing) XXX_Package() string {
 	return "books"
 }
 
-var GetBooksRequest_type = graphql.NewObject(graphql.ObjectConfig{
+var GetBooksRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "BooksRequest",
-	Fields: graphql.Fields{
-		"ids": &graphql.Field{
-			Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+	Fields: gql.Fields{
+		"ids": &gql.Field{
+			Type: gql.NewList(gql.NewNonNull(gql.String)),
 		},
-		"hardbackOnly": &graphql.Field{
-			Type: graphql.Boolean,
+		"hardbackOnly": &gql.Field{
+			Type: gql.Boolean,
 		},
-		"price": &graphql.Field{
-			Type: graphql.Float,
+		"price": &gql.Field{
+			Type: gql.Float,
 		},
-		"genres": &graphql.Field{
-			Type: graphql.NewList(graphql.NewNonNull(Genre_enum)),
+		"genres": &gql.Field{
+			Type: gql.NewList(gql.NewNonNull(GenreGraphqlEnum)),
 		},
-		"releasedAfter": &graphql.Field{
-			Type: pg.Timestamp_type,
+		"releasedAfter": &gql.Field{
+			Type: pg.TimestampGraphqlType,
 		},
-		"priceGreaterThan": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Float),
+		"priceGreaterThan": &gql.Field{
+			Type: gql.NewNonNull(gql.Float),
 		},
-		"copiesGreaterThan": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Int),
+		"copiesGreaterThan": &gql.Field{
+			Type: gql.NewNonNull(gql.Int),
 		},
-		"copiesLessThan": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Int),
+		"copiesLessThan": &gql.Field{
+			Type: gql.NewNonNull(gql.Int),
 		},
-		"priceLessThan": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Float),
+		"priceLessThan": &gql.Field{
+			Type: gql.NewNonNull(gql.Float),
 		},
-		"fooBar": &graphql.Field{
+		"fooBar": &gql.Field{
 			Type: pg.WrappedString,
 		},
 	},
 })
 
-var GetBooksRequest_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var GetBooksRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "BooksRequestInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"ids": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+	Fields: gql.InputObjectConfigFieldMap{
+		"ids": &gql.InputObjectFieldConfig{
+			Type: gql.NewList(gql.NewNonNull(gql.String)),
 		},
-		"hardbackOnly": &graphql.InputObjectFieldConfig{
-			Type: graphql.Boolean,
+		"hardbackOnly": &gql.InputObjectFieldConfig{
+			Type: gql.Boolean,
 		},
-		"price": &graphql.InputObjectFieldConfig{
-			Type: graphql.Float,
+		"price": &gql.InputObjectFieldConfig{
+			Type: gql.Float,
 		},
-		"genres": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewList(graphql.NewNonNull(Genre_enum)),
+		"genres": &gql.InputObjectFieldConfig{
+			Type: gql.NewList(gql.NewNonNull(GenreGraphqlEnum)),
 		},
-		"releasedAfter": &graphql.InputObjectFieldConfig{
-			Type: pg.Timestamp_input_type,
+		"releasedAfter": &gql.InputObjectFieldConfig{
+			Type: pg.TimestampGraphqlInputType,
 		},
-		"priceGreaterThan": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.Float),
+		"priceGreaterThan": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.Float),
 		},
-		"copiesGreaterThan": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.Int),
+		"copiesGreaterThan": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.Int),
 		},
-		"copiesLessThan": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.Int),
+		"copiesLessThan": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.Int),
 		},
-		"priceLessThan": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.Float),
+		"priceLessThan": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.Float),
 		},
-		"fooBar": &graphql.InputObjectFieldConfig{
+		"fooBar": &gql.InputObjectFieldConfig{
 			Type: pg.WrappedString,
 		},
 	},
 })
 
-var GetBooksRequest_args = graphql.FieldConfigArgument{
-	"ids": &graphql.ArgumentConfig{
-		Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+var GetBooksRequestGraphqlArgs = gql.FieldConfigArgument{
+	"ids": &gql.ArgumentConfig{
+		Type: gql.NewList(gql.NewNonNull(gql.String)),
 	},
-	"hardbackOnly": &graphql.ArgumentConfig{
-		Type: graphql.Boolean,
+	"hardbackOnly": &gql.ArgumentConfig{
+		Type: gql.Boolean,
 	},
-	"price": &graphql.ArgumentConfig{
-		Type: graphql.Float,
+	"price": &gql.ArgumentConfig{
+		Type: gql.Float,
 	},
-	"genres": &graphql.ArgumentConfig{
-		Type: graphql.NewList(graphql.NewNonNull(Genre_enum)),
+	"genres": &gql.ArgumentConfig{
+		Type: gql.NewList(gql.NewNonNull(GenreGraphqlEnum)),
 	},
-	"releasedAfter": &graphql.ArgumentConfig{
-		Type: pg.Timestamp_input_type,
+	"releasedAfter": &gql.ArgumentConfig{
+		Type: pg.TimestampGraphqlInputType,
 	},
-	"priceGreaterThan": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.Float),
+	"priceGreaterThan": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.Float),
 	},
-	"copiesGreaterThan": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.Int),
+	"copiesGreaterThan": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.Int),
 	},
-	"copiesLessThan": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.Int),
+	"copiesLessThan": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.Int),
 	},
-	"priceLessThan": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.Float),
+	"priceLessThan": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.Float),
 	},
-	"fooBar": &graphql.ArgumentConfig{
+	"fooBar": &gql.ArgumentConfig{
 		Type: pg.WrappedString,
 	},
 }
 
-func GetBooksRequest_from_args(args map[string]interface{}) *GetBooksRequest {
-	return GetBooksRequest_instance_from_args(&GetBooksRequest{}, args)
+func GetBooksRequestFromArgs(args map[string]interface{}) *GetBooksRequest {
+	return GetBooksRequestInstanceFromArgs(&GetBooksRequest{}, args)
 }
 
-func GetBooksRequest_instance_from_args(objectFromArgs *GetBooksRequest, args map[string]interface{}) *GetBooksRequest {
+func GetBooksRequestInstanceFromArgs(objectFromArgs *GetBooksRequest, args map[string]interface{}) *GetBooksRequest {
 	if args["ids"] != nil {
-
 		idsInterfaceList := args["ids"].([]interface{})
-
 		var ids []string
 
 		for _, val := range idsInterfaceList {
@@ -232,9 +223,7 @@ func GetBooksRequest_instance_from_args(objectFromArgs *GetBooksRequest, args ma
 		objectFromArgs.Price = wrapperspb.Float(float32(val.(float64)))
 	}
 	if args["genres"] != nil {
-
 		genresInterfaceList := args["genres"].([]interface{})
-
 		var genres []Genre
 
 		for _, val := range genresInterfaceList {
@@ -270,68 +259,66 @@ func GetBooksRequest_instance_from_args(objectFromArgs *GetBooksRequest, args ma
 	return objectFromArgs
 }
 
-func (objectFromArgs *GetBooksRequest) From_args(args map[string]interface{}) {
-	GetBooksRequest_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *GetBooksRequest) FromArgs(args map[string]interface{}) {
+	GetBooksRequestInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *GetBooksRequest) XXX_type() *graphql.Object {
-	return GetBooksRequest_type
+func (msg *GetBooksRequest) XXX_GraphqlType() *gql.Object {
+	return GetBooksRequestGraphqlType
 }
 
-func (msg *GetBooksRequest) XXX_args() graphql.FieldConfigArgument {
-	return GetBooksRequest_args
+func (msg *GetBooksRequest) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return GetBooksRequestGraphqlArgs
 }
 
-func (msg *GetBooksRequest) XXX_package() string {
+func (msg *GetBooksRequest) XXX_Package() string {
 	return "books"
 }
 
-var GetBooksResponse_type = graphql.NewObject(graphql.ObjectConfig{
+var GetBooksResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "GetBooksResponse",
-	Fields: graphql.Fields{
-		"books": &graphql.Field{
-			Type: graphql.NewList(graphql.NewNonNull(Book_type)),
+	Fields: gql.Fields{
+		"books": &gql.Field{
+			Type: gql.NewList(gql.NewNonNull(BookGraphqlType)),
 		},
-		"foobar": &graphql.Field{
+		"foobar": &gql.Field{
 			Type: pg.WrappedString,
 		},
 	},
 })
 
-var GetBooksResponse_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var GetBooksResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetBooksResponseInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"books": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewList(graphql.NewNonNull(Book_input_type)),
+	Fields: gql.InputObjectConfigFieldMap{
+		"books": &gql.InputObjectFieldConfig{
+			Type: gql.NewList(gql.NewNonNull(BookGraphqlInputType)),
 		},
-		"foobar": &graphql.InputObjectFieldConfig{
+		"foobar": &gql.InputObjectFieldConfig{
 			Type: pg.WrappedString,
 		},
 	},
 })
 
-var GetBooksResponse_args = graphql.FieldConfigArgument{
-	"books": &graphql.ArgumentConfig{
-		Type: graphql.NewList(graphql.NewNonNull(Book_input_type)),
+var GetBooksResponseGraphqlArgs = gql.FieldConfigArgument{
+	"books": &gql.ArgumentConfig{
+		Type: gql.NewList(gql.NewNonNull(BookGraphqlInputType)),
 	},
-	"foobar": &graphql.ArgumentConfig{
+	"foobar": &gql.ArgumentConfig{
 		Type: pg.WrappedString,
 	},
 }
 
-func GetBooksResponse_from_args(args map[string]interface{}) *GetBooksResponse {
-	return GetBooksResponse_instance_from_args(&GetBooksResponse{}, args)
+func GetBooksResponseFromArgs(args map[string]interface{}) *GetBooksResponse {
+	return GetBooksResponseInstanceFromArgs(&GetBooksResponse{}, args)
 }
 
-func GetBooksResponse_instance_from_args(objectFromArgs *GetBooksResponse, args map[string]interface{}) *GetBooksResponse {
+func GetBooksResponseInstanceFromArgs(objectFromArgs *GetBooksResponse, args map[string]interface{}) *GetBooksResponse {
 	if args["books"] != nil {
-
 		booksInterfaceList := args["books"].([]interface{})
-
 		var books []*Book
 
 		for _, val := range booksInterfaceList {
-			itemResolved := Book_from_args(val.(map[string]interface{}))
+			itemResolved := BookFromArgs(val.(map[string]interface{}))
 			books = append(books, itemResolved)
 		}
 		objectFromArgs.Books = books
@@ -343,107 +330,105 @@ func GetBooksResponse_instance_from_args(objectFromArgs *GetBooksResponse, args 
 	return objectFromArgs
 }
 
-func (objectFromArgs *GetBooksResponse) From_args(args map[string]interface{}) {
-	GetBooksResponse_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *GetBooksResponse) FromArgs(args map[string]interface{}) {
+	GetBooksResponseInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *GetBooksResponse) XXX_type() *graphql.Object {
-	return GetBooksResponse_type
+func (msg *GetBooksResponse) XXX_GraphqlType() *gql.Object {
+	return GetBooksResponseGraphqlType
 }
 
-func (msg *GetBooksResponse) XXX_args() graphql.FieldConfigArgument {
-	return GetBooksResponse_args
+func (msg *GetBooksResponse) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return GetBooksResponseGraphqlArgs
 }
 
-func (msg *GetBooksResponse) XXX_package() string {
+func (msg *GetBooksResponse) XXX_Package() string {
 	return "books"
 }
 
-var GetBooksByAuthorResponse_type = graphql.NewObject(graphql.ObjectConfig{
+var GetBooksByAuthorResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "GetBooksByAuthorResponse",
-	Fields: graphql.Fields{
-		"_null": &graphql.Field{
-			Type: graphql.Boolean,
+	Fields: gql.Fields{
+		"_null": &gql.Field{
+			Type: gql.Boolean,
 		},
 	},
 })
 
-var GetBooksByAuthorResponse_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var GetBooksByAuthorResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetBooksByAuthorResponseInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"_null": &graphql.InputObjectFieldConfig{
-			Type: graphql.Boolean,
+	Fields: gql.InputObjectConfigFieldMap{
+		"_null": &gql.InputObjectFieldConfig{
+			Type: gql.Boolean,
 		},
 	},
 })
 
-var GetBooksByAuthorResponse_args = graphql.FieldConfigArgument{
-	"_null": &graphql.ArgumentConfig{
-		Type: graphql.Boolean,
+var GetBooksByAuthorResponseGraphqlArgs = gql.FieldConfigArgument{
+	"_null": &gql.ArgumentConfig{
+		Type: gql.Boolean,
 	},
 }
 
-func GetBooksByAuthorResponse_from_args(args map[string]interface{}) *GetBooksByAuthorResponse {
-	return GetBooksByAuthorResponse_instance_from_args(&GetBooksByAuthorResponse{}, args)
+func GetBooksByAuthorResponseFromArgs(args map[string]interface{}) *GetBooksByAuthorResponse {
+	return GetBooksByAuthorResponseInstanceFromArgs(&GetBooksByAuthorResponse{}, args)
 }
 
-func GetBooksByAuthorResponse_instance_from_args(objectFromArgs *GetBooksByAuthorResponse, args map[string]interface{}) *GetBooksByAuthorResponse {
+func GetBooksByAuthorResponseInstanceFromArgs(objectFromArgs *GetBooksByAuthorResponse, args map[string]interface{}) *GetBooksByAuthorResponse {
 	return objectFromArgs
 }
 
-func (objectFromArgs *GetBooksByAuthorResponse) From_args(args map[string]interface{}) {
-	GetBooksByAuthorResponse_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *GetBooksByAuthorResponse) FromArgs(args map[string]interface{}) {
+	GetBooksByAuthorResponseInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *GetBooksByAuthorResponse) XXX_type() *graphql.Object {
-	return GetBooksByAuthorResponse_type
+func (msg *GetBooksByAuthorResponse) XXX_GraphqlType() *gql.Object {
+	return GetBooksByAuthorResponseGraphqlType
 }
 
-func (msg *GetBooksByAuthorResponse) XXX_args() graphql.FieldConfigArgument {
-	return GetBooksByAuthorResponse_args
+func (msg *GetBooksByAuthorResponse) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return GetBooksByAuthorResponseGraphqlArgs
 }
 
-func (msg *GetBooksByAuthorResponse) XXX_package() string {
+func (msg *GetBooksByAuthorResponse) XXX_Package() string {
 	return "books"
 }
 
-var BooksByAuthor_type = graphql.NewObject(graphql.ObjectConfig{
+var BooksByAuthorGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "BooksByAuthor",
-	Fields: graphql.Fields{
-		"results": &graphql.Field{
-			Type: graphql.NewList(graphql.NewNonNull(Book_type)),
+	Fields: gql.Fields{
+		"results": &gql.Field{
+			Type: gql.NewList(gql.NewNonNull(BookGraphqlType)),
 		},
 	},
 })
 
-var BooksByAuthor_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var BooksByAuthorGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "BooksByAuthorInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"results": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewList(graphql.NewNonNull(Book_input_type)),
+	Fields: gql.InputObjectConfigFieldMap{
+		"results": &gql.InputObjectFieldConfig{
+			Type: gql.NewList(gql.NewNonNull(BookGraphqlInputType)),
 		},
 	},
 })
 
-var BooksByAuthor_args = graphql.FieldConfigArgument{
-	"results": &graphql.ArgumentConfig{
-		Type: graphql.NewList(graphql.NewNonNull(Book_input_type)),
+var BooksByAuthorGraphqlArgs = gql.FieldConfigArgument{
+	"results": &gql.ArgumentConfig{
+		Type: gql.NewList(gql.NewNonNull(BookGraphqlInputType)),
 	},
 }
 
-func BooksByAuthor_from_args(args map[string]interface{}) *BooksByAuthor {
-	return BooksByAuthor_instance_from_args(&BooksByAuthor{}, args)
+func BooksByAuthorFromArgs(args map[string]interface{}) *BooksByAuthor {
+	return BooksByAuthorInstanceFromArgs(&BooksByAuthor{}, args)
 }
 
-func BooksByAuthor_instance_from_args(objectFromArgs *BooksByAuthor, args map[string]interface{}) *BooksByAuthor {
+func BooksByAuthorInstanceFromArgs(objectFromArgs *BooksByAuthor, args map[string]interface{}) *BooksByAuthor {
 	if args["results"] != nil {
-
 		resultsInterfaceList := args["results"].([]interface{})
-
 		var results []*Book
 
 		for _, val := range resultsInterfaceList {
-			itemResolved := Book_from_args(val.(map[string]interface{}))
+			itemResolved := BookFromArgs(val.(map[string]interface{}))
 			results = append(results, itemResolved)
 		}
 		objectFromArgs.Results = results
@@ -451,105 +436,105 @@ func BooksByAuthor_instance_from_args(objectFromArgs *BooksByAuthor, args map[st
 	return objectFromArgs
 }
 
-func (objectFromArgs *BooksByAuthor) From_args(args map[string]interface{}) {
-	BooksByAuthor_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *BooksByAuthor) FromArgs(args map[string]interface{}) {
+	BooksByAuthorInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *BooksByAuthor) XXX_type() *graphql.Object {
-	return BooksByAuthor_type
+func (msg *BooksByAuthor) XXX_GraphqlType() *gql.Object {
+	return BooksByAuthorGraphqlType
 }
 
-func (msg *BooksByAuthor) XXX_args() graphql.FieldConfigArgument {
-	return BooksByAuthor_args
+func (msg *BooksByAuthor) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return BooksByAuthorGraphqlArgs
 }
 
-func (msg *BooksByAuthor) XXX_package() string {
+func (msg *BooksByAuthor) XXX_Package() string {
 	return "books"
 }
 
-var Book_type = graphql.NewObject(graphql.ObjectConfig{
+var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "Book",
-	Fields: graphql.Fields{
-		"id": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+	Fields: gql.Fields{
+		"id": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
 		},
-		"name": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+		"name": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
 		},
-		"authorId": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+		"authorId": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
 		},
-		"genre": &graphql.Field{
-			Type: Genre_enum,
+		"genre": &gql.Field{
+			Type: GenreGraphqlEnum,
 		},
-		"releaseDate": &graphql.Field{
-			Type: pg.Timestamp_type,
+		"releaseDate": &gql.Field{
+			Type: pg.TimestampGraphqlType,
 		},
-		"price": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Float),
+		"price": &gql.Field{
+			Type: gql.NewNonNull(gql.Float),
 		},
-		"copies": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Int),
+		"copies": &gql.Field{
+			Type: gql.NewNonNull(gql.Int),
 		},
 	},
 })
 
-var Book_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "BookInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"id": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+	Fields: gql.InputObjectConfigFieldMap{
+		"id": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
 		},
-		"name": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+		"name": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
 		},
-		"authorId": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+		"authorId": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
 		},
-		"genre": &graphql.InputObjectFieldConfig{
-			Type: Genre_enum,
+		"genre": &gql.InputObjectFieldConfig{
+			Type: GenreGraphqlEnum,
 		},
-		"releaseDate": &graphql.InputObjectFieldConfig{
-			Type: pg.Timestamp_input_type,
+		"releaseDate": &gql.InputObjectFieldConfig{
+			Type: pg.TimestampGraphqlInputType,
 		},
-		"price": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.Float),
+		"price": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.Float),
 		},
-		"copies": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.Int),
+		"copies": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.Int),
 		},
 	},
 })
 
-var Book_args = graphql.FieldConfigArgument{
-	"id": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.String),
+var BookGraphqlArgs = gql.FieldConfigArgument{
+	"id": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
 	},
-	"name": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.String),
+	"name": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
 	},
-	"authorId": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.String),
+	"authorId": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
 	},
-	"genre": &graphql.ArgumentConfig{
-		Type: Genre_enum,
+	"genre": &gql.ArgumentConfig{
+		Type: GenreGraphqlEnum,
 	},
-	"releaseDate": &graphql.ArgumentConfig{
-		Type: pg.Timestamp_input_type,
+	"releaseDate": &gql.ArgumentConfig{
+		Type: pg.TimestampGraphqlInputType,
 	},
-	"price": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.Float),
+	"price": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.Float),
 	},
-	"copies": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.Int),
+	"copies": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.Int),
 	},
 }
 
-func Book_from_args(args map[string]interface{}) *Book {
-	return Book_instance_from_args(&Book{}, args)
+func BookFromArgs(args map[string]interface{}) *Book {
+	return BookInstanceFromArgs(&Book{}, args)
 }
 
-func Book_instance_from_args(objectFromArgs *Book, args map[string]interface{}) *Book {
+func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Book {
 	if args["id"] != nil {
 		val := args["id"]
 		objectFromArgs.Id = string(val.(string))
@@ -581,19 +566,19 @@ func Book_instance_from_args(objectFromArgs *Book, args map[string]interface{}) 
 	return objectFromArgs
 }
 
-func (objectFromArgs *Book) From_args(args map[string]interface{}) {
-	Book_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *Book) FromArgs(args map[string]interface{}) {
+	BookInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *Book) XXX_type() *graphql.Object {
-	return Book_type
+func (msg *Book) XXX_GraphqlType() *gql.Object {
+	return BookGraphqlType
 }
 
-func (msg *Book) XXX_args() graphql.FieldConfigArgument {
-	return Book_args
+func (msg *Book) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return BookGraphqlArgs
 }
 
-func (msg *Book) XXX_package() string {
+func (msg *Book) XXX_Package() string {
 	return "books"
 }
 
@@ -603,21 +588,21 @@ func init() {
 	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
 		BooksClientInstance = NewBooksClient(pg.GrpcConnection("localhost:50051", opts...))
 	})
-	fields = append(fields, &graphql.Field{
+	fields = append(fields, &gql.Field{
 		Name: "books_GetBooks",
-		Type: GetBooksResponse_type,
-		Args: GetBooksRequest_args,
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return BooksClientInstance.GetBooks(p.Context, GetBooksRequest_from_args(p.Args))
+		Type: GetBooksResponseGraphqlType,
+		Args: GetBooksRequestGraphqlArgs,
+		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			return BooksClientInstance.GetBooks(p.Context, GetBooksRequestFromArgs(p.Args))
 		},
 	})
 
-	fields = append(fields, &graphql.Field{
+	fields = append(fields, &gql.Field{
 		Name: "books_DoNothing",
-		Type: DoNothing_type,
-		Args: DoNothing_args,
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return BooksClientInstance.DoNothing(p.Context, DoNothing_from_args(p.Args))
+		Type: DoNothingGraphqlType,
+		Args: DoNothingGraphqlArgs,
+		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			return BooksClientInstance.DoNothing(p.Context, DoNothingFromArgs(p.Args))
 		},
 	})
 
@@ -640,7 +625,8 @@ func WithLoaders(ctx context.Context) context.Context {
 				if val, ok := resp.Results[key]; ok {
 					results = append(results, &dataloader.Result{Data: val})
 				} else {
-					results = append(results, &dataloader.Result{Error: fmt.Errorf("no result for " + key)})
+					var empty *BooksByAuthor
+					results = append(results, &dataloader.Result{Data: empty})
 				}
 			}
 
@@ -651,7 +637,7 @@ func WithLoaders(ctx context.Context) context.Context {
 	return ctx
 }
 
-func GetBooksByAuthor(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
+func GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
@@ -670,7 +656,7 @@ func GetBooksByAuthor(p graphql.ResolveParams, key string) (func() (interface{},
 	}, nil
 }
 
-func GetBooksByAuthorMany(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
