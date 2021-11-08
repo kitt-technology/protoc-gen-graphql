@@ -2,3 +2,5 @@
 tests/out
 vendor
 *.graphql.go
+graphql/github.com
+node_modules

@@ -1,61 +1,55 @@
 package authors
 
 import (
-	"github.com/graphql-go/graphql"
+	gql "github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
-	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-
 	"context"
-
 	"github.com/graph-gophers/dataloader"
-
-	"fmt"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
 
 var fieldInits []func(...grpc.DialOption)
 
-func Fields(opts ...grpc.DialOption) []*graphql.Field {
+func Fields(opts ...grpc.DialOption) []*gql.Field {
 	for _, fieldInit := range fieldInits {
 		fieldInit(opts...)
 	}
 	return fields
 }
 
-var fields []*graphql.Field
+var fields []*gql.Field
 
-var GetAuthorsRequest_type = graphql.NewObject(graphql.ObjectConfig{
+var GetAuthorsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "GetAuthorsRequest",
-	Fields: graphql.Fields{
-		"ids": &graphql.Field{
-			Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+	Fields: gql.Fields{
+		"ids": &gql.Field{
+			Type: gql.NewList(gql.NewNonNull(gql.String)),
 		},
 	},
 })
 
-var GetAuthorsRequest_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var GetAuthorsRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetAuthorsRequestInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"ids": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+	Fields: gql.InputObjectConfigFieldMap{
+		"ids": &gql.InputObjectFieldConfig{
+			Type: gql.NewList(gql.NewNonNull(gql.String)),
 		},
 	},
 })
 
-var GetAuthorsRequest_args = graphql.FieldConfigArgument{
-	"ids": &graphql.ArgumentConfig{
-		Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+var GetAuthorsRequestGraphqlArgs = gql.FieldConfigArgument{
+	"ids": &gql.ArgumentConfig{
+		Type: gql.NewList(gql.NewNonNull(gql.String)),
 	},
 }
 
-func GetAuthorsRequest_from_args(args map[string]interface{}) *GetAuthorsRequest {
-	return GetAuthorsRequest_instance_from_args(&GetAuthorsRequest{}, args)
+func GetAuthorsRequestFromArgs(args map[string]interface{}) *GetAuthorsRequest {
+	return GetAuthorsRequestInstanceFromArgs(&GetAuthorsRequest{}, args)
 }
 
-func GetAuthorsRequest_instance_from_args(objectFromArgs *GetAuthorsRequest, args map[string]interface{}) *GetAuthorsRequest {
+func GetAuthorsRequestInstanceFromArgs(objectFromArgs *GetAuthorsRequest, args map[string]interface{}) *GetAuthorsRequest {
 	if args["ids"] != nil {
-
 		idsInterfaceList := args["ids"].([]interface{})
-
 		var ids []string
 
 		for _, val := range idsInterfaceList {
@@ -67,80 +61,78 @@ func GetAuthorsRequest_instance_from_args(objectFromArgs *GetAuthorsRequest, arg
 	return objectFromArgs
 }
 
-func (objectFromArgs *GetAuthorsRequest) From_args(args map[string]interface{}) {
-	GetAuthorsRequest_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *GetAuthorsRequest) FromArgs(args map[string]interface{}) {
+	GetAuthorsRequestInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *GetAuthorsRequest) XXX_type() *graphql.Object {
-	return GetAuthorsRequest_type
+func (msg *GetAuthorsRequest) XXX_GraphqlType() *gql.Object {
+	return GetAuthorsRequestGraphqlType
 }
 
-func (msg *GetAuthorsRequest) XXX_args() graphql.FieldConfigArgument {
-	return GetAuthorsRequest_args
+func (msg *GetAuthorsRequest) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return GetAuthorsRequestGraphqlArgs
 }
 
-func (msg *GetAuthorsRequest) XXX_package() string {
+func (msg *GetAuthorsRequest) XXX_Package() string {
 	return "authors"
 }
 
-var GetAuthorsResponse_type = graphql.NewObject(graphql.ObjectConfig{
+var GetAuthorsResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "GetAuthorsResponse",
-	Fields: graphql.Fields{
-		"authors": &graphql.Field{
-			Type: graphql.NewList(graphql.NewNonNull(Author_type)),
+	Fields: gql.Fields{
+		"authors": &gql.Field{
+			Type: gql.NewList(gql.NewNonNull(AuthorGraphqlType)),
 		},
-		"capitalisation1111capitalisation": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+		"capitalisation1111capitalisation": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
 		},
-		"pageInfo": &graphql.Field{
-			Type: pg.PageInfo_type,
+		"pageInfo": &gql.Field{
+			Type: pg.PageInfoGraphqlType,
 		},
-		"extra": &graphql.Field{
-			Type: extra_type,
+		"extra": &gql.Field{
+			Type: extraGraphqlType,
 		},
 	},
 })
 
-var GetAuthorsResponse_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var GetAuthorsResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetAuthorsResponseInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"authors": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewList(graphql.NewNonNull(Author_input_type)),
+	Fields: gql.InputObjectConfigFieldMap{
+		"authors": &gql.InputObjectFieldConfig{
+			Type: gql.NewList(gql.NewNonNull(AuthorGraphqlInputType)),
 		},
-		"capitalisation1111capitalisation": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+		"capitalisation1111capitalisation": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
 		},
-		"pageInfo": &graphql.InputObjectFieldConfig{
-			Type: pg.PageInfo_input_type,
+		"pageInfo": &gql.InputObjectFieldConfig{
+			Type: pg.PageInfoGraphqlInputType,
 		},
 	},
 })
 
-var GetAuthorsResponse_args = graphql.FieldConfigArgument{
-	"authors": &graphql.ArgumentConfig{
-		Type: graphql.NewList(graphql.NewNonNull(Author_input_type)),
+var GetAuthorsResponseGraphqlArgs = gql.FieldConfigArgument{
+	"authors": &gql.ArgumentConfig{
+		Type: gql.NewList(gql.NewNonNull(AuthorGraphqlInputType)),
 	},
-	"capitalisation1111capitalisation": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.String),
+	"capitalisation1111capitalisation": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
 	},
-	"pageInfo": &graphql.ArgumentConfig{
-		Type: pg.PageInfo_input_type,
+	"pageInfo": &gql.ArgumentConfig{
+		Type: pg.PageInfoGraphqlInputType,
 	},
 }
 
-func GetAuthorsResponse_from_args(args map[string]interface{}) *GetAuthorsResponse {
-	return GetAuthorsResponse_instance_from_args(&GetAuthorsResponse{}, args)
+func GetAuthorsResponseFromArgs(args map[string]interface{}) *GetAuthorsResponse {
+	return GetAuthorsResponseInstanceFromArgs(&GetAuthorsResponse{}, args)
 }
 
-func GetAuthorsResponse_instance_from_args(objectFromArgs *GetAuthorsResponse, args map[string]interface{}) *GetAuthorsResponse {
+func GetAuthorsResponseInstanceFromArgs(objectFromArgs *GetAuthorsResponse, args map[string]interface{}) *GetAuthorsResponse {
 	if args["authors"] != nil {
-
 		authorsInterfaceList := args["authors"].([]interface{})
-
 		var authors []*Author
 
 		for _, val := range authorsInterfaceList {
-			itemResolved := Author_from_args(val.(map[string]interface{}))
+			itemResolved := AuthorFromArgs(val.(map[string]interface{}))
 			authors = append(authors, itemResolved)
 		}
 		objectFromArgs.Authors = authors
@@ -151,64 +143,64 @@ func GetAuthorsResponse_instance_from_args(objectFromArgs *GetAuthorsResponse, a
 	}
 	if args["pageInfo"] != nil {
 		val := args["pageInfo"]
-		objectFromArgs.PageInfo = pg.PageInfo_from_args(val.(map[string]interface{}))
+		objectFromArgs.PageInfo = pg.PageInfoFromArgs(val.(map[string]interface{}))
 	}
 	return objectFromArgs
 }
 
-func (objectFromArgs *GetAuthorsResponse) From_args(args map[string]interface{}) {
-	GetAuthorsResponse_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *GetAuthorsResponse) FromArgs(args map[string]interface{}) {
+	GetAuthorsResponseInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *GetAuthorsResponse) XXX_type() *graphql.Object {
-	return GetAuthorsResponse_type
+func (msg *GetAuthorsResponse) XXX_GraphqlType() *gql.Object {
+	return GetAuthorsResponseGraphqlType
 }
 
-func (msg *GetAuthorsResponse) XXX_args() graphql.FieldConfigArgument {
-	return GetAuthorsResponse_args
+func (msg *GetAuthorsResponse) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return GetAuthorsResponseGraphqlArgs
 }
 
-func (msg *GetAuthorsResponse) XXX_package() string {
+func (msg *GetAuthorsResponse) XXX_Package() string {
 	return "authors"
 }
 
-var extra_type = graphql.NewUnion(graphql.UnionConfig{
+var extraGraphqlType = gql.NewUnion(gql.UnionConfig{
 	Name:  "extra",
-	Types: []*graphql.Object{SomeOtherThing_type, SomeThing_type},
-	ResolveType: (func(p graphql.ResolveTypeParams) *graphql.Object {
+	Types: []*gql.Object{SomeOtherThingGraphqlType, SomeThingGraphqlType},
+	ResolveType: (func(p gql.ResolveTypeParams) *gql.Object {
 		switch p.Value.(type) {
 		case *GetAuthorsResponse_AnotherThing:
-			fields := graphql.Fields{}
-			for name, field := range SomeOtherThing_type.Fields() {
-				fields[name] = &graphql.Field{
+			fields := gql.Fields{}
+			for name, field := range SomeOtherThingGraphqlType.Fields() {
+				fields[name] = &gql.Field{
 					Name: field.Name,
 					Type: field.Type,
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					Resolve: func(p gql.ResolveParams) (interface{}, error) {
 						wrapper := p.Source.(*GetAuthorsResponse_AnotherThing)
 						p.Source = wrapper.AnotherThing
-						return graphql.DefaultResolveFn(p)
+						return gql.DefaultResolveFn(p)
 					},
 				}
 			}
-			return graphql.NewObject(graphql.ObjectConfig{
-				Name:   SomeOtherThing_type.Name(),
+			return gql.NewObject(gql.ObjectConfig{
+				Name:   SomeOtherThingGraphqlType.Name(),
 				Fields: fields,
 			})
 		case *GetAuthorsResponse_Something:
-			fields := graphql.Fields{}
-			for name, field := range SomeThing_type.Fields() {
-				fields[name] = &graphql.Field{
+			fields := gql.Fields{}
+			for name, field := range SomeThingGraphqlType.Fields() {
+				fields[name] = &gql.Field{
 					Name: field.Name,
 					Type: field.Type,
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					Resolve: func(p gql.ResolveParams) (interface{}, error) {
 						wrapper := p.Source.(*GetAuthorsResponse_Something)
 						p.Source = wrapper.Something
-						return graphql.DefaultResolveFn(p)
+						return gql.DefaultResolveFn(p)
 					},
 				}
 			}
-			return graphql.NewObject(graphql.ObjectConfig{
-				Name:   SomeThing_type.Name(),
+			return gql.NewObject(gql.ObjectConfig{
+				Name:   SomeThingGraphqlType.Name(),
 				Fields: fields,
 			})
 		}
@@ -216,35 +208,35 @@ var extra_type = graphql.NewUnion(graphql.UnionConfig{
 	}),
 })
 
-var SomeThing_type = graphql.NewObject(graphql.ObjectConfig{
+var SomeThingGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "SomeThing",
-	Fields: graphql.Fields{
-		"hello": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+	Fields: gql.Fields{
+		"hello": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
 		},
 	},
 })
 
-var SomeThing_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var SomeThingGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "SomeThingInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"hello": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+	Fields: gql.InputObjectConfigFieldMap{
+		"hello": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
 		},
 	},
 })
 
-var SomeThing_args = graphql.FieldConfigArgument{
-	"hello": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.String),
+var SomeThingGraphqlArgs = gql.FieldConfigArgument{
+	"hello": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
 	},
 }
 
-func SomeThing_from_args(args map[string]interface{}) *SomeThing {
-	return SomeThing_instance_from_args(&SomeThing{}, args)
+func SomeThingFromArgs(args map[string]interface{}) *SomeThing {
+	return SomeThingInstanceFromArgs(&SomeThing{}, args)
 }
 
-func SomeThing_instance_from_args(objectFromArgs *SomeThing, args map[string]interface{}) *SomeThing {
+func SomeThingInstanceFromArgs(objectFromArgs *SomeThing, args map[string]interface{}) *SomeThing {
 	if args["hello"] != nil {
 		val := args["hello"]
 		objectFromArgs.Hello = string(val.(string))
@@ -252,51 +244,51 @@ func SomeThing_instance_from_args(objectFromArgs *SomeThing, args map[string]int
 	return objectFromArgs
 }
 
-func (objectFromArgs *SomeThing) From_args(args map[string]interface{}) {
-	SomeThing_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *SomeThing) FromArgs(args map[string]interface{}) {
+	SomeThingInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *SomeThing) XXX_type() *graphql.Object {
-	return SomeThing_type
+func (msg *SomeThing) XXX_GraphqlType() *gql.Object {
+	return SomeThingGraphqlType
 }
 
-func (msg *SomeThing) XXX_args() graphql.FieldConfigArgument {
-	return SomeThing_args
+func (msg *SomeThing) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return SomeThingGraphqlArgs
 }
 
-func (msg *SomeThing) XXX_package() string {
+func (msg *SomeThing) XXX_Package() string {
 	return "authors"
 }
 
-var SomeOtherThing_type = graphql.NewObject(graphql.ObjectConfig{
+var SomeOtherThingGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "SomeOtherThing",
-	Fields: graphql.Fields{
-		"world": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+	Fields: gql.Fields{
+		"world": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
 		},
 	},
 })
 
-var SomeOtherThing_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var SomeOtherThingGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "SomeOtherThingInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"world": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+	Fields: gql.InputObjectConfigFieldMap{
+		"world": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
 		},
 	},
 })
 
-var SomeOtherThing_args = graphql.FieldConfigArgument{
-	"world": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.String),
+var SomeOtherThingGraphqlArgs = gql.FieldConfigArgument{
+	"world": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
 	},
 }
 
-func SomeOtherThing_from_args(args map[string]interface{}) *SomeOtherThing {
-	return SomeOtherThing_instance_from_args(&SomeOtherThing{}, args)
+func SomeOtherThingFromArgs(args map[string]interface{}) *SomeOtherThing {
+	return SomeOtherThingInstanceFromArgs(&SomeOtherThing{}, args)
 }
 
-func SomeOtherThing_instance_from_args(objectFromArgs *SomeOtherThing, args map[string]interface{}) *SomeOtherThing {
+func SomeOtherThingInstanceFromArgs(objectFromArgs *SomeOtherThing, args map[string]interface{}) *SomeOtherThing {
 	if args["world"] != nil {
 		val := args["world"]
 		objectFromArgs.World = string(val.(string))
@@ -304,55 +296,53 @@ func SomeOtherThing_instance_from_args(objectFromArgs *SomeOtherThing, args map[
 	return objectFromArgs
 }
 
-func (objectFromArgs *SomeOtherThing) From_args(args map[string]interface{}) {
-	SomeOtherThing_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *SomeOtherThing) FromArgs(args map[string]interface{}) {
+	SomeOtherThingInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *SomeOtherThing) XXX_type() *graphql.Object {
-	return SomeOtherThing_type
+func (msg *SomeOtherThing) XXX_GraphqlType() *gql.Object {
+	return SomeOtherThingGraphqlType
 }
 
-func (msg *SomeOtherThing) XXX_args() graphql.FieldConfigArgument {
-	return SomeOtherThing_args
+func (msg *SomeOtherThing) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return SomeOtherThingGraphqlArgs
 }
 
-func (msg *SomeOtherThing) XXX_package() string {
+func (msg *SomeOtherThing) XXX_Package() string {
 	return "authors"
 }
 
-var AuthorsBatchRequest_type = graphql.NewObject(graphql.ObjectConfig{
+var AuthorsBatchRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "AuthorsBatchRequest",
-	Fields: graphql.Fields{
-		"ids": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
+	Fields: gql.Fields{
+		"ids": &gql.Field{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
 		},
 	},
 })
 
-var AuthorsBatchRequest_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var AuthorsBatchRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "AuthorsBatchRequestInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"ids": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
+	Fields: gql.InputObjectConfigFieldMap{
+		"ids": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
 		},
 	},
 })
 
-var AuthorsBatchRequest_args = graphql.FieldConfigArgument{
-	"ids": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
+var AuthorsBatchRequestGraphqlArgs = gql.FieldConfigArgument{
+	"ids": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
 	},
 }
 
-func AuthorsBatchRequest_from_args(args map[string]interface{}) *AuthorsBatchRequest {
-	return AuthorsBatchRequest_instance_from_args(&AuthorsBatchRequest{}, args)
+func AuthorsBatchRequestFromArgs(args map[string]interface{}) *AuthorsBatchRequest {
+	return AuthorsBatchRequestInstanceFromArgs(&AuthorsBatchRequest{}, args)
 }
 
-func AuthorsBatchRequest_instance_from_args(objectFromArgs *AuthorsBatchRequest, args map[string]interface{}) *AuthorsBatchRequest {
+func AuthorsBatchRequestInstanceFromArgs(objectFromArgs *AuthorsBatchRequest, args map[string]interface{}) *AuthorsBatchRequest {
 	if args["ids"] != nil {
-
 		idsInterfaceList := args["ids"].([]interface{})
-
 		var ids []string
 
 		for _, val := range idsInterfaceList {
@@ -364,156 +354,156 @@ func AuthorsBatchRequest_instance_from_args(objectFromArgs *AuthorsBatchRequest,
 	return objectFromArgs
 }
 
-func (objectFromArgs *AuthorsBatchRequest) From_args(args map[string]interface{}) {
-	AuthorsBatchRequest_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *AuthorsBatchRequest) FromArgs(args map[string]interface{}) {
+	AuthorsBatchRequestInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *AuthorsBatchRequest) XXX_type() *graphql.Object {
-	return AuthorsBatchRequest_type
+func (msg *AuthorsBatchRequest) XXX_GraphqlType() *gql.Object {
+	return AuthorsBatchRequestGraphqlType
 }
 
-func (msg *AuthorsBatchRequest) XXX_args() graphql.FieldConfigArgument {
-	return AuthorsBatchRequest_args
+func (msg *AuthorsBatchRequest) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return AuthorsBatchRequestGraphqlArgs
 }
 
-func (msg *AuthorsBatchRequest) XXX_package() string {
+func (msg *AuthorsBatchRequest) XXX_Package() string {
 	return "authors"
 }
 
-var AuthorsBatchResponse_type = graphql.NewObject(graphql.ObjectConfig{
+var AuthorsBatchResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "AuthorsBatchResponse",
-	Fields: graphql.Fields{
-		"_null": &graphql.Field{
-			Type: graphql.Boolean,
+	Fields: gql.Fields{
+		"_null": &gql.Field{
+			Type: gql.Boolean,
 		},
 	},
 })
 
-var AuthorsBatchResponse_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var AuthorsBatchResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "AuthorsBatchResponseInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"_null": &graphql.InputObjectFieldConfig{
-			Type: graphql.Boolean,
+	Fields: gql.InputObjectConfigFieldMap{
+		"_null": &gql.InputObjectFieldConfig{
+			Type: gql.Boolean,
 		},
 	},
 })
 
-var AuthorsBatchResponse_args = graphql.FieldConfigArgument{
-	"_null": &graphql.ArgumentConfig{
-		Type: graphql.Boolean,
+var AuthorsBatchResponseGraphqlArgs = gql.FieldConfigArgument{
+	"_null": &gql.ArgumentConfig{
+		Type: gql.Boolean,
 	},
 }
 
-func AuthorsBatchResponse_from_args(args map[string]interface{}) *AuthorsBatchResponse {
-	return AuthorsBatchResponse_instance_from_args(&AuthorsBatchResponse{}, args)
+func AuthorsBatchResponseFromArgs(args map[string]interface{}) *AuthorsBatchResponse {
+	return AuthorsBatchResponseInstanceFromArgs(&AuthorsBatchResponse{}, args)
 }
 
-func AuthorsBatchResponse_instance_from_args(objectFromArgs *AuthorsBatchResponse, args map[string]interface{}) *AuthorsBatchResponse {
+func AuthorsBatchResponseInstanceFromArgs(objectFromArgs *AuthorsBatchResponse, args map[string]interface{}) *AuthorsBatchResponse {
 	return objectFromArgs
 }
 
-func (objectFromArgs *AuthorsBatchResponse) From_args(args map[string]interface{}) {
-	AuthorsBatchResponse_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *AuthorsBatchResponse) FromArgs(args map[string]interface{}) {
+	AuthorsBatchResponseInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *AuthorsBatchResponse) XXX_type() *graphql.Object {
-	return AuthorsBatchResponse_type
+func (msg *AuthorsBatchResponse) XXX_GraphqlType() *gql.Object {
+	return AuthorsBatchResponseGraphqlType
 }
 
-func (msg *AuthorsBatchResponse) XXX_args() graphql.FieldConfigArgument {
-	return AuthorsBatchResponse_args
+func (msg *AuthorsBatchResponse) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return AuthorsBatchResponseGraphqlArgs
 }
 
-func (msg *AuthorsBatchResponse) XXX_package() string {
+func (msg *AuthorsBatchResponse) XXX_Package() string {
 	return "authors"
 }
 
-var AuthorsBoolBatchResponse_type = graphql.NewObject(graphql.ObjectConfig{
+var AuthorsBoolBatchResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "AuthorsBoolBatchResponse",
-	Fields: graphql.Fields{
-		"_null": &graphql.Field{
-			Type: graphql.Boolean,
+	Fields: gql.Fields{
+		"_null": &gql.Field{
+			Type: gql.Boolean,
 		},
 	},
 })
 
-var AuthorsBoolBatchResponse_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var AuthorsBoolBatchResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "AuthorsBoolBatchResponseInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"_null": &graphql.InputObjectFieldConfig{
-			Type: graphql.Boolean,
+	Fields: gql.InputObjectConfigFieldMap{
+		"_null": &gql.InputObjectFieldConfig{
+			Type: gql.Boolean,
 		},
 	},
 })
 
-var AuthorsBoolBatchResponse_args = graphql.FieldConfigArgument{
-	"_null": &graphql.ArgumentConfig{
-		Type: graphql.Boolean,
+var AuthorsBoolBatchResponseGraphqlArgs = gql.FieldConfigArgument{
+	"_null": &gql.ArgumentConfig{
+		Type: gql.Boolean,
 	},
 }
 
-func AuthorsBoolBatchResponse_from_args(args map[string]interface{}) *AuthorsBoolBatchResponse {
-	return AuthorsBoolBatchResponse_instance_from_args(&AuthorsBoolBatchResponse{}, args)
+func AuthorsBoolBatchResponseFromArgs(args map[string]interface{}) *AuthorsBoolBatchResponse {
+	return AuthorsBoolBatchResponseInstanceFromArgs(&AuthorsBoolBatchResponse{}, args)
 }
 
-func AuthorsBoolBatchResponse_instance_from_args(objectFromArgs *AuthorsBoolBatchResponse, args map[string]interface{}) *AuthorsBoolBatchResponse {
+func AuthorsBoolBatchResponseInstanceFromArgs(objectFromArgs *AuthorsBoolBatchResponse, args map[string]interface{}) *AuthorsBoolBatchResponse {
 	return objectFromArgs
 }
 
-func (objectFromArgs *AuthorsBoolBatchResponse) From_args(args map[string]interface{}) {
-	AuthorsBoolBatchResponse_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *AuthorsBoolBatchResponse) FromArgs(args map[string]interface{}) {
+	AuthorsBoolBatchResponseInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *AuthorsBoolBatchResponse) XXX_type() *graphql.Object {
-	return AuthorsBoolBatchResponse_type
+func (msg *AuthorsBoolBatchResponse) XXX_GraphqlType() *gql.Object {
+	return AuthorsBoolBatchResponseGraphqlType
 }
 
-func (msg *AuthorsBoolBatchResponse) XXX_args() graphql.FieldConfigArgument {
-	return AuthorsBoolBatchResponse_args
+func (msg *AuthorsBoolBatchResponse) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return AuthorsBoolBatchResponseGraphqlArgs
 }
 
-func (msg *AuthorsBoolBatchResponse) XXX_package() string {
+func (msg *AuthorsBoolBatchResponse) XXX_Package() string {
 	return "authors"
 }
 
-var Author_type = graphql.NewObject(graphql.ObjectConfig{
+var AuthorGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "Author",
-	Fields: graphql.Fields{
-		"id": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+	Fields: gql.Fields{
+		"id": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
 		},
-		"name": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+		"name": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
 		},
 	},
 })
 
-var Author_input_type = graphql.NewInputObject(graphql.InputObjectConfig{
+var AuthorGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "AuthorInput",
-	Fields: graphql.InputObjectConfigFieldMap{
-		"id": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+	Fields: gql.InputObjectConfigFieldMap{
+		"id": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
 		},
-		"name": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+		"name": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
 		},
 	},
 })
 
-var Author_args = graphql.FieldConfigArgument{
-	"id": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.String),
+var AuthorGraphqlArgs = gql.FieldConfigArgument{
+	"id": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
 	},
-	"name": &graphql.ArgumentConfig{
-		Type: graphql.NewNonNull(graphql.String),
+	"name": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
 	},
 }
 
-func Author_from_args(args map[string]interface{}) *Author {
-	return Author_instance_from_args(&Author{}, args)
+func AuthorFromArgs(args map[string]interface{}) *Author {
+	return AuthorInstanceFromArgs(&Author{}, args)
 }
 
-func Author_instance_from_args(objectFromArgs *Author, args map[string]interface{}) *Author {
+func AuthorInstanceFromArgs(objectFromArgs *Author, args map[string]interface{}) *Author {
 	if args["id"] != nil {
 		val := args["id"]
 		objectFromArgs.Id = string(val.(string))
@@ -525,19 +515,19 @@ func Author_instance_from_args(objectFromArgs *Author, args map[string]interface
 	return objectFromArgs
 }
 
-func (objectFromArgs *Author) From_args(args map[string]interface{}) {
-	Author_instance_from_args(objectFromArgs, args)
+func (objectFromArgs *Author) FromArgs(args map[string]interface{}) {
+	AuthorInstanceFromArgs(objectFromArgs, args)
 }
 
-func (msg *Author) XXX_type() *graphql.Object {
-	return Author_type
+func (msg *Author) XXX_GraphqlType() *gql.Object {
+	return AuthorGraphqlType
 }
 
-func (msg *Author) XXX_args() graphql.FieldConfigArgument {
-	return Author_args
+func (msg *Author) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return AuthorGraphqlArgs
 }
 
-func (msg *Author) XXX_package() string {
+func (msg *Author) XXX_Package() string {
 	return "authors"
 }
 
@@ -547,12 +537,12 @@ func init() {
 	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
 		AuthorsClientInstance = NewAuthorsClient(pg.GrpcConnection("localhost:50052", opts...))
 	})
-	fields = append(fields, &graphql.Field{
+	fields = append(fields, &gql.Field{
 		Name: "authors_GetAuthors",
-		Type: GetAuthorsResponse_type,
-		Args: GetAuthorsRequest_args,
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return AuthorsClientInstance.GetAuthors(p.Context, GetAuthorsRequest_from_args(p.Args))
+		Type: GetAuthorsResponseGraphqlType,
+		Args: GetAuthorsRequestGraphqlArgs,
+		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			return AuthorsClientInstance.GetAuthors(p.Context, GetAuthorsRequestFromArgs(p.Args))
 		},
 	})
 
@@ -575,7 +565,8 @@ func WithLoaders(ctx context.Context) context.Context {
 				if val, ok := resp.Results[key]; ok {
 					results = append(results, &dataloader.Result{Data: val})
 				} else {
-					results = append(results, &dataloader.Result{Error: fmt.Errorf("no result for " + key)})
+					var empty *Author
+					results = append(results, &dataloader.Result{Data: empty})
 				}
 			}
 
@@ -599,7 +590,8 @@ func WithLoaders(ctx context.Context) context.Context {
 				if val, ok := resp.Results[key]; ok {
 					results = append(results, &dataloader.Result{Data: val})
 				} else {
-					results = append(results, &dataloader.Result{Error: fmt.Errorf("no result for " + key)})
+					var empty bool
+					results = append(results, &dataloader.Result{Data: empty})
 				}
 			}
 
@@ -610,7 +602,7 @@ func WithLoaders(ctx context.Context) context.Context {
 	return ctx
 }
 
-func LoadAuthors(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
+func LoadAuthors(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadAuthorsLoader").(type) {
 	case *dataloader.Loader:
@@ -629,7 +621,7 @@ func LoadAuthors(p graphql.ResolveParams, key string) (func() (interface{}, erro
 	}, nil
 }
 
-func LoadAuthorsMany(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func LoadAuthorsMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadAuthorsLoader").(type) {
 	case *dataloader.Loader:
@@ -657,7 +649,7 @@ func LoadAuthorsMany(p graphql.ResolveParams, keys []string) (func() (interface{
 	}, nil
 }
 
-func LoadAuthorsBool(p graphql.ResolveParams, key string) (func() (interface{}, error), error) {
+func LoadAuthorsBool(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadAuthorsBoolLoader").(type) {
 	case *dataloader.Loader:
@@ -676,7 +668,7 @@ func LoadAuthorsBool(p graphql.ResolveParams, key string) (func() (interface{}, 
 	}, nil
 }
 
-func LoadAuthorsBoolMany(p graphql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func LoadAuthorsBoolMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadAuthorsBoolLoader").(type) {
 	case *dataloader.Loader:

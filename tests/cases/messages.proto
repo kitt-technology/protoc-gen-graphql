@@ -6,7 +6,7 @@ import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "cases;cases";
+option go_package = "github.com/kitt-technology/protoc-gen-graphql/cases;cases";
 
 service Books {
   option (graphql.host) =
