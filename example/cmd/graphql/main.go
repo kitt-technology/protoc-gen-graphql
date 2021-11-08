@@ -42,7 +42,7 @@ func main() {
 			return
 		}
 
-		// Initialise dataloaders
+		// Append dataloaders to the context
 		ctx := books.WithLoaders(req.Context())
 		ctx = authors.WithLoaders(ctx)
 
@@ -58,8 +58,9 @@ func main() {
 		}
 	})
 
-	fmt.Println("Serving graphql")
-	err = http.ListenAndServe(":8080", nil)
+	port := "8080"
+	fmt.Printf("Serving graphql on localhost:%s\n", port)
+	err = http.ListenAndServe(":" + port, nil)
 
 	if err != nil {
 		panic(err)
@@ -67,21 +68,21 @@ func main() {
 }
 
 func init() {
-	books.Book_type.AddFieldConfig("author", &graphql.Field{
-		Type: authors.Author_type,
+	books.BookGraphqlType.AddFieldConfig("author", &graphql.Field{
+		Type: authors.AuthorGraphqlType,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return authors.LoadAuthors(p, p.Source.(*books.Book).AuthorId)
 		},
 	})
 
-	authors.Author_type.AddFieldConfig("books", &graphql.Field{
-		Type: books.BooksByAuthor_type,
+	authors.AuthorGraphqlType.AddFieldConfig("books", &graphql.Field{
+		Type: books.BooksByAuthorGraphqlType,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return books.GetBooksByAuthor(p, p.Source.(*authors.Author).Id)
 		},
 	})
 
-	books.Book_type.AddFieldConfig("favoriteAuth", &graphql.Field{
+	books.BookGraphqlType.AddFieldConfig("favoriteAuth", &graphql.Field{
 		Type: graphql.Boolean,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return authors.LoadAuthorsBool(p, p.Source.(*books.Book).Id)

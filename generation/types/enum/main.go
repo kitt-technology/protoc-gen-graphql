@@ -3,46 +3,18 @@ package enum
 import (
 	"bytes"
 	"fmt"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"html/template"
-	"strings"
 )
-
-const msgTpl = `
-
-var {{ .Descriptor.GetName }}_enum = graphql.NewEnum(graphql.EnumConfig{
-	Name: "{{ .EnumName }}",
-	Values: graphql.EnumValueConfigMap{
-		{{- range $key, $val := .Values }}
-		"{{ $key }}": &graphql.EnumValueConfig{
-			Value: {{ $.Descriptor.GetName }}({{ $val }}),
-		},
-		{{- end }}
-	},
-})
-
-var {{ .Descriptor.GetName }}_type = graphql.NewScalar(graphql.ScalarConfig{
-	Name: "{{ .EnumName }}",
-	ParseValue: func(value interface{}) interface{} {
-		return nil
-
-	},
-	Serialize: func(value interface{}) interface{} {
-		return value.({{ .Descriptor.GetName }}).String()
-	},
-	ParseLiteral: func(valueAST ast.Value) interface{} {
-		return nil
-	},
-})
-`
 
 type Message struct {
 	Descriptor *descriptorpb.EnumDescriptorProto
 	Import     map[string]string
 	Values     map[string]string
-	EnumName  string
+	EnumName   string
 }
 
 func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
@@ -56,17 +28,12 @@ func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
 		Import:     make(map[string]string),
 		Values:     make(map[string]string),
 		Descriptor: msg,
-		EnumName: m.EnumName,
+		EnumName:   m.EnumName,
 	}
 }
 
-func last(path string) string {
-	t := strings.Split(path, ".")
-	return t[len(t)-1]
-}
-
 func (m Message) Imports() []string {
-	return []string{"github.com/graphql-go/graphql/language/ast"}
+	return []string{imports.GraphqlAst}
 }
 
 func (m Message) Generate() string {
@@ -82,3 +49,29 @@ func (m Message) Generate() string {
 
 	return buf.String()
 }
+
+const msgTpl = `
+var {{ .Descriptor.GetName }}GraphqlEnum = gql.NewEnum(gql.EnumConfig{
+	Name: "{{ .EnumName }}",
+	Values: gql.EnumValueConfigMap{
+		{{- range $key, $val := .Values }}
+		"{{ $key }}": &gql.EnumValueConfig{
+			Value: {{ $.Descriptor.GetName }}({{ $val }}),
+		},
+		{{- end }}
+	},
+})
+
+var {{ .Descriptor.GetName }}GraphqlType = gql.NewScalar(gql.ScalarConfig{
+	Name: "{{ .EnumName }}",
+	ParseValue: func(value interface{}) interface{} {
+		return nil
+	},
+	Serialize: func(value interface{}) interface{} {
+		return value.({{ .Descriptor.GetName }}).String()
+	},
+	ParseLiteral: func(valueAST ast.Value) interface{} {
+		return nil
+	},
+})
+`
