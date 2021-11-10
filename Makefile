@@ -49,14 +49,22 @@ generate:
 		--go_out="module=${PACKAGE}:./" \
 		graphql/graphql.proto
 
+.PHONY: clone
+clone:
+	GO111MODULE=off go get -d github.com/kitt-technology/protoc-gen-graphql \
+	  && cd ${GOPATH}/src/github.com/kitt-technology/protoc-gen-graphql \
+	  && echo ${GOPATH}
+
 .PHONY: test
 test:
 	rm -rf tests/out || true
 	mkdir tests/out/
 	go install .
-	pwd
-	ls ${GOPATH}/src/github.com/kitt-technology/protoc-gen-graphql
-	ls ${GOPATH}/src/github.com/kitt-technology/
+
+	git status
+	git config --global user.email "you@example.com"
+	git config --global user.name "Your Name"
+	git stash
 	protoc \
 		--proto_path . \
 		-I=. \

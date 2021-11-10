@@ -36,6 +36,7 @@ func main() {
 
 				diffs := dmp.DiffMain(string(expected), string(actual), false)
 
+				log.Println(string(expected))
 				fmt.Println(dmp.DiffPrettyText(diffs))
 				log.Fatal("Test case failed!")
 			}
