@@ -35,6 +35,11 @@ build-examples:
 run-examples:
 	cd example; parallel -u ::: 'go run ./cmd/books' 'go run ./cmd/authors' 'go run ./cmd/graphql'; cd -
 
+.PHONY: docker
+docker:
+	docker build . -t kittoffices/protoc-gen-graphql
+	docker push kittoffices/protoc-gen-graphql
+
 .PHONY: generate
 generate:
 	protoc \
@@ -49,7 +54,9 @@ test:
 	rm -rf tests/out || true
 	mkdir tests/out/
 	go install .
-	ls ${GOPATH}/src/github.com/kitt-technology
+	pwd
+	ls ${GOPATH}/src/github.com/kitt-technology/protoc-gen-graphql
+	ls ${GOPATH}/src/github.com/kitt-technology/
 	protoc \
 		--proto_path . \
 		-I=. \

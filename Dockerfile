@@ -55,9 +55,11 @@ RUN go get -d ${PGG_PKG} \
   && cd - \
   && rm -rf ${PGG_PATH}
 
-COPY Makefile ./
-COPY go.* ./
+WORKDIR /go/src/github.com/kitt-technology/protoc-gen-graphql
 
-RUN make deps
+#COPY Makefile ./
+#COPY go.* ./
 
-CMD ["make", "test"]
+RUN #make deps
+
+#CMD ["make", "test"]

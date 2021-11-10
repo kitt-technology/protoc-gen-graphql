@@ -21,6 +21,7 @@ jobs:
 
     steps:
       - checkout
+      - run: make deps
       - run: make test
 
   release:
