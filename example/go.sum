@@ -192,6 +192,8 @@ github.com/kitt-technology/protoc-gen-graphql v0.19.1-0.20210622130623-09016cc7e
 github.com/kitt-technology/protoc-gen-graphql v0.19.1-0.20210622130623-09016cc7e8ed/go.mod h1:128URAbOO8zaHUFGycvC+iPh6w4Y2NQbwhF0pV2sacA=
 github.com/kitt-technology/protoc-gen-graphql v0.19.1-0.20210622130821-335fff2b830c h1:wVmBX8bFDWVQGiciOLusZQ6b0AMxgiLr3/qveRPS0Eg=
 github.com/kitt-technology/protoc-gen-graphql v0.19.1-0.20210622130821-335fff2b830c/go.mod h1:128URAbOO8zaHUFGycvC+iPh6w4Y2NQbwhF0pV2sacA=
+github.com/kitt-technology/protoc-gen-graphql v0.24.1-0.20211110111006-153586af8762 h1:9uAhZYM5OXaNPeoaDZczWmZ8PwuDa1lmrOS1homIXow=
+github.com/kitt-technology/protoc-gen-graphql v0.24.1-0.20211110111006-153586af8762/go.mod h1:128URAbOO8zaHUFGycvC+iPh6w4Y2NQbwhF0pV2sacA=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=

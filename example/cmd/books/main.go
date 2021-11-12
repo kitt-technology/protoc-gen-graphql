@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/kitt-technology/protoc-gen-graphql/example/books"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"log"
 	"net"
@@ -112,7 +112,7 @@ func init() {
 			Name:        "James and the Giant Peach",
 			AuthorId:    "2",
 			Genre:       1,
-			ReleaseDate: &timestamp.Timestamp{},
+			ReleaseDate: &timestamppb.Timestamp{},
 		},
 		"6": {
 			Id:       "6",
