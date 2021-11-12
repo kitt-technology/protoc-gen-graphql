@@ -1,4 +1,5 @@
 # protoc-gen-graphql (PGG)
+
 [![CircleCI](https://circleci.com/gh/kitt-technology/protoc-gen-graphql.svg?style=svg)](https://circleci.com/gh/kitt-technology/protoc-gen-graphql)
 
 PGG is a protoc plugin to generate a performant GraphQL server to knit together your gRPC services.

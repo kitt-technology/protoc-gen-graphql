@@ -15,13 +15,14 @@ workflows:
               only: /v[0-9]+(\.[0-9]+)*(-.*)*/
 jobs:
   test:
-    working_directory: /src
     docker:
       - image: kittoffices/protoc-gen-graphql
 
     steps:
+      - run: ls -ltra ./
       - checkout
       - run: git status
+      - run: git diff
       - run: make deps
       - run: make clone
       - run: make test
