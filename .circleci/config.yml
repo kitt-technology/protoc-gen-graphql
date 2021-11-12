@@ -15,7 +15,7 @@ workflows:
               only: /v[0-9]+(\.[0-9]+)*(-.*)*/
 jobs:
   test:
-    working_directory: /src/github.com/kitt-technology/protoc-gen-graphql
+    working_directory: /go/src/github.com/kitt-technology/protoc-gen-graphql
     docker:
       - image: kittoffices/protoc-gen-graphql
 
