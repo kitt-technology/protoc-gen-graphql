@@ -2,10 +2,12 @@ package generation
 
 import (
 	"bytes"
-	"github.com/kitt-technology/protoc-gen-graphql/generation/enum"
-	"github.com/kitt-technology/protoc-gen-graphql/generation/query"
-	"github.com/kitt-technology/protoc-gen-graphql/generation/typedef"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/dataloaders"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/types"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/types/enum"
 	"google.golang.org/protobuf/compiler/protogen"
+	"sort"
+	"strings"
 	"text/template"
 )
 
@@ -13,24 +15,22 @@ const fileTpl = `
 package {{ .Package }}
 
 import (
-	"github.com/graphql-go/graphql"
+	gql "github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
-	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-	{{ range .Imports }}
-	"{{ . }}"
-	{{end}}
+	{{- range .Imports }}
+	{{ if has_alias . }}{{ . }}{{else}}"{{ . }}"{{end}}{{ end }}
 )
 
 var fieldInits []func(...grpc.DialOption)
 
-func Fields(opts ...grpc.DialOption) []*graphql.Field {
+func Fields(opts ...grpc.DialOption) []*gql.Field {
 	for _, fieldInit := range fieldInits {
 		fieldInit(opts...)
 	}
 	return fields
 }
 
-var fields []*graphql.Field
+var fields []*gql.Field
 `
 
 type Message interface {
@@ -48,15 +48,9 @@ type File struct {
 func New(file *protogen.File) (f File) {
 	f.Package = file.GoPackageName
 
-	for _, dep := range file.Proto.Dependency {
-		switch dep {
-		case "google/protobuf/wrappers.proto":
-			//f.Imports = append(f.Imports, "github.com/golang/protobuf/ptypes/wrappers")
-		}
-	}
-
 	for _, service := range file.Proto.Service {
-		f.Message = append(f.Message, query.New(service, file.Proto))
+		f.Message = append(f.Message, dataloaders.New(service, file.Proto))
+		f.Imports = append(f.Imports, "pg \"github.com/kitt-technology/protoc-gen-graphql/graphql\"")
 	}
 
 	for _, e := range file.Proto.EnumType {
@@ -64,7 +58,7 @@ func New(file *protogen.File) (f File) {
 	}
 
 	for _, msg := range file.Proto.MessageType {
-		f.TypeDefs = append(f.TypeDefs, typedef.New(msg, file.Proto))
+		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto))
 
 	}
 	return f
@@ -83,11 +77,17 @@ func (f File) ToString() string {
 		extraImports = append(extraImports, val)
 	}
 
-
 	f.Imports = append(f.Imports, extraImports...)
 
+	// Sort so that we're deterministic for testing
+	sort.Strings(f.Imports)
+
 	var buf bytes.Buffer
-	tpl, err := template.New("file").Parse(fileTpl)
+	tpl, err := template.New("file").Funcs(map[string]interface{}{
+		"has_alias": func(impt string) bool {
+			return strings.Contains(impt, "\"")
+		},
+	}).Parse(fileTpl)
 	if err != nil {
 		panic(err)
 	}

@@ -1,0 +1,7 @@
+package imports
+
+const (
+	WrappersPbImport  = "google.golang.org/protobuf/types/known/wrapperspb"
+	TimestampPbImport = "google.golang.org/protobuf/types/known/timestamppb"
+	GraphqlAst        = "github.com/graphql-go/graphql/language/ast"
+)

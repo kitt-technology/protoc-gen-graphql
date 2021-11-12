@@ -3,7 +3,7 @@ package graphql;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/kitt-technology/protoc-gen-graphql/graphql;graphql";
+option go_package = "github.com/kitt-technology/protoc-gen-graphql/graphql";
 
 extend google.protobuf.MessageOptions {
   string object_name = 1085;

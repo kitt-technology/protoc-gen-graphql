@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/kitt-technology/protoc-gen-graphql/generation"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	_ "github.com/kitt-technology/protoc-gen-graphql/graphql"
@@ -17,7 +16,10 @@ func main() {
 	bytes, _ := ioutil.ReadAll(os.Stdin)
 
 	var req pluginpb.CodeGeneratorRequest
-	proto.Unmarshal(bytes, &req)
+	err := proto.Unmarshal(bytes, &req)
+	if err != nil {
+		panic(err)
+	}
 
 	opts := protogen.Options{}
 	plugin, _ := opts.New(&req)
@@ -26,18 +28,29 @@ func main() {
 		if shouldProcess(file) {
 			parsedFile := generation.New(file)
 			generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
-			generateFile.Write([]byte(parsedFile.ToString()))
+			_, err = generateFile.Write([]byte(parsedFile.ToString()))
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
 	stdout := plugin.Response()
 	out, _ := proto.Marshal(stdout)
 
-	fmt.Fprintf(os.Stdout, string(out))
+	_, err = os.Stdout.Write(out)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func shouldProcess(file *protogen.File) bool {
-	ignoredFiles := []string{"graphql/graphql.proto", "graphql.proto", "google/protobuf/descriptor.proto", "google/protobuf/wrappers.proto", "google/protobuf/timestamp.proto", "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto"}
+	ignoredFiles := []string{
+		"google/protobuf/descriptor.proto",
+		"google/protobuf/wrappers.proto",
+		"google/protobuf/timestamp.proto",
+		"github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto",
+	}
 	for _, ignored := range ignoredFiles {
 		if *file.Proto.Name == ignored {
 			return false
