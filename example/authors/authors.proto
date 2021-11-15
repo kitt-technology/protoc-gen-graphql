@@ -9,46 +9,21 @@ option go_package = "example/authors;authors";
 service Authors {
   option (graphql.host) =
       "localhost:50052";
-
   rpc getAuthors(GetAuthorsRequest) returns (GetAuthorsResponse) {}
-
   rpc loadAuthors(graphql.BatchRequest) returns (AuthorsBatchResponse) {};
-  rpc loadAuthorsBool(graphql.BatchRequest) returns (AuthorsBoolBatchResponse) {};
 }
 
 message GetAuthorsRequest {
-  repeated string ids = 1  [(graphql.optional) = true];
+  repeated string ids = 1 [(graphql.optional) = true];
 }
 
 message GetAuthorsResponse {
   repeated Author authors = 1;
-  string capitalisation1111capitalisation = 2;
-  oneof extra {
-    SomeThing something = 3;
-    SomeOtherThing another_thing = 4;
-  }
   graphql.PageInfo page_info = 5;
-}
-
-message SomeThing {
-  string hello = 1;
-}
-
-
-message SomeOtherThing {
-  string world = 1;
-}
-
-message AuthorsBatchRequest {
-  repeated string ids = 1;
 }
 
 message AuthorsBatchResponse {
   map<string, Author> results = 1;
-}
-
-message AuthorsBoolBatchResponse {
-  map<string, bool> results = 1;
 }
 
 message Author {

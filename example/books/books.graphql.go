@@ -103,29 +103,11 @@ var GetBooksRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"hardbackOnly": &gql.Field{
 			Type: gql.Boolean,
 		},
-		"price": &gql.Field{
-			Type: gql.Float,
-		},
 		"genres": &gql.Field{
 			Type: gql.NewList(gql.NewNonNull(GenreGraphqlEnum)),
 		},
 		"releasedAfter": &gql.Field{
 			Type: pg.TimestampGraphqlType,
-		},
-		"priceGreaterThan": &gql.Field{
-			Type: gql.NewNonNull(gql.Float),
-		},
-		"copiesGreaterThan": &gql.Field{
-			Type: gql.NewNonNull(gql.Int),
-		},
-		"copiesLessThan": &gql.Field{
-			Type: gql.NewNonNull(gql.Int),
-		},
-		"priceLessThan": &gql.Field{
-			Type: gql.NewNonNull(gql.Float),
-		},
-		"fooBar": &gql.Field{
-			Type: pg.WrappedString,
 		},
 	},
 })
@@ -139,29 +121,11 @@ var GetBooksRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"hardbackOnly": &gql.InputObjectFieldConfig{
 			Type: gql.Boolean,
 		},
-		"price": &gql.InputObjectFieldConfig{
-			Type: gql.Float,
-		},
 		"genres": &gql.InputObjectFieldConfig{
 			Type: gql.NewList(gql.NewNonNull(GenreGraphqlEnum)),
 		},
 		"releasedAfter": &gql.InputObjectFieldConfig{
 			Type: pg.TimestampGraphqlInputType,
-		},
-		"priceGreaterThan": &gql.InputObjectFieldConfig{
-			Type: gql.NewNonNull(gql.Float),
-		},
-		"copiesGreaterThan": &gql.InputObjectFieldConfig{
-			Type: gql.NewNonNull(gql.Int),
-		},
-		"copiesLessThan": &gql.InputObjectFieldConfig{
-			Type: gql.NewNonNull(gql.Int),
-		},
-		"priceLessThan": &gql.InputObjectFieldConfig{
-			Type: gql.NewNonNull(gql.Float),
-		},
-		"fooBar": &gql.InputObjectFieldConfig{
-			Type: pg.WrappedString,
 		},
 	},
 })
@@ -173,29 +137,11 @@ var GetBooksRequestGraphqlArgs = gql.FieldConfigArgument{
 	"hardbackOnly": &gql.ArgumentConfig{
 		Type: gql.Boolean,
 	},
-	"price": &gql.ArgumentConfig{
-		Type: gql.Float,
-	},
 	"genres": &gql.ArgumentConfig{
 		Type: gql.NewList(gql.NewNonNull(GenreGraphqlEnum)),
 	},
 	"releasedAfter": &gql.ArgumentConfig{
 		Type: pg.TimestampGraphqlInputType,
-	},
-	"priceGreaterThan": &gql.ArgumentConfig{
-		Type: gql.NewNonNull(gql.Float),
-	},
-	"copiesGreaterThan": &gql.ArgumentConfig{
-		Type: gql.NewNonNull(gql.Int),
-	},
-	"copiesLessThan": &gql.ArgumentConfig{
-		Type: gql.NewNonNull(gql.Int),
-	},
-	"priceLessThan": &gql.ArgumentConfig{
-		Type: gql.NewNonNull(gql.Float),
-	},
-	"fooBar": &gql.ArgumentConfig{
-		Type: pg.WrappedString,
 	},
 }
 
@@ -218,10 +164,6 @@ func GetBooksRequestInstanceFromArgs(objectFromArgs *GetBooksRequest, args map[s
 		val := args["hardbackOnly"]
 		objectFromArgs.HardbackOnly = wrapperspb.Bool(bool(val.(bool)))
 	}
-	if args["price"] != nil {
-		val := args["price"]
-		objectFromArgs.Price = wrapperspb.Float(float32(val.(float64)))
-	}
 	if args["genres"] != nil {
 		genresInterfaceList := args["genres"].([]interface{})
 		var genres []Genre
@@ -235,26 +177,6 @@ func GetBooksRequestInstanceFromArgs(objectFromArgs *GetBooksRequest, args map[s
 	if args["releasedAfter"] != nil {
 		val := args["releasedAfter"]
 		objectFromArgs.ReleasedAfter = pg.ToTimestamp(val)
-	}
-	if args["priceGreaterThan"] != nil {
-		val := args["priceGreaterThan"]
-		objectFromArgs.PriceGreaterThan = float32(val.(float64))
-	}
-	if args["copiesGreaterThan"] != nil {
-		val := args["copiesGreaterThan"]
-		objectFromArgs.CopiesGreaterThan = int64(val.(int))
-	}
-	if args["copiesLessThan"] != nil {
-		val := args["copiesLessThan"]
-		objectFromArgs.CopiesLessThan = int32(val.(int))
-	}
-	if args["priceLessThan"] != nil {
-		val := args["priceLessThan"]
-		objectFromArgs.PriceLessThan = float64(val.(float64))
-	}
-	if args["fooBar"] != nil {
-		val := args["fooBar"]
-		objectFromArgs.FooBar = wrapperspb.String(string(val.(string)))
 	}
 	return objectFromArgs
 }
@@ -281,9 +203,6 @@ var GetBooksResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"books": &gql.Field{
 			Type: gql.NewList(gql.NewNonNull(BookGraphqlType)),
 		},
-		"foobar": &gql.Field{
-			Type: pg.WrappedString,
-		},
 	},
 })
 
@@ -293,18 +212,12 @@ var GetBooksResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"books": &gql.InputObjectFieldConfig{
 			Type: gql.NewList(gql.NewNonNull(BookGraphqlInputType)),
 		},
-		"foobar": &gql.InputObjectFieldConfig{
-			Type: pg.WrappedString,
-		},
 	},
 })
 
 var GetBooksResponseGraphqlArgs = gql.FieldConfigArgument{
 	"books": &gql.ArgumentConfig{
 		Type: gql.NewList(gql.NewNonNull(BookGraphqlInputType)),
-	},
-	"foobar": &gql.ArgumentConfig{
-		Type: pg.WrappedString,
 	},
 }
 
@@ -322,10 +235,6 @@ func GetBooksResponseInstanceFromArgs(objectFromArgs *GetBooksResponse, args map
 			books = append(books, itemResolved)
 		}
 		objectFromArgs.Books = books
-	}
-	if args["foobar"] != nil {
-		val := args["foobar"]
-		objectFromArgs.Foobar = wrapperspb.String(string(val.(string)))
 	}
 	return objectFromArgs
 }
@@ -594,15 +503,6 @@ func init() {
 		Args: GetBooksRequestGraphqlArgs,
 		Resolve: func(p gql.ResolveParams) (interface{}, error) {
 			return BooksClientInstance.GetBooks(p.Context, GetBooksRequestFromArgs(p.Args))
-		},
-	})
-
-	fields = append(fields, &gql.Field{
-		Name: "books_DoNothing",
-		Type: DoNothingGraphqlType,
-		Args: DoNothingGraphqlArgs,
-		Resolve: func(p gql.ResolveParams) (interface{}, error) {
-			return BooksClientInstance.DoNothing(p.Context, DoNothingFromArgs(p.Args))
 		},
 	})
 
