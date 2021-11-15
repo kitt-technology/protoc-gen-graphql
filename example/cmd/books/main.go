@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 	"log"
 	"net"
 )
@@ -74,9 +73,7 @@ func (s BookService) GetBooks(ctx context.Context, request *books.GetBooksReques
 		}
 	}
 
-	foobar := &wrapperspb.StringValue{Value: "Hello world"}
-
-	return &books.GetBooksResponse{Books: bs, Foobar: foobar}, nil
+	return &books.GetBooksResponse{Books: bs}, nil
 }
 
 var booksDb map[string]*books.Book
@@ -112,7 +109,7 @@ func init() {
 			Name:        "James and the Giant Peach",
 			AuthorId:    "2",
 			Genre:       1,
-			ReleaseDate: &timestamppb.Timestamp{},
+			ReleaseDate: &timestamppb.Timestamp{Seconds: 100592},
 		},
 		"6": {
 			Id:       "6",

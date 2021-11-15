@@ -13,8 +13,6 @@ service Books {
   "localhost:50051";
 
   rpc getBooks(GetBooksRequest) returns (GetBooksResponse) {}
-  rpc doNothing(DoNothing) returns (DoNothing) {}
-
   rpc getBooksByAuthor(graphql.BatchRequest) returns (GetBooksByAuthorResponse) {}
 }
 
@@ -24,19 +22,12 @@ message GetBooksRequest {
   option (graphql.object_name) = "BooksRequest";
   repeated string ids = 1 [(graphql.optional) = true];
   google.protobuf.BoolValue hardback_only = 2;
-  google.protobuf.FloatValue price = 3;
-  repeated Genre genres = 4;
-  google.protobuf.Timestamp released_after = 5;
-  float price_greater_than = 6;
-  int64 copies_greater_than = 7;
-  int32 copies_less_than = 8;
-  double price_less_than = 9;
-  google.protobuf.StringValue foo_bar = 10;
+  repeated Genre genres = 3;
+  google.protobuf.Timestamp released_after = 4;
 }
 
 message GetBooksResponse {
   repeated Book books = 1;
-  google.protobuf.StringValue foobar = 2;
 }
 
 message GetBooksByAuthorResponse {
