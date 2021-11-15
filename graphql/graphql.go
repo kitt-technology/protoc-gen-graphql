@@ -47,7 +47,7 @@ var TimestampGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"ISOString": &gql.Field{
 			Type: gql.String,
 			Resolve: func(p gql.ResolveParams) (interface{}, error) {
-				return time.Unix(p.Source.(*timestamppb.Timestamp).Seconds, 0).Format("2006-01-02T15:04:05"), nil
+				return time.Unix(p.Source.(*timestamppb.Timestamp).Seconds, 0).Format(time.RFC3339), nil
 			},
 		},
 		"unix": &gql.Field{
