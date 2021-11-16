@@ -74,20 +74,15 @@ func (f File) ToString() string {
 			extraImportMap[imp] = imp
 		}
 	}
-	for _, val := range extraImportMap {
-		extraImports = append(extraImports, val)
-	}
-
 	for _, val := range f.Imports {
 		extraImportMap[val] = val
 	}
 
-	var allImports []string{}
-	for _, val := range f.Imports {
-		allImports = append(allImports, val)
+	for _, val := range extraImportMap {
+		extraImports = append(extraImports, val)
 	}
 
-	f.Imports = allImports
+	f.Imports = extraImports
 
 	// Sort so that we're deterministic for testing
 	sort.Strings(f.Imports)
