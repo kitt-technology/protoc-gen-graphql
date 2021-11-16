@@ -3,6 +3,7 @@ package generation
 import (
 	"bytes"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/dataloaders"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types/enum"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -50,7 +51,7 @@ func New(file *protogen.File) (f File) {
 
 	for _, service := range file.Proto.Service {
 		f.Message = append(f.Message, dataloaders.New(service, file.Proto))
-		f.Imports = append(f.Imports, "pg \"github.com/kitt-technology/protoc-gen-graphql/graphql\"")
+		f.Imports = append(f.Imports, imports.PggImport)
 	}
 
 	for _, e := range file.Proto.EnumType {
