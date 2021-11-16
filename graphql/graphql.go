@@ -3,6 +3,7 @@ package graphql
 import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 	"time"
 
 	gql "github.com/graphql-go/graphql"
@@ -83,6 +84,7 @@ var TimestampGraphqlType = gql.NewObject(gql.ObjectConfig{
 })
 
 type GraphqlMessage interface {
+	proto.Message
 	XXX_GraphqlType() *gql.Object
 	XXX_GraphqlArgs() gql.FieldConfigArgument
 	XXX_Package() string
