@@ -107,9 +107,11 @@ func (m Message) Generate() string {
 		switch {
 		case typeOfType == Wrapper:
 			m.Import[imports.WrappersPbImport] = imports.WrappersPbImport
-		case typeOfType == Timestamp && isList:
-			m.Import[imports.TimestampPbImport] = imports.TimestampPbImport
-
+		case typeOfType == Timestamp:
+			if isList {
+				m.Import[imports.TimestampPbImport] = imports.TimestampPbImport
+			}
+			m.Import[imports.PggImport] = imports.PggImport
 		}
 
 		optional := field.TypeName != nil
