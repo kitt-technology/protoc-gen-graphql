@@ -81,3 +81,10 @@ var TimestampGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
+
+type GraphqlMessage interface {
+	XXX_GraphqlType() *gql.Object
+	XXX_GraphqlArgs() gql.FieldConfigArgument
+	XXX_Package() string
+	FromArgs(args map[string]interface{})
+}
