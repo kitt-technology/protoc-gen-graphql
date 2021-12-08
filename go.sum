@@ -55,6 +55,8 @@ github.com/iancoleman/strcase v0.1.3 h1:dJBk1m2/qjL1twPLf68JND55vvivMupZ4wIzE8CT
 github.com/iancoleman/strcase v0.1.3/go.mod h1:SK73tn/9oHe+/Y0h39VT4UCxmurVJkR5NA7kMEAOgSE=
 github.com/kitt-technology/protos-common v0.0.0-20211208110506-6fab9b84d102 h1:X66IXxHUbh5WreZlqjpHSmSGhYjX7GgyWnSbfuz3Ga0=
 github.com/kitt-technology/protos-common v0.0.0-20211208110506-6fab9b84d102/go.mod h1:EmsKXZ6VqJlKVoxusgaCW0zY8GyHd7Rh/N2mzZ3LZn4=
+github.com/kitt-technology/protos-common v0.0.0-20211208162638-6e04e26dd8e2 h1:8S9yrNn+AKECGApcEFup1grLcj68PVpMs2bxjFVoC5A=
+github.com/kitt-technology/protos-common v0.0.0-20211208162638-6e04e26dd8e2/go.mod h1:MAph/OobtrKRO/kAe6fZdwC6m5kDBicaX2zvEYO1U6w=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
