@@ -58,7 +58,7 @@ RUN go get -d ${PGG_PKG} \
 # protoc-gen-graphql
 ENV PGG_PKG "github.com/kitt-technology/protoc-gen-graphql/"
 ENV PGG_PATH "${GOPATH}/src/${PGG_PKG}"
-RUN go get -d ${PGG_PKG}@money-money-money \
+RUN go get -d ${PGG_PKG} \
   && cd ${PGG_PATH} \
   && go install \
   && cd - \
@@ -69,7 +69,7 @@ ENV PGG_PKG "github.com/kitt-technology/protos-common/"
 ENV PGG_PATH "${GOPATH}/src/${PGG_PKG}"
 RUN go get -d ${PGG_PKG} \
   && cd ${PGG_PATH} \
-  && go install \
+  && go install ./common \
   && cd - \
   && rm -rf ${PGG_PATH}
 
