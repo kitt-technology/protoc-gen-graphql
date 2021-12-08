@@ -7,7 +7,8 @@ ENV INSTALL_DEPS \
   make \
   software-properties-common \
   unzip \
-  wget
+  wget \
+  ssh
 
 RUN apt-get update \
   && apt-get install -y -q --no-install-recommends ${INSTALL_DEPS} \
@@ -51,6 +52,24 @@ ENV PGG_VER=v1.34.0
 RUN go get -d ${PGG_PKG} \
   && cd ${PGG_PATH} \
   && git checkout ${PGG_VER} \
+  && go install \
+  && cd - \
+  && rm -rf ${PGG_PATH}
+
+# protoc-gen-graphql
+ENV PGG_PKG "github.com/kitt-technology/protoc-gen-graphql/"
+ENV PGG_PATH "${GOPATH}/src/${PGG_PKG}"
+RUN go get -d ${PGG_PKG} \
+  && cd ${PGG_PATH} \
+  && go install \
+  && cd - \
+  && rm -rf ${PGG_PATH}
+
+# protoc-gen-graphql
+ENV PGG_PKG "github.com/kitt-technology/protos-common/common"
+ENV PGG_PATH "${GOPATH}/src/${PGG_PKG}"
+RUN go get -d ${PGG_PKG} \
+  && cd ${PGG_PATH} \
   && go install \
   && cd - \
   && rm -rf ${PGG_PATH}
