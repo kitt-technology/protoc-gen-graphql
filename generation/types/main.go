@@ -25,6 +25,7 @@ type Field struct {
 
 	IsList     bool
 	TypeOfType string
+	IsPointer  bool
 }
 
 type Message struct {
@@ -112,6 +113,13 @@ func (m Message) Generate() string {
 				m.Import[imports.TimestampPbImport] = imports.TimestampPbImport
 			}
 			m.Import[imports.PggImport] = imports.PggImport
+		case typeOfType == Money:
+			if isList {
+				m.Import[imports.CommonImport] = imports.CommonImport
+			}
+			m.Import[imports.PggImport] = imports.PggImport
+		case strings.Contains(string(goType), "common.") && typeOfType == Object:
+			m.Import[imports.CommonImport] = imports.CommonImport
 		}
 
 		optional := field.TypeName != nil
@@ -122,12 +130,21 @@ func (m Message) Generate() string {
 			}
 		}
 
+		isPointer := false
+		pointerTypes := []string{"Object","Wrapper","Timestamp","Money"}
+		for _, pointerType := range pointerTypes {
+			if string(typeOfType) == pointerType {
+				isPointer = true
+			}
+		}
+
 		fieldVars := Field{
 			GqlKey:     *field.JsonName,
 			GoKey:      goKey(field),
 			GoType:     goType,
 			TypeOfType: string(typeOfType),
 			IsList:     isList,
+			IsPointer:  isPointer,
 		}
 
 		// Generate input type
@@ -205,6 +222,7 @@ const (
 	Primitive           = "Primitive"
 	Enum                = "Enum"
 	Timestamp           = "Timestamp"
+	Money               = "Money"
 )
 
 func Types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, GqlType, FieldType) {
@@ -222,6 +240,11 @@ func Types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, Gq
 			return "wrapperspb.Int32", "gql.Int", Wrapper
 		case ".google.protobuf.Int64Value":
 			return "wrapperspb.Int64", "gql.Int", Wrapper
+		case ".common.Money":
+			return "common.Money", "pg.Money", Money
+		}
+		if strings.Contains(field.GetTypeName(), ".common") {
+			return GoType(field.GetTypeName()[1:]), GqlType(field.GetTypeName()[1:]), Object
 		}
 	}
 
