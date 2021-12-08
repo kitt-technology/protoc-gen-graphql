@@ -2,11 +2,20 @@ package graphql
 
 import (
 	"errors"
+	"github.com/Rhymond/go-money"
 	gql "github.com/graphql-go/graphql"
 	"github.com/kitt-technology/protos-common/common"
 	"golang.org/x/text/currency"
-	"github.com/Rhymond/go-money"
 )
+
+func ToMoney(field interface{}) *common.Money {
+	moneyMap := field.(map[string]interface{})
+	mon := common.Money{
+		CurrencyCode: moneyMap["currencyCode"].(string),
+		Units:        moneyMap["currencyCode"].(int64),
+	}
+	return &mon
+}
 
 var MoneyGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "MoneyInput",

@@ -3,6 +3,7 @@ syntax = "proto3";
 package books;
 
 import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
+import "github.com/kitt-technology/protos-common/common.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -46,6 +47,7 @@ message Book {
   google.protobuf.Timestamp release_date = 5;
   float price = 6;
   int64 copies = 7;
+  common.Money price_two = 9;
 }
 
 enum Genre {

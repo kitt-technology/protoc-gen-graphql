@@ -5,9 +5,10 @@ all: test
 
 .PHONY: deps
 deps:
+	GO111MODULE=off go get github.com/kitt-technology/protoc-gen-graphql
+	GO111MODULE=off go get github.com/kitt-technology/protos-common
 	@go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.26
-	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1
-	@go mod download
+	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.11
 
 .PHONY: build
 build:
