@@ -25,6 +25,8 @@ message GetBooksRequest {
   google.protobuf.BoolValue hardback_only = 2;
   repeated Genre genres = 3;
   google.protobuf.Timestamp released_after = 4;
+  common.Money greaterThanPrice = 5;
+  common.Coordinate writtenNear = 6;
 }
 
 message GetBooksResponse {
@@ -48,6 +50,7 @@ message Book {
   float price = 6;
   int64 copies = 7;
   common.Money price_two = 9;
+  common.Coordinate written_at = 10;
 }
 
 enum Genre {
