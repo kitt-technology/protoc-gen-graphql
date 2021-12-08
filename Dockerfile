@@ -56,7 +56,7 @@ RUN go get -d ${PGG_PKG} \
   && rm -rf ${PGG_PATH}
 
 # protoc-gen-graphql
-ENV PGG_PKG "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto"
+ENV PGG_PKG "github.com/kitt-technology/protoc-gen-graphql/"
 ENV PGG_PATH "${GOPATH}/src/${PGG_PKG}"
 RUN go get -d ${PGG_PKG}@money-money-money \
   && cd ${PGG_PATH} \
@@ -65,7 +65,7 @@ RUN go get -d ${PGG_PKG}@money-money-money \
   && rm -rf ${PGG_PATH}
 
 # protoc-gen-graphql
-ENV PGG_PKG "github.com/kitt-technology/protos-common/common.proto"
+ENV PGG_PKG "github.com/kitt-technology/protos-common/"
 ENV PGG_PATH "${GOPATH}/src/${PGG_PKG}"
 RUN go get -d ${PGG_PKG} \
   && cd ${PGG_PATH} \
