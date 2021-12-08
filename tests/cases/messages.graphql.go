@@ -493,6 +493,9 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"releaseDate": &gql.Field{
 			Type: pg.TimestampGraphqlType,
 		},
+		"retailPrice": &gql.Field{
+			Type: pg.MoneyGraphqlType,
+		},
 	},
 })
 
@@ -514,6 +517,9 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"releaseDate": &gql.InputObjectFieldConfig{
 			Type: pg.TimestampGraphqlInputType,
 		},
+		"retailPrice": &gql.InputObjectFieldConfig{
+			Type: pg.MoneyGraphqlInputType,
+		},
 	},
 })
 
@@ -532,6 +538,9 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"releaseDate": &gql.ArgumentConfig{
 		Type: pg.TimestampGraphqlInputType,
+	},
+	"retailPrice": &gql.ArgumentConfig{
+		Type: pg.MoneyGraphqlInputType,
 	},
 }
 
@@ -559,6 +568,10 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	if args["releaseDate"] != nil {
 		val := args["releaseDate"]
 		objectFromArgs.ReleaseDate = pg.ToTimestamp(val)
+	}
+	if args["retailPrice"] != nil {
+		val := args["retailPrice"]
+		objectFromArgs.RetailPrice = pg.ToMoney(val)
 	}
 	return objectFromArgs
 }
