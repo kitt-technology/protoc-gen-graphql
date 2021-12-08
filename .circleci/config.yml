@@ -17,7 +17,7 @@ jobs:
   test:
     working_directory: /go/src/github.com/kitt-technology/protoc-gen-graphql
     docker:
-      - image: kittoffices/protoc-gen-graphql
+      - image: kittoffices/protoc-gen-graphql@money-money-money
 
     steps:
       - checkout
