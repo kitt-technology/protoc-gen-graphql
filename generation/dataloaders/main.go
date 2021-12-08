@@ -80,7 +80,11 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 			methods = append(methods, Method{Input: util.Last(*method.InputType), Output: util.Last(*method.OutputType), Name: strings.Title(*method.Name)})
 		}
 	}
-	pkg := *root.Package
+
+	var pkg string
+	if root.Package != nil {
+		pkg = *root.Package
+	}
 	pkgPath := strings.Split(pkg, ".")
 
 	return Message{
