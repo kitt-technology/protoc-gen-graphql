@@ -40,12 +40,19 @@ type Message struct {
 
 func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto) (m Message) {
 	pkg := file.Package
-	pkgPath := strings.Split(*pkg, ".")
+
+	var actualPkg string
+	if pkg != nil {
+		pkgPath := strings.Split(*pkg, ".")
+		if len(pkgPath) > 0 {
+			actualPkg = pkgPath[len(pkgPath)-1]
+		}
+	}
 	return Message{
 		Import:      make(map[string]string),
 		Descriptor:  msg,
 		Root:        file,
-		Package:     pkgPath[len(pkgPath)-1],
+		Package:     actualPkg,
 		OneOfFields: make(map[string]map[string]Field, 0),
 	}
 }
