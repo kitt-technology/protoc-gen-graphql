@@ -113,7 +113,12 @@ func (m Message) Generate() string {
 				m.Import[imports.TimestampPbImport] = imports.TimestampPbImport
 			}
 			m.Import[imports.PggImport] = imports.PggImport
-		case strings.Contains(string(goType), "common."):
+		case typeOfType == Money:
+			if isList {
+				m.Import[imports.CommonImport] = imports.CommonImport
+			}
+			m.Import[imports.PggImport] = imports.PggImport
+		case strings.Contains(string(goType), "common.") && typeOfType == Object:
 			m.Import[imports.CommonImport] = imports.CommonImport
 		}
 
