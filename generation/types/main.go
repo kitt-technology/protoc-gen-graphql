@@ -113,6 +113,8 @@ func (m Message) Generate() string {
 				m.Import[imports.TimestampPbImport] = imports.TimestampPbImport
 			}
 			m.Import[imports.PggImport] = imports.PggImport
+		case strings.Contains(string(goType), "common."):
+			m.Import[imports.CommonImport] = imports.CommonImport
 		}
 
 		optional := field.TypeName != nil
@@ -215,7 +217,7 @@ const (
 	Primitive           = "Primitive"
 	Enum                = "Enum"
 	Timestamp           = "Timestamp"
-	Money           = "Money"
+	Money               = "Money"
 )
 
 func Types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, GqlType, FieldType) {
@@ -229,12 +231,15 @@ func Types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, Gq
 			return "wrapperspb.Float", "gql.Float", Wrapper
 		case ".google.protobuf.Timestamp":
 			return "timestamppb.Timestamp", "pg.Timestamp", Timestamp
-		case ".common.Money":
-			return "common.Money", "pg.Money", Money
 		case ".google.protobuf.Int32Value":
 			return "wrapperspb.Int32", "gql.Int", Wrapper
 		case ".google.protobuf.Int64Value":
 			return "wrapperspb.Int64", "gql.Int", Wrapper
+		case ".common.Money":
+			return "common.Money", "pg.Money", Money
+		}
+		if strings.Contains(field.GetTypeName(), ".common") {
+			return GoType(field.GetTypeName()[1:]), GqlType(field.GetTypeName()[1:]), Object
 		}
 	}
 

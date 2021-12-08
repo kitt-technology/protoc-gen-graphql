@@ -6,6 +6,7 @@ import (
 	"context"
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql/language/ast"
+	"github.com/kitt-technology/protos-common/common"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
@@ -109,6 +110,12 @@ var GetBooksRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"releasedAfter": &gql.Field{
 			Type: pg.TimestampGraphqlType,
 		},
+		"greaterThanPrice": &gql.Field{
+			Type: pg.MoneyGraphqlType,
+		},
+		"writtenNear": &gql.Field{
+			Type: common.CoordinateGraphqlType,
+		},
 	},
 })
 
@@ -127,6 +134,12 @@ var GetBooksRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"releasedAfter": &gql.InputObjectFieldConfig{
 			Type: pg.TimestampGraphqlInputType,
 		},
+		"greaterThanPrice": &gql.InputObjectFieldConfig{
+			Type: pg.MoneyGraphqlInputType,
+		},
+		"writtenNear": &gql.InputObjectFieldConfig{
+			Type: common.CoordinateGraphqlInputType,
+		},
 	},
 })
 
@@ -142,6 +155,12 @@ var GetBooksRequestGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"releasedAfter": &gql.ArgumentConfig{
 		Type: pg.TimestampGraphqlInputType,
+	},
+	"greaterThanPrice": &gql.ArgumentConfig{
+		Type: pg.MoneyGraphqlInputType,
+	},
+	"writtenNear": &gql.ArgumentConfig{
+		Type: common.CoordinateGraphqlInputType,
 	},
 }
 
@@ -177,6 +196,14 @@ func GetBooksRequestInstanceFromArgs(objectFromArgs *GetBooksRequest, args map[s
 	if args["releasedAfter"] != nil {
 		val := args["releasedAfter"]
 		objectFromArgs.ReleasedAfter = pg.ToTimestamp(val)
+	}
+	if args["greaterThanPrice"] != nil {
+		val := args["greaterThanPrice"]
+		objectFromArgs.GreaterThanPrice = pg.ToMoney(val)
+	}
+	if args["writtenNear"] != nil {
+		val := args["writtenNear"]
+		objectFromArgs.WrittenNear = common.CoordinateFromArgs(val.(map[string]interface{}))
 	}
 	return objectFromArgs
 }
@@ -388,6 +415,9 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"priceTwo": &gql.Field{
 			Type: pg.MoneyGraphqlType,
 		},
+		"writtenAt": &gql.Field{
+			Type: common.CoordinateGraphqlType,
+		},
 	},
 })
 
@@ -418,6 +448,9 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"priceTwo": &gql.InputObjectFieldConfig{
 			Type: pg.MoneyGraphqlInputType,
 		},
+		"writtenAt": &gql.InputObjectFieldConfig{
+			Type: common.CoordinateGraphqlInputType,
+		},
 	},
 })
 
@@ -445,6 +478,9 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"priceTwo": &gql.ArgumentConfig{
 		Type: pg.MoneyGraphqlInputType,
+	},
+	"writtenAt": &gql.ArgumentConfig{
+		Type: common.CoordinateGraphqlInputType,
 	},
 }
 
@@ -484,6 +520,10 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	if args["priceTwo"] != nil {
 		val := args["priceTwo"]
 		objectFromArgs.PriceTwo = pg.ToMoney(val)
+	}
+	if args["writtenAt"] != nil {
+		val := args["writtenAt"]
+		objectFromArgs.WrittenAt = common.CoordinateFromArgs(val.(map[string]interface{}))
 	}
 	return objectFromArgs
 }
