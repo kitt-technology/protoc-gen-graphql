@@ -7,7 +7,8 @@ ENV INSTALL_DEPS \
   make \
   software-properties-common \
   unzip \
-  wget
+  wget \
+  ssh
 
 RUN apt-get update \
   && apt-get install -y -q --no-install-recommends ${INSTALL_DEPS} \
