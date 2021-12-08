@@ -11,6 +11,7 @@ const typeTpl = `
 {{- if eq .TypeOfType "Enum" }}{{ .GqlType }}GraphqlEnum{{- end }}
 {{- if eq .TypeOfType "Timestamp" }}pg.Timestamp{{ .Suffix }}{{- end }}
 {{- if eq .TypeOfType "WrappedString" }}pg.WrappedString{{ .Suffix }}{{- end }}
+{{- if eq .TypeOfType "Money" }}pg.Money{{ .Suffix }}{{- end }}
 {{- if .IsList }})){{- end }}
 {{- if not .Optional }}){{- end }}`
 
@@ -19,7 +20,8 @@ const goFromArgs = `
 {{- if eq .TypeOfType "Primitive" }}{{  .GoType }}(val.({{ strip_precision .GoType }})){{- end }}
 {{- if eq .TypeOfType "Wrapper" }}{{  .GoType }}({{ primitive_to_wrapper .GoType }}(val.({{ wrapper_to_primitive .GoType }}))){{- end }}
 {{- if eq .TypeOfType "Enum" }}val.({{ .GoType }}){{- end }}
-{{- if eq .TypeOfType "Timestamp" }}pg.ToTimestamp(val){{- end }}`
+{{- if eq .TypeOfType "Timestamp" }}pg.ToTimestamp(val){{- end }}
+{{- if eq .TypeOfType "Money" }}pg.ToMoney(val){{- end }}`
 
 const msgTpl = `
 var {{ .Descriptor.GetName }}GraphqlType = gql.NewObject(gql.ObjectConfig{
@@ -68,9 +70,7 @@ func {{ .Descriptor.GetName }}InstanceFromArgs(objectFromArgs *{{ .Descriptor.Ge
 			if args["{{ $field.GqlKey }}"] != nil {
 				{{ $field.GqlKey }}InterfaceList := args["{{ $field.GqlKey }}"].([]interface{})
 				var {{ $field.GqlKey }} []
-				{{- if eq $field.TypeOfType "Object" }}*{{- end }}
-				{{- if eq $field.TypeOfType "Wrapper" }}*{{- end }}
-				{{- if eq $field.TypeOfType "Timestamp" }}*{{- end }}
+				{{- if $field.IsPointer }}*{{- end}}
 				{{- $field.GoType }}
 
 				for _, val := range {{ $field.GqlKey }}InterfaceList {
