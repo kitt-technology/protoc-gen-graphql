@@ -13,8 +13,7 @@ extend google.protobuf.MessageOptions {
 
 extend google.protobuf.FileOptions {
   bool disabled = 1055;
-  string common_go_import = 1056;
-  string common_package_name = 1057;
+  string package = 1056;
 }
 
 extend google.protobuf.ServiceOptions {

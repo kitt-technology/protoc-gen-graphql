@@ -9,9 +9,6 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "example/books;books";
 
-option (graphql.common_go_import) = "github.com/kitt-technology/protoc-gen-graphql/example/common";
-option (graphql.common_package_name) = "common";
-
 service Books {
   option (graphql.host) =
   "localhost:50051";

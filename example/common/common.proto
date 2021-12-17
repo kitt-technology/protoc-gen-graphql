@@ -5,9 +5,10 @@ package common;
 import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
 
 option go_package = "github.com/kitt-technology/protoc-gen-graphql/example/common";
+option (graphql.package) = "github.com/kitt-technology/protoc-gen-graphql/example/common/common";
 
 message Money {
-  option (graphql.skip_message) = true;
+  option (graphql.skip_message) = true; // This is used because we have some custom Money gql types
   string currency_code = 1;
   int64 units = 2;
 }

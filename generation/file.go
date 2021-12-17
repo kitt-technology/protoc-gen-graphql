@@ -42,13 +42,14 @@ type Message interface {
 }
 
 type File struct {
-	Package  protogen.GoPackageName
-	Message  []Message
-	TypeDefs []Message
-	Imports  []string
+	Package   protogen.GoPackageName
+	Message   []Message
+	TypeDefs  []Message
+	Imports   []string
+	ImportMap map[string]string
 }
 
-func New(file *protogen.File) (f File) {
+func New(file *protogen.File, packageImportMap map[string]string) (f File) {
 	f.Package = file.GoPackageName
 
 	for _, service := range file.Proto.Service {
@@ -65,7 +66,7 @@ func New(file *protogen.File) (f File) {
 			proto.GetExtension(msg.Options, graphql.E_SkipMessage).(bool) {
 			continue
 		}
-		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto))
+		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto, packageImportMap))
 
 	}
 	return f
