@@ -8,10 +8,13 @@ option go_package = "github.com/kitt-technology/protoc-gen-graphql/graphql";
 extend google.protobuf.MessageOptions {
   string object_name = 1085;
   bool mutation = 1086;
+  bool skip_message = 1087;
 }
 
 extend google.protobuf.FileOptions {
   bool disabled = 1055;
+  string common_go_import = 1056;
+  string common_package_name = 1057;
 }
 
 extend google.protobuf.ServiceOptions {
@@ -24,6 +27,7 @@ extend google.protobuf.EnumOptions {
 
 extend google.protobuf.FieldOptions {
   bool optional = 1096;
+  bool skip_field = 1097;
 }
 
 message BatchRequest {

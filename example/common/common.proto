@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package common;
+
+import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
+
+option go_package = "github.com/kitt-technology/protoc-gen-graphql/example/common";
+
+message Money {
+  option (graphql.skip_message) = true;
+  string currency_code = 1;
+  int64 units = 2;
+}
+
+message Int32Range {
+  int32 min = 1;
+  int32 max = 2;
+}

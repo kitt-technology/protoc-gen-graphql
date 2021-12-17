@@ -6,7 +6,9 @@ import (
 	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types/enum"
+	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/proto"
 	"sort"
 	"strings"
 	"text/template"
@@ -59,6 +61,10 @@ func New(file *protogen.File) (f File) {
 	}
 
 	for _, msg := range file.Proto.MessageType {
+		if proto.HasExtension(msg.Options, graphql.E_SkipMessage) &&
+			proto.GetExtension(msg.Options, graphql.E_SkipMessage).(bool) {
+			continue
+		}
 		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto))
 
 	}

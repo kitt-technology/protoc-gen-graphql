@@ -75,6 +75,10 @@ func (m Message) Generate() string {
 	}
 
 	for _, field := range m.Descriptor.Field {
+		if proto.HasExtension(field.Options, graphql.E_SkipField) &&
+			proto.GetExtension(field.Options, graphql.E_SkipField).(bool) {
+			continue
+		}
 		isList := false
 
 		switch field.Label.String() {
@@ -120,13 +124,9 @@ func (m Message) Generate() string {
 				m.Import[imports.TimestampPbImport] = imports.TimestampPbImport
 			}
 			m.Import[imports.PggImport] = imports.PggImport
-		case typeOfType == Money:
-			if isList {
-				m.Import[imports.CommonImport] = imports.CommonImport
-			}
-			m.Import[imports.PggImport] = imports.PggImport
-		case strings.Contains(string(goType), "common.") && typeOfType == Object:
-			m.Import[imports.CommonImport] = imports.CommonImport
+		case typeOfType == Common:
+			commonImport := proto.GetExtension(m.Root.Options, graphql.E_CommonGoImport).(string)
+			m.Import[commonImport] = commonImport
 		}
 
 		optional := field.TypeName != nil
@@ -138,7 +138,7 @@ func (m Message) Generate() string {
 		}
 
 		isPointer := false
-		pointerTypes := []string{"Object","Wrapper","Timestamp","Money"}
+		pointerTypes := []string{"Object", "Wrapper", "Timestamp", "Money"}
 		for _, pointerType := range pointerTypes {
 			if string(typeOfType) == pointerType {
 				isPointer = true
@@ -229,10 +229,10 @@ const (
 	Primitive           = "Primitive"
 	Enum                = "Enum"
 	Timestamp           = "Timestamp"
-	Money               = "Money"
+	Common              = "Common"
 )
 
-func Types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, GqlType, FieldType) {
+func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto) (GoType, GqlType, FieldType) {
 	if field.GetTypeName() != "" {
 		switch field.GetTypeName() {
 		case ".google.protobuf.StringValue":
@@ -247,11 +247,15 @@ func Types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, Gq
 			return "wrapperspb.Int32", "gql.Int", Wrapper
 		case ".google.protobuf.Int64Value":
 			return "wrapperspb.Int64", "gql.Int", Wrapper
-		case ".common.Money":
-			return "common.Money", "pg.Money", Money
 		}
-		if strings.Contains(field.GetTypeName(), ".common") {
-			return GoType(field.GetTypeName()[1:]), GqlType(field.GetTypeName()[1:]), Object
+
+		if proto.HasExtension(root.Options, graphql.E_CommonPackageName) &&
+			proto.HasExtension(root.Options, graphql.E_CommonGoImport) {
+			pkgName := proto.GetExtension(root.Options, graphql.E_CommonPackageName).(string)
+			if strings.HasPrefix(field.GetTypeName(), "."+pkgName) {
+				typeName := field.GetTypeName()[1:]
+				return GoType(typeName), GqlType(typeName), Common
+			}
 		}
 	}
 
@@ -289,6 +293,7 @@ func Types(field Descriptor, root *descriptorpb.FileDescriptorProto) (GoType, Gq
 	if field.GetTypeName() == ".graphql.PageInfo" {
 		return "pg.PageInfo", "pg.PageInfo", Object
 	}
+
 	panic(field)
 }
 
