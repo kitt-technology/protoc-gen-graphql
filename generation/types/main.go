@@ -29,16 +29,17 @@ type Field struct {
 }
 
 type Message struct {
-	Descriptor  *descriptorpb.DescriptorProto
-	Package     string
-	Root        *descriptorpb.FileDescriptorProto
-	Fields      []Field
-	OneOfFields map[string]map[string]Field
-	Import      map[string]string
-	ObjectName  string
+	Descriptor       *descriptorpb.DescriptorProto
+	Package          string
+	Root             *descriptorpb.FileDescriptorProto
+	Fields           []Field
+	OneOfFields      map[string]map[string]Field
+	Import           map[string]string
+	ObjectName       string
+	PackageImportMap map[string]string
 }
 
-func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto) (m Message) {
+func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, packageImportMap map[string]string) (m Message) {
 	pkg := file.Package
 
 	var actualPkg string
@@ -49,11 +50,12 @@ func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorPro
 		}
 	}
 	return Message{
-		Import:      make(map[string]string),
-		Descriptor:  msg,
-		Root:        file,
-		Package:     actualPkg,
-		OneOfFields: make(map[string]map[string]Field, 0),
+		Import:           make(map[string]string),
+		Descriptor:       msg,
+		Root:             file,
+		Package:          actualPkg,
+		OneOfFields:      make(map[string]map[string]Field, 0),
+		PackageImportMap: packageImportMap,
 	}
 }
 
@@ -111,9 +113,9 @@ func (m Message) Generate() string {
 			}
 		}
 
-		goType, gqlType, typeOfType := Types(field, m.Root)
+		goType, gqlType, typeOfType := Types(field, m.Root, m.PackageImportMap)
 		if isList {
-			goType, gqlType, typeOfType = Types(field, m.Root)
+			goType, gqlType, typeOfType = Types(field, m.Root, m.PackageImportMap)
 		}
 
 		switch {
@@ -125,8 +127,13 @@ func (m Message) Generate() string {
 			}
 			m.Import[imports.PggImport] = imports.PggImport
 		case typeOfType == Common:
-			commonImport := proto.GetExtension(m.Root.Options, graphql.E_CommonGoImport).(string)
-			m.Import[commonImport] = commonImport
+			for key, importPath := range m.PackageImportMap {
+				if strings.HasPrefix(string(goType), key) {
+					m.Import[importPath] = importPath
+				}
+			}
+			//commonImport := proto.GetExtension(m.Root.Options, graphql.E_CommonGoImport).(string)
+			//m.Import[commonImport] = commonImport
 		}
 
 		optional := field.TypeName != nil
@@ -232,7 +239,7 @@ const (
 	Common              = "Common"
 )
 
-func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto) (GoType, GqlType, FieldType) {
+func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]string) (GoType, GqlType, FieldType) {
 	if field.GetTypeName() != "" {
 		switch field.GetTypeName() {
 		case ".google.protobuf.StringValue":
@@ -247,15 +254,6 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 			return "wrapperspb.Int32", "gql.Int", Wrapper
 		case ".google.protobuf.Int64Value":
 			return "wrapperspb.Int64", "gql.Int", Wrapper
-		}
-
-		if proto.HasExtension(root.Options, graphql.E_CommonPackageName) &&
-			proto.HasExtension(root.Options, graphql.E_CommonGoImport) {
-			pkgName := proto.GetExtension(root.Options, graphql.E_CommonPackageName).(string)
-			if strings.HasPrefix(field.GetTypeName(), "."+pkgName) {
-				typeName := field.GetTypeName()[1:]
-				return GoType(typeName), GqlType(typeName), Common
-			}
 		}
 	}
 
@@ -292,6 +290,13 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 
 	if field.GetTypeName() == ".graphql.PageInfo" {
 		return "pg.PageInfo", "pg.PageInfo", Object
+	}
+
+	for pkg, _ := range packageImportMap {
+		typeName := field.GetTypeName()[1:]
+		if strings.HasPrefix(typeName, pkg) {
+			return GoType(typeName), GqlType(typeName), Common
+		}
 	}
 
 	panic(field)

@@ -19,18 +19,18 @@ build-examples:
 	@go install .
 
 	protoc \
-		--proto_path ./example/authors/ \
-		-I . \
-		-I ${GOPATH}/src \
-		./example/authors/authors.proto \
-		--go_out=. \
-		--go-grpc_out=. \
-		--graphql_out="lang=go:."
-	protoc \
 		--proto_path ./example/books \
 		-I . \
 		-I ${GOPATH}/src \
 		./example/books/books.proto \
+		--go_out=. \
+		--go-grpc_out=. \
+		--graphql_out="lang=go:."
+	protoc \
+		--proto_path ./example/common \
+		-I . \
+		-I ${GOPATH}/src \
+		./example/common/common.proto \
 		--go_out=. \
 		--go-grpc_out=. \
 		--graphql_out="lang=go:."

@@ -1,14 +1,14 @@
 package books
 
 import (
-	gql "github.com/graphql-go/graphql"
-	"google.golang.org/grpc"
 	"context"
 	"github.com/graph-gophers/dataloader"
+	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
-	"github.com/kitt-technology/protoc-gen-graphql/example/common"
-	"google.golang.org/protobuf/types/known/wrapperspb"
+	"github.com/kitt-technology/protoc-gen-graphql/example/common/common"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var fieldInits []func(...grpc.DialOption)

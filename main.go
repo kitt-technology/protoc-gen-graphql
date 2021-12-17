@@ -14,6 +14,7 @@ import (
 
 func main() {
 	bytes, _ := ioutil.ReadAll(os.Stdin)
+	packageImportMap := make(map[string]string, 0)
 
 	var req pluginpb.CodeGeneratorRequest
 	err := proto.Unmarshal(bytes, &req)
@@ -26,7 +27,12 @@ func main() {
 
 	for _, file := range plugin.Files {
 		if shouldProcess(file) {
-			parsedFile := generation.New(file)
+			if proto.HasExtension(file.Proto.Options, graphql.E_Package) {
+				// Using graphql.package, could fall back to go_package?
+				packageImportMap[*file.Proto.Package] = proto.GetExtension(file.Proto.Options, graphql.E_Package).(string)
+			}
+			// I'm drilling packageImportMap all the way down here, maybe a better way of doing it?
+			parsedFile := generation.New(file, packageImportMap)
 			generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
 			_, err = generateFile.Write([]byte(parsedFile.ToString()))
 			if err != nil {
