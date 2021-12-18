@@ -1,4 +1,4 @@
-package common
+package foo
 
 import (
 	gql "github.com/graphql-go/graphql"

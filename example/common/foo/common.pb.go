@@ -4,7 +4,7 @@
 // 	protoc        v3.17.3
 // source: common.proto
 
-package common
+package foo
 
 import (
 	_ "github.com/kitt-technology/protoc-gen-graphql/graphql"

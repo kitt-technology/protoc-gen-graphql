@@ -62,7 +62,7 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 							resultType = "*" + resultType
 						}
 					} else {
-						rt, _, _ := types.Types(nestedType.Field[1], root, map[string]string{})
+						rt, _, _ := types.Types(nestedType.Field[1], root, map[string]types.GraphqlImport{})
 						resultType = string(rt)
 					}
 				}
