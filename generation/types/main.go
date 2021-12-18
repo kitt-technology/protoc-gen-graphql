@@ -12,6 +12,11 @@ import (
 	"strings"
 )
 
+type GraphqlImport struct {
+	ImportPath string
+	GoPackage  string
+}
+
 type Field struct {
 	GqlKey string
 
@@ -36,10 +41,10 @@ type Message struct {
 	OneOfFields      map[string]map[string]Field
 	Import           map[string]string
 	ObjectName       string
-	PackageImportMap map[string]string
+	PackageImportMap map[string]GraphqlImport
 }
 
-func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, packageImportMap map[string]string) (m Message) {
+func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, graphqlImportMap map[string]GraphqlImport) (m Message) {
 	pkg := file.Package
 
 	var actualPkg string
@@ -55,7 +60,7 @@ func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorPro
 		Root:             file,
 		Package:          actualPkg,
 		OneOfFields:      make(map[string]map[string]Field, 0),
-		PackageImportMap: packageImportMap,
+		PackageImportMap: graphqlImportMap,
 	}
 }
 
@@ -129,7 +134,7 @@ func (m Message) Generate() string {
 		case typeOfType == Common:
 			for key, importPath := range m.PackageImportMap {
 				if strings.HasPrefix(string(goType), key) {
-					m.Import[importPath] = importPath
+					m.Import[importPath.ImportPath] = importPath.ImportPath
 				}
 			}
 			//commonImport := proto.GetExtension(m.Root.Options, graphql.E_CommonGoImport).(string)
@@ -239,7 +244,7 @@ const (
 	Common              = "Common"
 )
 
-func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]string) (GoType, GqlType, FieldType) {
+func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport) (GoType, GqlType, FieldType) {
 	if field.GetTypeName() != "" {
 		switch field.GetTypeName() {
 		case ".google.protobuf.StringValue":
@@ -292,10 +297,12 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 		return "pg.PageInfo", "pg.PageInfo", Object
 	}
 
-	for pkg, _ := range packageImportMap {
-		typeName := field.GetTypeName()[1:]
-		if strings.HasPrefix(typeName, pkg) {
-			return GoType(typeName), GqlType(typeName), Common
+	for pkg, graphqlType := range packageImportMap {
+		typeNameWithProtoImport := field.GetTypeName()[1:]
+		if strings.HasPrefix(typeNameWithProtoImport, pkg) {
+			typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg)
+			typeNameWithGoImport := graphqlType.GoPackage + typeName
+			return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common
 		}
 	}
 

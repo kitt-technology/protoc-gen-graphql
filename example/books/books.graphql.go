@@ -5,7 +5,7 @@ import (
 	"github.com/graph-gophers/dataloader"
 	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
-	"github.com/kitt-technology/protoc-gen-graphql/example/common/common"
+	"github.com/kitt-technology/protoc-gen-graphql/example/common/foo"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -387,7 +387,7 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: gql.NewNonNull(gql.Int),
 		},
 		"priceTwo": &gql.Field{
-			Type: common.MoneyGraphqlType,
+			Type: foo.MoneyGraphqlType,
 		},
 	},
 })
@@ -417,7 +417,7 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: gql.NewNonNull(gql.Int),
 		},
 		"priceTwo": &gql.InputObjectFieldConfig{
-			Type: common.MoneyGraphqlInputType,
+			Type: foo.MoneyGraphqlInputType,
 		},
 	},
 })
@@ -445,7 +445,7 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.NewNonNull(gql.Int),
 	},
 	"priceTwo": &gql.ArgumentConfig{
-		Type: common.MoneyGraphqlInputType,
+		Type: foo.MoneyGraphqlInputType,
 	},
 }
 
@@ -484,7 +484,7 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	}
 	if args["priceTwo"] != nil {
 		val := args["priceTwo"]
-		objectFromArgs.PriceTwo = common.MoneyFromArgs(val.(map[string]interface{}))
+		objectFromArgs.PriceTwo = foo.MoneyFromArgs(val.(map[string]interface{}))
 	}
 	return objectFromArgs
 }
