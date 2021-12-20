@@ -1,13 +1,13 @@
 package cases
 
 import (
-	gql "github.com/graphql-go/graphql"
-	"google.golang.org/grpc"
 	"context"
 	"github.com/graph-gophers/dataloader"
+	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var fieldInits []func(...grpc.DialOption)
@@ -493,9 +493,6 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"releaseDate": &gql.Field{
 			Type: pg.TimestampGraphqlType,
 		},
-		"retailPrice": &gql.Field{
-			Type: pg.MoneyGraphqlType,
-		},
 	},
 })
 
@@ -517,9 +514,6 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"releaseDate": &gql.InputObjectFieldConfig{
 			Type: pg.TimestampGraphqlInputType,
 		},
-		"retailPrice": &gql.InputObjectFieldConfig{
-			Type: pg.MoneyGraphqlInputType,
-		},
 	},
 })
 
@@ -538,9 +532,6 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"releaseDate": &gql.ArgumentConfig{
 		Type: pg.TimestampGraphqlInputType,
-	},
-	"retailPrice": &gql.ArgumentConfig{
-		Type: pg.MoneyGraphqlInputType,
 	},
 }
 
@@ -568,10 +559,6 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	if args["releaseDate"] != nil {
 		val := args["releaseDate"]
 		objectFromArgs.ReleaseDate = pg.ToTimestamp(val)
-	}
-	if args["retailPrice"] != nil {
-		val := args["retailPrice"]
-		objectFromArgs.RetailPrice = pg.ToMoney(val)
 	}
 	return objectFromArgs
 }
