@@ -6,6 +6,7 @@ import (
 	"context"
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql/language/ast"
+	"github.com/kitt-technology/protoc-gen-graphql/example/common/foo"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
@@ -493,8 +494,8 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"releaseDate": &gql.Field{
 			Type: pg.TimestampGraphqlType,
 		},
-		"retailPrice": &gql.Field{
-			Type: pg.MoneyGraphqlType,
+		"price": &gql.Field{
+			Type: foo.MoneyGraphqlType,
 		},
 	},
 })
@@ -517,8 +518,8 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"releaseDate": &gql.InputObjectFieldConfig{
 			Type: pg.TimestampGraphqlInputType,
 		},
-		"retailPrice": &gql.InputObjectFieldConfig{
-			Type: pg.MoneyGraphqlInputType,
+		"price": &gql.InputObjectFieldConfig{
+			Type: foo.MoneyGraphqlInputType,
 		},
 	},
 })
@@ -539,8 +540,8 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 	"releaseDate": &gql.ArgumentConfig{
 		Type: pg.TimestampGraphqlInputType,
 	},
-	"retailPrice": &gql.ArgumentConfig{
-		Type: pg.MoneyGraphqlInputType,
+	"price": &gql.ArgumentConfig{
+		Type: foo.MoneyGraphqlInputType,
 	},
 }
 
@@ -569,9 +570,9 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 		val := args["releaseDate"]
 		objectFromArgs.ReleaseDate = pg.ToTimestamp(val)
 	}
-	if args["retailPrice"] != nil {
-		val := args["retailPrice"]
-		objectFromArgs.RetailPrice = pg.ToMoney(val)
+	if args["price"] != nil {
+		val := args["price"]
+		objectFromArgs.Price = foo.MoneyFromArgs(val.(map[string]interface{}))
 	}
 	return objectFromArgs
 }

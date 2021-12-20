@@ -11,7 +11,7 @@ const typeTpl = `
 {{- if eq .TypeOfType "Enum" }}{{ .GqlType }}GraphqlEnum{{- end }}
 {{- if eq .TypeOfType "Timestamp" }}pg.Timestamp{{ .Suffix }}{{- end }}
 {{- if eq .TypeOfType "WrappedString" }}pg.WrappedString{{ .Suffix }}{{- end }}
-{{- if eq .TypeOfType "Money" }}pg.Money{{ .Suffix }}{{- end }}
+{{- if eq .TypeOfType "Common" }}{{ .GqlType }}{{ .Suffix }}{{- end }}
 {{- if .IsList }})){{- end }}
 {{- if not .Optional }}){{- end }}`
 
@@ -21,7 +21,7 @@ const goFromArgs = `
 {{- if eq .TypeOfType "Wrapper" }}{{  .GoType }}({{ primitive_to_wrapper .GoType }}(val.({{ wrapper_to_primitive .GoType }}))){{- end }}
 {{- if eq .TypeOfType "Enum" }}val.({{ .GoType }}){{- end }}
 {{- if eq .TypeOfType "Timestamp" }}pg.ToTimestamp(val){{- end }}
-{{- if eq .TypeOfType "Money" }}pg.ToMoney(val){{- end }}`
+{{- if eq .TypeOfType "Common" }}{{ .GoType  }}FromArgs(val.(map[string]interface{})){{- end }}`
 
 const msgTpl = `
 var {{ .Descriptor.GetName }}GraphqlType = gql.NewObject(gql.ObjectConfig{
