@@ -132,13 +132,13 @@ func (m Message) Generate() string {
 			}
 			m.Import[imports.PggImport] = imports.PggImport
 		case typeOfType == Common:
+
 			for key, importPath := range m.PackageImportMap {
-				if strings.HasPrefix(string(goType), key) {
+				typeNameWithProtoImport := field.GetTypeName()[1:]
+				if strings.HasPrefix(typeNameWithProtoImport, key) {
 					m.Import[importPath.ImportPath] = importPath.ImportPath
 				}
 			}
-			//commonImport := proto.GetExtension(m.Root.Options, graphql.E_CommonGoImport).(string)
-			//m.Import[commonImport] = commonImport
 		}
 
 		optional := field.TypeName != nil

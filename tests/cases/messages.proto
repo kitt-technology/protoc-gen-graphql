@@ -3,6 +3,7 @@ syntax = "proto3";
 package books;
 
 import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
+import "github.com/kitt-technology/protoc-gen-graphql/example/common/common.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -55,6 +56,7 @@ message Book {
   string author_id = 3;
   Genre genre = 4;
   google.protobuf.Timestamp release_date = 5;
+  common.Money price = 8;
 }
 
 enum Genre {

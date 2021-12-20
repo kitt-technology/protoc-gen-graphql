@@ -6,7 +6,6 @@ all: test
 .PHONY: deps
 deps:
 	GO111MODULE=off go get github.com/kitt-technology/protoc-gen-graphql
-	GO111MODULE=off go get github.com/kitt-technology/protos-common
 	@go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.26
 	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.11
 
@@ -75,6 +74,7 @@ test:
 	protoc \
 		--proto_path . \
 		-I=. \
+		-I=./example/common \
 		-I ${GOPATH}/src \
 		--go_out="module=${PACKAGE}:./tests/out" \
 		--go-grpc_out="module=${PACKAGE}:./tests/out" \
