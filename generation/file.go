@@ -6,7 +6,10 @@ import (
 	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types/enum"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/util"
+	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/proto"
 	"sort"
 	"strings"
 	"text/template"
@@ -34,16 +37,19 @@ func Fields(opts ...grpc.DialOption) []*gql.Field {
 var fields []*gql.Field
 `
 
+var GraphqlImportMap = make(map[string]types.GraphqlImport, 0)
+
 type Message interface {
 	Generate() string
 	Imports() []string
 }
 
 type File struct {
-	Package  protogen.GoPackageName
-	Message  []Message
-	TypeDefs []Message
-	Imports  []string
+	Package   protogen.GoPackageName
+	Message   []Message
+	TypeDefs  []Message
+	Imports   []string
+	ImportMap map[string]string
 }
 
 func New(file *protogen.File) (f File) {
@@ -58,8 +64,24 @@ func New(file *protogen.File) (f File) {
 		f.TypeDefs = append(f.TypeDefs, enum.New(e))
 	}
 
+	if proto.HasExtension(file.Proto.Options, graphql.E_Package) {
+		importPath, gqlPkg, ok := util.ParseGraphqlPackage(file.Proto)
+		if !ok {
+			panic("invalid graphql.package: " + file.Proto.GetName())
+		}
+		// Using graphql.package, could fall back to go_package?
+		GraphqlImportMap[*file.Proto.Package] = types.GraphqlImport{
+			ImportPath: importPath,
+			GoPackage:  gqlPkg,
+		}
+	}
+
 	for _, msg := range file.Proto.MessageType {
-		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto))
+		if proto.HasExtension(msg.Options, graphql.E_SkipMessage) &&
+			proto.GetExtension(msg.Options, graphql.E_SkipMessage).(bool) {
+			continue
+		}
+		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto, GraphqlImportMap))
 
 	}
 	return f

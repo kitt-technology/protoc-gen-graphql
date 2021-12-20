@@ -3,7 +3,7 @@ syntax = "proto3";
 package books;
 
 import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
-import "github.com/kitt-technology/protos-common/common.proto";
+import "github.com/kitt-technology/protoc-gen-graphql/example/common/common.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -25,8 +25,7 @@ message GetBooksRequest {
   google.protobuf.BoolValue hardback_only = 2;
   repeated Genre genres = 3;
   google.protobuf.Timestamp released_after = 4;
-  common.Money greaterThanPrice = 5;
-  common.Coordinate writtenNear = 6;
+  string ignore_me = 5 [(graphql.skip_field) = true];
 }
 
 message GetBooksResponse {
@@ -49,11 +48,15 @@ message Book {
   google.protobuf.Timestamp release_date = 5;
   float price = 6;
   int64 copies = 7;
-  common.Money price_two = 9;
-  common.Coordinate written_at = 10;
+  common.Money price_two = 8;
 }
 
 enum Genre {
   Fiction = 0;
   Biography = 1;
+}
+
+message SkipMe {
+  option (graphql.skip_message) = true;
+  string oh_no = 1;
 }
