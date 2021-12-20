@@ -1,13 +1,13 @@
 package cases
 
 import (
+	gql "github.com/graphql-go/graphql"
+	"google.golang.org/grpc"
 	"context"
 	"github.com/graph-gophers/dataloader"
-	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
-	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
 
 var fieldInits []func(...grpc.DialOption)
