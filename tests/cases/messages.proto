@@ -57,9 +57,15 @@ message Book {
   Genre genre = 4;
   google.protobuf.Timestamp release_date = 5;
   common.Money price = 8;
+  Money price_two = 9;
 }
 
 enum Genre {
   Fiction = 0;
   Biography = 1;
+}
+
+// This is to test that common.Money still works
+message Money {
+  string price = 1;
 }

@@ -279,6 +279,15 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 		return "[]byte", "gql.String", Primitive
 	}
 
+	for pkg, graphqlType := range packageImportMap {
+		typeNameWithProtoImport := field.GetTypeName()[1:]
+		if strings.HasPrefix(typeNameWithProtoImport, pkg) {
+			typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg)
+			typeNameWithGoImport := graphqlType.GoPackage + typeName
+			return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common
+		}
+	}
+
 	// Search through message descriptors
 	for _, messageType := range root.MessageType {
 		if *messageType.Name == util.Last(field.GetTypeName()) {
@@ -295,15 +304,6 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 
 	if field.GetTypeName() == ".graphql.PageInfo" {
 		return "pg.PageInfo", "pg.PageInfo", Object
-	}
-
-	for pkg, graphqlType := range packageImportMap {
-		typeNameWithProtoImport := field.GetTypeName()[1:]
-		if strings.HasPrefix(typeNameWithProtoImport, pkg) {
-			typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg)
-			typeNameWithGoImport := graphqlType.GoPackage + typeName
-			return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common
-		}
 	}
 
 	panic(field)
