@@ -497,6 +497,9 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"price": &gql.Field{
 			Type: foo.MoneyGraphqlType,
 		},
+		"priceTwo": &gql.Field{
+			Type: MoneyGraphqlType,
+		},
 	},
 })
 
@@ -521,6 +524,9 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"price": &gql.InputObjectFieldConfig{
 			Type: foo.MoneyGraphqlInputType,
 		},
+		"priceTwo": &gql.InputObjectFieldConfig{
+			Type: MoneyGraphqlInputType,
+		},
 	},
 })
 
@@ -542,6 +548,9 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"price": &gql.ArgumentConfig{
 		Type: foo.MoneyGraphqlInputType,
+	},
+	"priceTwo": &gql.ArgumentConfig{
+		Type: MoneyGraphqlInputType,
 	},
 }
 
@@ -574,6 +583,10 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 		val := args["price"]
 		objectFromArgs.Price = foo.MoneyFromArgs(val.(map[string]interface{}))
 	}
+	if args["priceTwo"] != nil {
+		val := args["priceTwo"]
+		objectFromArgs.PriceTwo = MoneyFromArgs(val.(map[string]interface{}))
+	}
 	return objectFromArgs
 }
 
@@ -590,6 +603,58 @@ func (msg *Book) XXX_GraphqlArgs() gql.FieldConfigArgument {
 }
 
 func (msg *Book) XXX_Package() string {
+	return "books"
+}
+
+var MoneyGraphqlType = gql.NewObject(gql.ObjectConfig{
+	Name: "Money",
+	Fields: gql.Fields{
+		"price": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
+		},
+	},
+})
+
+var MoneyGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
+	Name: "MoneyInput",
+	Fields: gql.InputObjectConfigFieldMap{
+		"price": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
+		},
+	},
+})
+
+var MoneyGraphqlArgs = gql.FieldConfigArgument{
+	"price": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
+	},
+}
+
+func MoneyFromArgs(args map[string]interface{}) *Money {
+	return MoneyInstanceFromArgs(&Money{}, args)
+}
+
+func MoneyInstanceFromArgs(objectFromArgs *Money, args map[string]interface{}) *Money {
+	if args["price"] != nil {
+		val := args["price"]
+		objectFromArgs.Price = string(val.(string))
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *Money) FromArgs(args map[string]interface{}) {
+	MoneyInstanceFromArgs(objectFromArgs, args)
+}
+
+func (msg *Money) XXX_GraphqlType() *gql.Object {
+	return MoneyGraphqlType
+}
+
+func (msg *Money) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return MoneyGraphqlArgs
+}
+
+func (msg *Money) XXX_Package() string {
 	return "books"
 }
 
