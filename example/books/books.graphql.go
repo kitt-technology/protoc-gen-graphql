@@ -395,31 +395,13 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"priceTwo": &gql.Field{
 			Type: common_example.MoneyGraphqlType,
 		},
-		"bar": &gql.Field{
+		"isSigned": &gql.Field{
 			Type: gql.Boolean,
 			Resolve: func(p gql.ResolveParams) (interface{}, error) {
 				if p.Source.(*Book) == nil {
 					return nil, nil
 				}
-				return p.Source.(*Book).Bar.Value, nil
-			},
-		},
-		"bar1": &gql.Field{
-			Type: gql.Int,
-			Resolve: func(p gql.ResolveParams) (interface{}, error) {
-				if p.Source.(*Book) == nil {
-					return nil, nil
-				}
-				return p.Source.(*Book).Bar1.Value, nil
-			},
-		},
-		"bar2": &gql.Field{
-			Type: gql.String,
-			Resolve: func(p gql.ResolveParams) (interface{}, error) {
-				if p.Source.(*Book) == nil {
-					return nil, nil
-				}
-				return p.Source.(*Book).Bar2.Value, nil
+				return p.Source.(*Book).IsSigned.Value, nil
 			},
 		},
 	},
@@ -452,14 +434,8 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"priceTwo": &gql.InputObjectFieldConfig{
 			Type: common_example.MoneyGraphqlInputType,
 		},
-		"bar": &gql.InputObjectFieldConfig{
+		"isSigned": &gql.InputObjectFieldConfig{
 			Type: gql.Boolean,
-		},
-		"bar1": &gql.InputObjectFieldConfig{
-			Type: gql.Int,
-		},
-		"bar2": &gql.InputObjectFieldConfig{
-			Type: gql.String,
 		},
 	},
 })
@@ -489,14 +465,8 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 	"priceTwo": &gql.ArgumentConfig{
 		Type: common_example.MoneyGraphqlInputType,
 	},
-	"bar": &gql.ArgumentConfig{
+	"isSigned": &gql.ArgumentConfig{
 		Type: gql.Boolean,
-	},
-	"bar1": &gql.ArgumentConfig{
-		Type: gql.Int,
-	},
-	"bar2": &gql.ArgumentConfig{
-		Type: gql.String,
 	},
 }
 
@@ -537,17 +507,9 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 		val := args["priceTwo"]
 		objectFromArgs.PriceTwo = common_example.MoneyFromArgs(val.(map[string]interface{}))
 	}
-	if args["bar"] != nil {
-		val := args["bar"]
-		objectFromArgs.Bar = wrapperspb.Bool(bool(val.(bool)))
-	}
-	if args["bar1"] != nil {
-		val := args["bar1"]
-		objectFromArgs.Bar1 = wrapperspb.Int32(int32(val.(int)))
-	}
-	if args["bar2"] != nil {
-		val := args["bar2"]
-		objectFromArgs.Bar2 = wrapperspb.String(string(val.(string)))
+	if args["isSigned"] != nil {
+		val := args["isSigned"]
+		objectFromArgs.IsSigned = wrapperspb.Bool(bool(val.(bool)))
 	}
 	return objectFromArgs
 }
