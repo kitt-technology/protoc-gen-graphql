@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-package common;
+package common_example;
 
 import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
 
-option go_package = "github.com/kitt-technology/protoc-gen-graphql/example/common/foo";
-option (graphql.package) = "github.com/kitt-technology/protoc-gen-graphql/example/common/foo";
+option go_package = "github.com/kitt-technology/protoc-gen-graphql/example/common-example;common_example";
+option (graphql.package) = "github.com/kitt-technology/protoc-gen-graphql/example/common-example;common_example";
 
 message Money {
   option (graphql.skip_message) = true; // This is used because we have some custom Money gql types
