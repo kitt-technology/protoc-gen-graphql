@@ -48,7 +48,10 @@ message Book {
   google.protobuf.Timestamp release_date = 5;
   float price = 6;
   int64 copies = 7;
-  common.Money price_two = 8;
+  common.Money priceTwo = 8;
+  google.protobuf.BoolValue bar = 9;
+  google.protobuf.Int32Value bar1 = 10;
+  google.protobuf.StringValue bar2 = 11;
 }
 
 enum Genre {

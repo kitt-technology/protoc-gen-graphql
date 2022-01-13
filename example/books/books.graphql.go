@@ -1,14 +1,14 @@
 package books
 
 import (
+	gql "github.com/graphql-go/graphql"
+	"google.golang.org/grpc"
 	"context"
 	"github.com/graph-gophers/dataloader"
-	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/kitt-technology/protoc-gen-graphql/example/common/foo"
-	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
 
 var fieldInits []func(...grpc.DialOption)
@@ -103,6 +103,12 @@ var GetBooksRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 		"hardbackOnly": &gql.Field{
 			Type: gql.Boolean,
+			Resolve: func(p gql.ResolveParams) (interface{}, error) {
+				if p.Source.(*GetBooksRequest) == nil {
+					return nil, nil
+				}
+				return p.Source.(*GetBooksRequest).HardbackOnly.Value, nil
+			},
 		},
 		"genres": &gql.Field{
 			Type: gql.NewList(gql.NewNonNull(GenreGraphqlEnum)),
@@ -389,6 +395,33 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"priceTwo": &gql.Field{
 			Type: foo.MoneyGraphqlType,
 		},
+		"bar": &gql.Field{
+			Type: gql.Boolean,
+			Resolve: func(p gql.ResolveParams) (interface{}, error) {
+				if p.Source.(*Book) == nil {
+					return nil, nil
+				}
+				return p.Source.(*Book).Bar.Value, nil
+			},
+		},
+		"bar1": &gql.Field{
+			Type: gql.Int,
+			Resolve: func(p gql.ResolveParams) (interface{}, error) {
+				if p.Source.(*Book) == nil {
+					return nil, nil
+				}
+				return p.Source.(*Book).Bar1.Value, nil
+			},
+		},
+		"bar2": &gql.Field{
+			Type: gql.String,
+			Resolve: func(p gql.ResolveParams) (interface{}, error) {
+				if p.Source.(*Book) == nil {
+					return nil, nil
+				}
+				return p.Source.(*Book).Bar2.Value, nil
+			},
+		},
 	},
 })
 
@@ -419,6 +452,15 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"priceTwo": &gql.InputObjectFieldConfig{
 			Type: foo.MoneyGraphqlInputType,
 		},
+		"bar": &gql.InputObjectFieldConfig{
+			Type: gql.Boolean,
+		},
+		"bar1": &gql.InputObjectFieldConfig{
+			Type: gql.Int,
+		},
+		"bar2": &gql.InputObjectFieldConfig{
+			Type: gql.String,
+		},
 	},
 })
 
@@ -446,6 +488,15 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"priceTwo": &gql.ArgumentConfig{
 		Type: foo.MoneyGraphqlInputType,
+	},
+	"bar": &gql.ArgumentConfig{
+		Type: gql.Boolean,
+	},
+	"bar1": &gql.ArgumentConfig{
+		Type: gql.Int,
+	},
+	"bar2": &gql.ArgumentConfig{
+		Type: gql.String,
 	},
 }
 
@@ -485,6 +536,18 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	if args["priceTwo"] != nil {
 		val := args["priceTwo"]
 		objectFromArgs.PriceTwo = foo.MoneyFromArgs(val.(map[string]interface{}))
+	}
+	if args["bar"] != nil {
+		val := args["bar"]
+		objectFromArgs.Bar = wrapperspb.Bool(bool(val.(bool)))
+	}
+	if args["bar1"] != nil {
+		val := args["bar1"]
+		objectFromArgs.Bar1 = wrapperspb.Int32(int32(val.(int)))
+	}
+	if args["bar2"] != nil {
+		val := args["bar2"]
+		objectFromArgs.Bar2 = wrapperspb.String(string(val.(string)))
 	}
 	return objectFromArgs
 }
