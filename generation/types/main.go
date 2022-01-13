@@ -2,14 +2,15 @@ package types
 
 import (
 	"bytes"
+	"io/ioutil"
+	"strings"
+
 	"github.com/iancoleman/strcase"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/util"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
-	"io/ioutil"
-	"strings"
 )
 
 type GraphqlImport struct {
@@ -248,7 +249,7 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 	if field.GetTypeName() != "" {
 		switch field.GetTypeName() {
 		case ".google.protobuf.StringValue":
-			return "wrapperspb.String", "pg.WrappedString", Wrapper
+			return "wrapperspb.String", "gql.String", Wrapper
 		case ".google.protobuf.BoolValue":
 			return "wrapperspb.Bool", "gql.Boolean", Wrapper
 		case ".google.protobuf.FloatValue":
