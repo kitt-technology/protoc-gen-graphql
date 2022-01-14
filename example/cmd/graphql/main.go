@@ -3,12 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/graphql-go/graphql"
 	"github.com/kitt-technology/protoc-gen-graphql/example/authors"
 	"github.com/kitt-technology/protoc-gen-graphql/example/books"
 	"google.golang.org/grpc"
-	"log"
-	"net/http"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 type postData struct {
@@ -60,7 +62,7 @@ func main() {
 
 	port := "8080"
 	fmt.Printf("Serving graphql on localhost:%s\n", port)
-	err = http.ListenAndServe(":" + port, nil)
+	err = http.ListenAndServe(":"+port, nil)
 
 	if err != nil {
 		panic(err)
@@ -72,6 +74,13 @@ func init() {
 		Type: authors.AuthorGraphqlType,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return authors.LoadAuthors(p, p.Source.(*books.Book).AuthorId)
+		},
+	})
+	books.BookGraphqlType.AddFieldConfig("foo", &graphql.Field{
+		Type: graphql.Boolean,
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			b := wrapperspb.Bool(true)
+			return b.Value, nil
 		},
 	})
 

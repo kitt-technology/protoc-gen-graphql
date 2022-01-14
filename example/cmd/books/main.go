@@ -2,14 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net"
+
 	"github.com/kitt-technology/protoc-gen-graphql/example/books"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"log"
-	"net"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func main() {
@@ -85,12 +87,14 @@ func init() {
 			Name:     "Philosophers Stone",
 			AuthorId: "3",
 			Genre:    0,
+			IsSigned: wrapperspb.Bool(true),
 		},
 		"2": {
 			Id:       "2",
 			Name:     "Chamber of Secrets ",
 			AuthorId: "3",
 			Genre:    1,
+			IsSigned: wrapperspb.Bool(false),
 		},
 		"3": {
 			Id:       "3",

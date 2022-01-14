@@ -35,13 +35,14 @@ build-examples:
 		--go-grpc_out=. \
 		--graphql_out="lang=go:."
 	protoc \
-		--proto_path ./example/common \
+		--proto_path ./example/common-example \
 		-I . \
 		-I ${GOPATH}/src \
-		./example/common/common.proto \
+		./example/common-example/common-example.proto \
 		--go_out=. \
 		--go-grpc_out=. \
 		--graphql_out="lang=go:."
+	rm -rf ./github.com
 
 run-examples:
 	cd example; parallel -u ::: 'go run ./cmd/books' 'go run ./cmd/authors' 'go run ./cmd/graphql'; cd -
@@ -80,4 +81,5 @@ test:
 		--go-grpc_out="module=${PACKAGE}:./tests/out" \
 		--graphql_out="module=${PACKAGE},lang=go:./tests/out" \
 		./tests/cases/messages.proto
+	go fmt tests/out/cases/messages.graphql.go
 	go run tests/run.go

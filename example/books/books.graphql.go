@@ -1,14 +1,14 @@
 package books
 
 import (
+	gql "github.com/graphql-go/graphql"
+	"google.golang.org/grpc"
 	"context"
 	"github.com/graph-gophers/dataloader"
-	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
-	"github.com/kitt-technology/protoc-gen-graphql/example/common/foo"
-	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
-	"google.golang.org/grpc"
+	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
 
 var fieldInits []func(...grpc.DialOption)
@@ -103,6 +103,12 @@ var GetBooksRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 		"hardbackOnly": &gql.Field{
 			Type: gql.Boolean,
+			Resolve: func(p gql.ResolveParams) (interface{}, error) {
+				if p.Source.(*GetBooksRequest) == nil {
+					return nil, nil
+				}
+				return p.Source.(*GetBooksRequest).HardbackOnly.Value, nil
+			},
 		},
 		"genres": &gql.Field{
 			Type: gql.NewList(gql.NewNonNull(GenreGraphqlEnum)),
@@ -387,7 +393,16 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: gql.NewNonNull(gql.Int),
 		},
 		"priceTwo": &gql.Field{
-			Type: foo.MoneyGraphqlType,
+			Type: common_example.MoneyGraphqlType,
+		},
+		"isSigned": &gql.Field{
+			Type: gql.Boolean,
+			Resolve: func(p gql.ResolveParams) (interface{}, error) {
+				if p.Source.(*Book) == nil {
+					return nil, nil
+				}
+				return p.Source.(*Book).IsSigned.Value, nil
+			},
 		},
 	},
 })
@@ -417,7 +432,10 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: gql.NewNonNull(gql.Int),
 		},
 		"priceTwo": &gql.InputObjectFieldConfig{
-			Type: foo.MoneyGraphqlInputType,
+			Type: common_example.MoneyGraphqlInputType,
+		},
+		"isSigned": &gql.InputObjectFieldConfig{
+			Type: gql.Boolean,
 		},
 	},
 })
@@ -445,7 +463,10 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.NewNonNull(gql.Int),
 	},
 	"priceTwo": &gql.ArgumentConfig{
-		Type: foo.MoneyGraphqlInputType,
+		Type: common_example.MoneyGraphqlInputType,
+	},
+	"isSigned": &gql.ArgumentConfig{
+		Type: gql.Boolean,
 	},
 }
 
@@ -484,7 +505,11 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	}
 	if args["priceTwo"] != nil {
 		val := args["priceTwo"]
-		objectFromArgs.PriceTwo = foo.MoneyFromArgs(val.(map[string]interface{}))
+		objectFromArgs.PriceTwo = common_example.MoneyFromArgs(val.(map[string]interface{}))
+	}
+	if args["isSigned"] != nil {
+		val := args["isSigned"]
+		objectFromArgs.IsSigned = wrapperspb.Bool(bool(val.(bool)))
 	}
 	return objectFromArgs
 }
