@@ -2,10 +2,10 @@ package cases
 
 import (
 	"context"
-
 	"github.com/graph-gophers/dataloader"
 	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
+	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"

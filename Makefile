@@ -81,4 +81,5 @@ test:
 		--go-grpc_out="module=${PACKAGE}:./tests/out" \
 		--graphql_out="module=${PACKAGE},lang=go:./tests/out" \
 		./tests/cases/messages.proto
+	go fmt tests/out/cases/messages.graphql.go
 	go run tests/run.go
