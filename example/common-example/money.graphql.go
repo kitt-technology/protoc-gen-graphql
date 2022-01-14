@@ -1,7 +1,8 @@
-package foo
+package common_example
 
 import (
 	"errors"
+
 	"github.com/Rhymond/go-money"
 	gql "github.com/graphql-go/graphql"
 	"golang.org/x/text/currency"

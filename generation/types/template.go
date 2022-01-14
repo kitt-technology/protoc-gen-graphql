@@ -30,6 +30,14 @@ var {{ .Descriptor.GetName }}GraphqlType = gql.NewObject(gql.ObjectConfig{
 		{{- range $field := .Fields }}
 		"{{ $field.GqlKey }}": &gql.Field{
 			Type: {{- $field.Type }},
+			{{- if eq .TypeOfType "Wrapper" }}
+			Resolve: func(p gql.ResolveParams) (interface{}, error) {
+				if p.Source.(*{{ $.Descriptor.GetName }}) == nil {
+					return nil, nil
+				}
+				return p.Source.(*{{ $.Descriptor.GetName }}).{{ $field.GoKey }}.Value, nil
+			},
+			{{ end }}
 		},
 		{{- end }}
 		{{- range $name, $fields := .OneOfFields }}

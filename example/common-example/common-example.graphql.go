@@ -1,4 +1,4 @@
-package foo
+package common_example
 
 import (
 	gql "github.com/graphql-go/graphql"
@@ -78,5 +78,5 @@ func (msg *Int32Range) XXX_GraphqlArgs() gql.FieldConfigArgument {
 }
 
 func (msg *Int32Range) XXX_Package() string {
-	return "common"
+	return "common_example"
 }
