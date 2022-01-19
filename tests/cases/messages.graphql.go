@@ -56,7 +56,7 @@ var GetBooksRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"hardbackOnly": &gql.Field{
 			Type: gql.Boolean,
 			Resolve: func(p gql.ResolveParams) (interface{}, error) {
-				if p.Source.(*GetBooksRequest) == nil {
+				if p.Source.(*GetBooksRequest) == nil || p.Source.(*GetBooksRequest).HardbackOnly == nil {
 					return nil, nil
 				}
 				return p.Source.(*GetBooksRequest).HardbackOnly.Value, nil
@@ -65,7 +65,7 @@ var GetBooksRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"price": &gql.Field{
 			Type: gql.Float,
 			Resolve: func(p gql.ResolveParams) (interface{}, error) {
-				if p.Source.(*GetBooksRequest) == nil {
+				if p.Source.(*GetBooksRequest) == nil || p.Source.(*GetBooksRequest).Price == nil {
 					return nil, nil
 				}
 				return p.Source.(*GetBooksRequest).Price.Value, nil
@@ -515,7 +515,7 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"isSigned": &gql.Field{
 			Type: gql.Boolean,
 			Resolve: func(p gql.ResolveParams) (interface{}, error) {
-				if p.Source.(*Book) == nil {
+				if p.Source.(*Book) == nil || p.Source.(*Book).IsSigned == nil {
 					return nil, nil
 				}
 				return p.Source.(*Book).IsSigned.Value, nil
@@ -524,7 +524,7 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"notes": &gql.Field{
 			Type: gql.String,
 			Resolve: func(p gql.ResolveParams) (interface{}, error) {
-				if p.Source.(*Book) == nil {
+				if p.Source.(*Book) == nil || p.Source.(*Book).Notes == nil {
 					return nil, nil
 				}
 				return p.Source.(*Book).Notes.Value, nil
