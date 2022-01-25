@@ -282,7 +282,7 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 
 	for pkg, graphqlType := range packageImportMap {
 		typeNameWithProtoImport := field.GetTypeName()[1:]
-		if strings.HasPrefix(typeNameWithProtoImport, pkg) {
+		if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg) {
 			typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg)
 			typeNameWithGoImport := graphqlType.GoPackage + typeName
 			return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common

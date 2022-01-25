@@ -17,3 +17,8 @@ message Int32Range {
   int32 min = 1;
   int32 max = 2;
 }
+
+message MoneyRange {
+  Money min = 1;
+  Money max = 2;
+}
