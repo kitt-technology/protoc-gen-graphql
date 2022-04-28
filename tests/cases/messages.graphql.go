@@ -530,6 +530,9 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 				return p.Source.(*Book).Notes.Value, nil
 			},
 		},
+		"historicPrices": &gql.Field{
+			Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlType)),
+		},
 	},
 })
 
@@ -563,6 +566,9 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"notes": &gql.InputObjectFieldConfig{
 			Type: gql.String,
 		},
+		"historicPrices": &gql.InputObjectFieldConfig{
+			Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlInputType)),
+		},
 	},
 })
 
@@ -593,6 +599,9 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"notes": &gql.ArgumentConfig{
 		Type: gql.String,
+	},
+	"historicPrices": &gql.ArgumentConfig{
+		Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlInputType)),
 	},
 }
 
@@ -636,6 +645,16 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	if args["notes"] != nil {
 		val := args["notes"]
 		objectFromArgs.Notes = wrapperspb.String(string(val.(string)))
+	}
+	if args["historicPrices"] != nil {
+		historicPricesInterfaceList := args["historicPrices"].([]interface{})
+		var historicPrices []*common_example.Money
+
+		for _, val := range historicPricesInterfaceList {
+			itemResolved := common_example.MoneyFromArgs(val.(map[string]interface{}))
+			historicPrices = append(historicPrices, itemResolved)
+		}
+		objectFromArgs.HistoricPrices = historicPrices
 	}
 	return objectFromArgs
 }
