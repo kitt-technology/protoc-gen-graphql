@@ -60,6 +60,7 @@ message Book {
   Money price_two = 9;
   google.protobuf.BoolValue is_signed = 10;
   google.protobuf.StringValue notes = 11;
+  repeated common_example.Money historic_prices = 12;
 }
 
 enum Genre {

@@ -151,7 +151,7 @@ func (m Message) Generate() string {
 		}
 
 		isPointer := false
-		pointerTypes := []string{"Object", "Wrapper", "Timestamp", "Money"}
+		pointerTypes := []string{"Object", "Wrapper", "Timestamp", "Money", "Common"}
 		for _, pointerType := range pointerTypes {
 			if string(typeOfType) == pointerType {
 				isPointer = true
