@@ -90,7 +90,7 @@ func (m Message) Generate() string {
 			continue
 		}
 		if field.GetTypeName() == ".graphql.FieldMask" {
-			m.Import[imports.FieldMaskPbImport] = imports.FieldMaskPbImport
+			m.Import[imports.PggImport] = imports.PggImport
 			m.FieldMask = goKey(field)
 			continue
 		}

@@ -108,7 +108,7 @@ func {{ .Descriptor.GetName }}InstanceFromArgs(objectFromArgs *{{ .Descriptor.Ge
 		{{- end }}
 	{{- end }}
 	{{- if ne .FieldMask "" }}
-		objectFromArgs["{{ .FieldMask }}"] = &fieldmaskpb.FieldMask{Paths: fieldMask}
+		objectFromArgs.{{ .FieldMask }} = &pg.FieldMask{Paths: fieldMask, PathsMap: fieldMaskMap}
 	{{- end }}
 	return objectFromArgs
 }

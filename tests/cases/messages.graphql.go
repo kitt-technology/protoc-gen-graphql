@@ -8,7 +8,6 @@ import (
 	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -715,17 +714,20 @@ func CreateBookFromArgs(args map[string]interface{}) *CreateBook {
 
 func CreateBookInstanceFromArgs(objectFromArgs *CreateBook, args map[string]interface{}) *CreateBook {
 	fieldMask := make([]string, 0)
+	fieldMaskMap := make(map[string]bool, 0)
 	if args["id"] != nil {
 		fieldMask = append(fieldMask, "Id")
+		fieldMaskMap["Id"] = true
 		val := args["id"]
 		objectFromArgs.Id = string(val.(string))
 	}
 	if args["name"] != nil {
 		fieldMask = append(fieldMask, "Name")
+		fieldMaskMap["Name"] = true
 		val := args["name"]
 		objectFromArgs.Name = string(val.(string))
 	}
-	objectFromArgs.Fields = &fieldmaskpb.FieldMask{Paths: fieldMask}
+	objectFromArgs.Fields = &pg.FieldMask{Paths: fieldMask, PathsMap: fieldMaskMap}
 	return objectFromArgs
 }
 
