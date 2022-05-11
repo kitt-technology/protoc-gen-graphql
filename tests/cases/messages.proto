@@ -6,6 +6,7 @@ import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
 import "github.com/kitt-technology/protoc-gen-graphql/example/common-example/common-example.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/field_mask.proto";
 
 option go_package = "github.com/kitt-technology/protoc-gen-graphql/cases;cases";
 
@@ -66,6 +67,12 @@ message Book {
 enum Genre {
   Fiction = 0;
   Biography = 1;
+}
+
+message CreateBook {
+  string id = 1;
+  string name = 2;
+  graphql.FieldMask fields = 3;
 }
 
 // This is to test that common.Money still works

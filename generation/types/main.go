@@ -43,6 +43,7 @@ type Message struct {
 	Import           map[string]string
 	ObjectName       string
 	PackageImportMap map[string]GraphqlImport
+	FieldMask        string
 }
 
 func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, graphqlImportMap map[string]GraphqlImport) (m Message) {
@@ -62,6 +63,7 @@ func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorPro
 		Package:          actualPkg,
 		OneOfFields:      make(map[string]map[string]Field, 0),
 		PackageImportMap: graphqlImportMap,
+		FieldMask:        "",
 	}
 }
 
@@ -87,6 +89,12 @@ func (m Message) Generate() string {
 			proto.GetExtension(field.Options, graphql.E_SkipField).(bool) {
 			continue
 		}
+		if field.GetTypeName() == ".graphql.FieldMask" {
+			m.Import[imports.FieldMaskPbImport] = imports.FieldMaskPbImport
+			m.FieldMask = goKey(field)
+			continue
+		}
+
 		isList := false
 
 		switch field.Label.String() {

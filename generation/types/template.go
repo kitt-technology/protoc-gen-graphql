@@ -72,10 +72,18 @@ func {{ .Descriptor.GetName }}FromArgs(args map[string]interface{}) *{{ .Descrip
 }
 
 func {{ .Descriptor.GetName }}InstanceFromArgs(objectFromArgs *{{ .Descriptor.GetName }}, args map[string]interface{}) *{{ .Descriptor.GetName }} {
+	{{- if ne .FieldMask "" }}
+		fieldMask := make([]string, 0)
+		fieldMaskMap := make(map[string]bool, 0)
+	{{- end }}
 	{{- range $field := .Fields }}
 		{{- if $field.GoKey }}
 			{{- if $field.IsList }}
 			if args["{{ $field.GqlKey }}"] != nil {
+				{{- if ne $.FieldMask "" }}
+					fieldMask = append(fieldMask, "{{ $field.GoKey }}")
+					fieldMaskMap["{{ $field.GoKey }}"] = true
+				{{- end }}
 				{{ $field.GqlKey }}InterfaceList := args["{{ $field.GqlKey }}"].([]interface{})
 				var {{ $field.GqlKey }} []
 				{{- if $field.IsPointer }}*{{- end}}
@@ -89,11 +97,18 @@ func {{ .Descriptor.GetName }}InstanceFromArgs(objectFromArgs *{{ .Descriptor.Ge
 			}
 			{{- else }}
 			if args["{{ $field.GqlKey }}"] != nil {
+				{{- if ne $.FieldMask "" }}
+					fieldMask = append(fieldMask, "{{ $field.GoKey }}")
+					fieldMaskMap["{{ $field.GoKey }}"] = true
+				{{- end }}
 				val := args["{{  $field.GqlKey }}"]
 				objectFromArgs.{{ $field.GoKey }} = {{ $field.GoFromArgs }}
 			}
 			{{- end }}
 		{{- end }}
+	{{- end }}
+	{{- if ne .FieldMask "" }}
+		objectFromArgs["{{ .FieldMask }}"] = &fieldmaskpb.FieldMask{Paths: fieldMask}
 	{{- end }}
 	return objectFromArgs
 }

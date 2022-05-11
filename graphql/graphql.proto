@@ -38,3 +38,8 @@ message PageInfo {
   string end_cursor = 2;
   bool has_next_page = 3;
 }
+
+message FieldMask {
+  repeated string paths = 1;
+  map<string, bool> paths_map = 2;
+}

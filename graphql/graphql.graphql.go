@@ -151,3 +151,61 @@ func (msg *PageInfo) XXX_GraphqlArgs() gql.FieldConfigArgument {
 func (msg *PageInfo) XXX_Package() string {
 	return "graphql"
 }
+
+var FieldMaskGraphqlType = gql.NewObject(gql.ObjectConfig{
+	Name: "FieldMask",
+	Fields: gql.Fields{
+		"paths": &gql.Field{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+		},
+	},
+})
+
+var FieldMaskGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
+	Name: "FieldMaskInput",
+	Fields: gql.InputObjectConfigFieldMap{
+		"paths": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+		},
+	},
+})
+
+var FieldMaskGraphqlArgs = gql.FieldConfigArgument{
+	"paths": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+	},
+}
+
+func FieldMaskFromArgs(args map[string]interface{}) *FieldMask {
+	return FieldMaskInstanceFromArgs(&FieldMask{}, args)
+}
+
+func FieldMaskInstanceFromArgs(objectFromArgs *FieldMask, args map[string]interface{}) *FieldMask {
+	if args["paths"] != nil {
+		pathsInterfaceList := args["paths"].([]interface{})
+		var paths []string
+
+		for _, val := range pathsInterfaceList {
+			itemResolved := string(val.(string))
+			paths = append(paths, itemResolved)
+		}
+		objectFromArgs.Paths = paths
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *FieldMask) FromArgs(args map[string]interface{}) {
+	FieldMaskInstanceFromArgs(objectFromArgs, args)
+}
+
+func (msg *FieldMask) XXX_GraphqlType() *gql.Object {
+	return FieldMaskGraphqlType
+}
+
+func (msg *FieldMask) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return FieldMaskGraphqlArgs
+}
+
+func (msg *FieldMask) XXX_Package() string {
+	return "graphql"
+}
