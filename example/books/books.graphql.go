@@ -1,14 +1,14 @@
 package books
 
 import (
-	gql "github.com/graphql-go/graphql"
-	"google.golang.org/grpc"
 	"context"
 	"github.com/graph-gophers/dataloader"
+	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var fieldInits []func(...grpc.DialOption)
@@ -80,7 +80,6 @@ func DoNothingInstanceFromArgs(objectFromArgs *DoNothing, args map[string]interf
 }
 
 func (objectFromArgs *DoNothing) FromArgs(args map[string]interface{}) {
-	DoNothingInstanceFromArgs(objectFromArgs, args)
 }
 
 func (msg *DoNothing) XXX_GraphqlType() *gql.Object {
@@ -157,7 +156,11 @@ func GetBooksRequestFromArgs(args map[string]interface{}) *GetBooksRequest {
 }
 
 func GetBooksRequestInstanceFromArgs(objectFromArgs *GetBooksRequest, args map[string]interface{}) *GetBooksRequest {
+	fieldMask := make([]string, 0)
+	fieldMaskMap := make(map[string]bool, 0)
 	if args["ids"] != nil {
+		fieldMask = append(fieldMask, "Ids")
+		fieldMaskMap["Ids"] = true
 		idsInterfaceList := args["ids"].([]interface{})
 		var ids []string
 
@@ -168,10 +171,14 @@ func GetBooksRequestInstanceFromArgs(objectFromArgs *GetBooksRequest, args map[s
 		objectFromArgs.Ids = ids
 	}
 	if args["hardbackOnly"] != nil {
+		fieldMask = append(fieldMask, "HardbackOnly")
+		fieldMaskMap["HardbackOnly"] = true
 		val := args["hardbackOnly"]
 		objectFromArgs.HardbackOnly = wrapperspb.Bool(bool(val.(bool)))
 	}
 	if args["genres"] != nil {
+		fieldMask = append(fieldMask, "Genres")
+		fieldMaskMap["Genres"] = true
 		genresInterfaceList := args["genres"].([]interface{})
 		var genres []Genre
 
@@ -182,9 +189,12 @@ func GetBooksRequestInstanceFromArgs(objectFromArgs *GetBooksRequest, args map[s
 		objectFromArgs.Genres = genres
 	}
 	if args["releasedAfter"] != nil {
+		fieldMask = append(fieldMask, "ReleasedAfter")
+		fieldMaskMap["ReleasedAfter"] = true
 		val := args["releasedAfter"]
 		objectFromArgs.ReleasedAfter = pg.ToTimestamp(val)
 	}
+	objectFromArgs.Fields = &pg.FieldMask{Paths: fieldMask, PathsMap: fieldMaskMap}
 	return objectFromArgs
 }
 

@@ -49,6 +49,7 @@ func shouldProcess(file *protogen.File) bool {
 		"google/protobuf/descriptor.proto",
 		"google/protobuf/wrappers.proto",
 		"google/protobuf/timestamp.proto",
+		"google/protobuf/field_mask.proto",
 		"github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto",
 	}
 	for _, ignored := range ignoredFiles {

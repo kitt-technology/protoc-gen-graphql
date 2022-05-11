@@ -68,6 +68,12 @@ enum Genre {
   Biography = 1;
 }
 
+message CreateBook {
+  string id = 1;
+  string name = 2;
+  graphql.FieldMask fields = 3;
+}
+
 // This is to test that common.Money still works
 message Money {
   string price = 1;

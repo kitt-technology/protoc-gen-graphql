@@ -675,6 +675,78 @@ func (msg *Book) XXX_Package() string {
 	return "books"
 }
 
+var CreateBookGraphqlType = gql.NewObject(gql.ObjectConfig{
+	Name: "CreateBook",
+	Fields: gql.Fields{
+		"id": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
+		},
+		"name": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
+		},
+	},
+})
+
+var CreateBookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
+	Name: "CreateBookInput",
+	Fields: gql.InputObjectConfigFieldMap{
+		"id": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
+		},
+		"name": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
+		},
+	},
+})
+
+var CreateBookGraphqlArgs = gql.FieldConfigArgument{
+	"id": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
+	},
+	"name": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
+	},
+}
+
+func CreateBookFromArgs(args map[string]interface{}) *CreateBook {
+	return CreateBookInstanceFromArgs(&CreateBook{}, args)
+}
+
+func CreateBookInstanceFromArgs(objectFromArgs *CreateBook, args map[string]interface{}) *CreateBook {
+	fieldMask := make([]string, 0)
+	fieldMaskMap := make(map[string]bool, 0)
+	if args["id"] != nil {
+		fieldMask = append(fieldMask, "Id")
+		fieldMaskMap["Id"] = true
+		val := args["id"]
+		objectFromArgs.Id = string(val.(string))
+	}
+	if args["name"] != nil {
+		fieldMask = append(fieldMask, "Name")
+		fieldMaskMap["Name"] = true
+		val := args["name"]
+		objectFromArgs.Name = string(val.(string))
+	}
+	objectFromArgs.Fields = &pg.FieldMask{Paths: fieldMask, PathsMap: fieldMaskMap}
+	return objectFromArgs
+}
+
+func (objectFromArgs *CreateBook) FromArgs(args map[string]interface{}) {
+	CreateBookInstanceFromArgs(objectFromArgs, args)
+}
+
+func (msg *CreateBook) XXX_GraphqlType() *gql.Object {
+	return CreateBookGraphqlType
+}
+
+func (msg *CreateBook) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return CreateBookGraphqlArgs
+}
+
+func (msg *CreateBook) XXX_Package() string {
+	return "books"
+}
+
 var MoneyGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "Money",
 	Fields: gql.Fields{

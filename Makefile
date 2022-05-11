@@ -75,7 +75,7 @@ test:
 	protoc \
 		--proto_path . \
 		-I=. \
-		-I=./example/common \
+		-I=./example/common-example \
 		-I ${GOPATH}/src \
 		--go_out="module=${PACKAGE}:./tests/out" \
 		--go-grpc_out="module=${PACKAGE}:./tests/out" \
