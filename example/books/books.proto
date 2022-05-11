@@ -26,6 +26,7 @@ message GetBooksRequest {
   repeated Genre genres = 3;
   google.protobuf.Timestamp released_after = 4;
   string ignore_me = 5 [(graphql.skip_field) = true];
+  graphql.FieldMask fields = 6;
 }
 
 message GetBooksResponse {
