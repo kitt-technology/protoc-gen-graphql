@@ -17,7 +17,7 @@ RUN apt-get update \
 
 
 # protoc
-ENV PROTOC_VER=3.6.1
+ENV PROTOC_VER=3.15.0
 ENV PROTOC_REL=protoc-"${PROTOC_VER}"-linux-x86_64.zip
 RUN wget https://github.com/google/protobuf/releases/download/v"${PROTOC_VER}/${PROTOC_REL}" \
   && unzip ${PROTOC_REL} -d protoc \
