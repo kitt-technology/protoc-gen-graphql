@@ -144,7 +144,7 @@ func GetBooksRequestFromArgs(args map[string]interface{}) *GetBooksRequest {
 func GetBooksRequestInstanceFromArgs(objectFromArgs *GetBooksRequest, args map[string]interface{}) *GetBooksRequest {
 	if args["ids"] != nil {
 		idsInterfaceList := args["ids"].([]interface{})
-		var ids []string
+		ids := make([]string, 0)
 
 		for _, val := range idsInterfaceList {
 			itemResolved := string(val.(string))
@@ -162,7 +162,7 @@ func GetBooksRequestInstanceFromArgs(objectFromArgs *GetBooksRequest, args map[s
 	}
 	if args["genres"] != nil {
 		genresInterfaceList := args["genres"].([]interface{})
-		var genres []Genre
+		genres := make([]Genre, 0)
 
 		for _, val := range genresInterfaceList {
 			itemResolved := val.(Genre)
@@ -180,7 +180,7 @@ func GetBooksRequestInstanceFromArgs(objectFromArgs *GetBooksRequest, args map[s
 	}
 	if args["filters"] != nil {
 		filtersInterfaceList := args["filters"].([]interface{})
-		var filters []*Filter
+		filters := make([]*Filter, 0)
 
 		for _, val := range filtersInterfaceList {
 			itemResolved := FilterFromArgs(val.(map[string]interface{}))
@@ -355,7 +355,7 @@ func GetBooksResponseFromArgs(args map[string]interface{}) *GetBooksResponse {
 func GetBooksResponseInstanceFromArgs(objectFromArgs *GetBooksResponse, args map[string]interface{}) *GetBooksResponse {
 	if args["books"] != nil {
 		booksInterfaceList := args["books"].([]interface{})
-		var books []*Book
+		books := make([]*Book, 0)
 
 		for _, val := range booksInterfaceList {
 			itemResolved := BookFromArgs(val.(map[string]interface{}))
@@ -461,7 +461,7 @@ func BooksByAuthorFromArgs(args map[string]interface{}) *BooksByAuthor {
 func BooksByAuthorInstanceFromArgs(objectFromArgs *BooksByAuthor, args map[string]interface{}) *BooksByAuthor {
 	if args["results"] != nil {
 		resultsInterfaceList := args["results"].([]interface{})
-		var results []*Book
+		results := make([]*Book, 0)
 
 		for _, val := range resultsInterfaceList {
 			itemResolved := BookFromArgs(val.(map[string]interface{}))
@@ -657,7 +657,7 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	}
 	if args["historicPrices"] != nil {
 		historicPricesInterfaceList := args["historicPrices"].([]interface{})
-		var historicPrices []*common_example.Money
+		historicPrices := make([]*common_example.Money, 0)
 
 		for _, val := range historicPricesInterfaceList {
 			itemResolved := common_example.MoneyFromArgs(val.(map[string]interface{}))

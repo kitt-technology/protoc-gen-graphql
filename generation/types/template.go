@@ -77,9 +77,7 @@ func {{ .Descriptor.GetName }}InstanceFromArgs(objectFromArgs *{{ .Descriptor.Ge
 			{{- if $field.IsList }}
 			if args["{{ $field.GqlKey }}"] != nil {
 				{{ $field.GqlKey }}InterfaceList := args["{{ $field.GqlKey }}"].([]interface{})
-				var {{ $field.GqlKey }} []
-				{{- if $field.IsPointer }}*{{- end}}
-				{{- $field.GoType }}
+				{{ $field.GqlKey }} := make([]{{- if $field.IsPointer }}*{{- end}}{{- $field.GoType }}, 0)
 
 				for _, val := range {{ $field.GqlKey }}InterfaceList {
 					itemResolved := {{ $field.GoFromArgs }}
