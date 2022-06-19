@@ -633,7 +633,8 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	}
 	if args["genre"] != nil {
 		val := args["genre"]
-		objectFromArgs.Genre = val.(Genre)
+		ptr := val.(Genre)
+		objectFromArgs.Genre = &ptr
 	}
 	if args["releaseDate"] != nil {
 		val := args["releaseDate"]
