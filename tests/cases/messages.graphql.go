@@ -533,6 +533,9 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"historicPrices": &gql.Field{
 			Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlType)),
 		},
+		"pages": &gql.Field{
+			Type: gql.Int,
+		},
 	},
 })
 
@@ -569,6 +572,9 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"historicPrices": &gql.InputObjectFieldConfig{
 			Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlInputType)),
 		},
+		"pages": &gql.InputObjectFieldConfig{
+			Type: gql.Int,
+		},
 	},
 })
 
@@ -602,6 +608,9 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"historicPrices": &gql.ArgumentConfig{
 		Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlInputType)),
+	},
+	"pages": &gql.ArgumentConfig{
+		Type: gql.Int,
 	},
 }
 
@@ -655,6 +664,11 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 			historicPrices = append(historicPrices, itemResolved)
 		}
 		objectFromArgs.HistoricPrices = historicPrices
+	}
+	if args["pages"] != nil {
+		val := args["pages"]
+		ptr := int32(val.(int))
+		objectFromArgs.Pages = &ptr
 	}
 	return objectFromArgs
 }
