@@ -81,6 +81,7 @@ func (s BookService) GetBooks(ctx context.Context, request *books.GetBooksReques
 var booksDb map[string]*books.Book
 
 func init() {
+	var ten int64 = 10
 	booksDb = map[string]*books.Book{
 		"1": {
 			Id:       "1",
@@ -120,7 +121,7 @@ func init() {
 			Name:     "The BFG",
 			AuthorId: "2",
 			Genre:    1,
-			Copies:   10,
+			Copies:   &ten,
 			Price:    10,
 		},
 	}
