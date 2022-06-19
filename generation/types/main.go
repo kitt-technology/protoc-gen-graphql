@@ -32,6 +32,7 @@ type Field struct {
 	IsList     bool
 	TypeOfType string
 	IsPointer  bool
+	Proto3Optional 	bool
 }
 
 type Message struct {
@@ -142,12 +143,16 @@ func (m Message) Generate() string {
 			}
 		}
 
-		optional := field.TypeName != nil
+		graphqlOptional := field.TypeName != nil
 		if proto.HasExtension(field.Options, graphql.E_Optional) {
 			val := proto.GetExtension(field.Options, graphql.E_Optional)
 			if val.(bool) {
-				optional = true
+				graphqlOptional = true
 			}
+		}
+
+		if field.GetProto3Optional() {
+			graphqlOptional = true
 		}
 
 		isPointer := false
@@ -165,6 +170,7 @@ func (m Message) Generate() string {
 			TypeOfType: string(typeOfType),
 			IsList:     isList,
 			IsPointer:  isPointer,
+			Proto3Optional: field.GetProto3Optional(),
 		}
 
 		// Generate input type
@@ -175,7 +181,7 @@ func (m Message) Generate() string {
 			GqlType:    gqlType,
 			GqlKey:     *field.JsonName,
 			Suffix:     "GraphqlInputType",
-			Optional:   optional,
+			GraphqlOptional:   graphqlOptional,
 		}
 		var buf bytes.Buffer
 		typeTemplate.Execute(&buf, typeVars)
@@ -197,7 +203,7 @@ func (m Message) Generate() string {
 		fieldVars.InputType = string(inputType)
 		fieldVars.Type = string(normalType)
 
-		if field.OneofIndex != nil {
+		if field.OneofIndex != nil && !field.GetProto3Optional() {
 			key := *m.Descriptor.OneofDecl[*field.OneofIndex].Name
 
 			if _, ok := m.OneOfFields[key]; !ok {
