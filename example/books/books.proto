@@ -47,7 +47,7 @@ message Book {
   Genre genre = 4;
   google.protobuf.Timestamp release_date = 5;
   float price = 6;
-  int64 copies = 7;
+  optional int64 copies = 7;
   common_example.Money price_two = 8;
   google.protobuf.BoolValue is_signed = 9;
 }

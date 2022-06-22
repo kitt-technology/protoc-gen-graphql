@@ -12,8 +12,11 @@ import (
 	"os"
 )
 
+
 func main() {
 	bytes, _ := ioutil.ReadAll(os.Stdin)
+
+	SupportedFeatures := uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 
 	var req pluginpb.CodeGeneratorRequest
 	err := proto.Unmarshal(bytes, &req)
@@ -36,6 +39,7 @@ func main() {
 	}
 
 	stdout := plugin.Response()
+	stdout.SupportedFeatures = &SupportedFeatures
 	out, _ := proto.Marshal(stdout)
 
 	_, err = os.Stdout.Write(out)

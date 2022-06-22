@@ -54,13 +54,14 @@ message Book {
   string id = 1;
   string name = 2;
   string author_id = 3;
-  Genre genre = 4;
+  optional Genre genre = 4;
   google.protobuf.Timestamp release_date = 5;
   common_example.Money price = 8;
   Money price_two = 9;
   google.protobuf.BoolValue is_signed = 10;
   google.protobuf.StringValue notes = 11;
   repeated common_example.Money historic_prices = 12;
+  optional int32 pages = 6;
 }
 
 enum Genre {

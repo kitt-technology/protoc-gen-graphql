@@ -390,7 +390,7 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: gql.NewNonNull(gql.Float),
 		},
 		"copies": &gql.Field{
-			Type: gql.NewNonNull(gql.Int),
+			Type: gql.Int,
 		},
 		"priceTwo": &gql.Field{
 			Type: common_example.MoneyGraphqlType,
@@ -429,7 +429,7 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: gql.NewNonNull(gql.Float),
 		},
 		"copies": &gql.InputObjectFieldConfig{
-			Type: gql.NewNonNull(gql.Int),
+			Type: gql.Int,
 		},
 		"priceTwo": &gql.InputObjectFieldConfig{
 			Type: common_example.MoneyGraphqlInputType,
@@ -460,7 +460,7 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.NewNonNull(gql.Float),
 	},
 	"copies": &gql.ArgumentConfig{
-		Type: gql.NewNonNull(gql.Int),
+		Type: gql.Int,
 	},
 	"priceTwo": &gql.ArgumentConfig{
 		Type: common_example.MoneyGraphqlInputType,
@@ -501,7 +501,8 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	}
 	if args["copies"] != nil {
 		val := args["copies"]
-		objectFromArgs.Copies = int64(val.(int))
+		ptr := int64(val.(int))
+		objectFromArgs.Copies = &ptr
 	}
 	if args["priceTwo"] != nil {
 		val := args["priceTwo"]

@@ -17,7 +17,7 @@ RUN apt-get update \
 
 
 # protoc
-ENV PROTOC_VER=3.6.1
+ENV PROTOC_VER=3.15.0
 ENV PROTOC_REL=protoc-"${PROTOC_VER}"-linux-x86_64.zip
 RUN wget https://github.com/google/protobuf/releases/download/v"${PROTOC_VER}/${PROTOC_REL}" \
   && unzip ${PROTOC_REL} -d protoc \
@@ -37,7 +37,7 @@ RUN wget -q https://dl.google.com/go/$GORELEASE \
 # protoc-gen-go
 ENV PGG_PKG "google.golang.org/protobuf/cmd/protoc-gen-go"
 ENV PGG_PATH "${GOPATH}/src/${PGG_PKG}"
-ENV PGG_VER=v1.21.0
+ENV PGG_VER=v1.26.0
 RUN go get -d ${PGG_PKG} \
   && cd ${PGG_PATH} \
   && git checkout ${PGG_VER} \
