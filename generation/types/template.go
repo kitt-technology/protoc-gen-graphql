@@ -3,7 +3,7 @@ package types
 import "text/template"
 
 const typeTpl = `
-{{- if not .Optional }}gql.NewNonNull({{- end }}
+{{- if not .GraphqlOptional }}gql.NewNonNull({{- end }}
 {{- if .IsList }}gql.NewList(gql.NewNonNull({{- end }}
 {{- if eq .TypeOfType "Object" }}{{ .GqlType }}{{ .Suffix }}{{- end }}
 {{- if eq .TypeOfType "Wrapper" }}{{ .GqlType }}{{- end }}
@@ -13,7 +13,7 @@ const typeTpl = `
 {{- if eq .TypeOfType "WrappedString" }}pg.WrappedString{{ .Suffix }}{{- end }}
 {{- if eq .TypeOfType "Common" }}{{ .GqlType }}{{ .Suffix }}{{- end }}
 {{- if .IsList }})){{- end }}
-{{- if not .Optional }}){{- end }}`
+{{- if not .GraphqlOptional }}){{- end }}`
 
 const goFromArgs = `
 {{- if eq .TypeOfType "Object" }}{{ .GoType  }}FromArgs(val.(map[string]interface{})){{- end }}
@@ -77,9 +77,7 @@ func {{ .Descriptor.GetName }}InstanceFromArgs(objectFromArgs *{{ .Descriptor.Ge
 			{{- if $field.IsList }}
 			if args["{{ $field.GqlKey }}"] != nil {
 				{{ $field.GqlKey }}InterfaceList := args["{{ $field.GqlKey }}"].([]interface{})
-				var {{ $field.GqlKey }} []
-				{{- if $field.IsPointer }}*{{- end}}
-				{{- $field.GoType }}
+				{{ $field.GqlKey }} := make([]{{- if $field.IsPointer }}*{{- end}}{{- $field.GoType }}, 0)
 
 				for _, val := range {{ $field.GqlKey }}InterfaceList {
 					itemResolved := {{ $field.GoFromArgs }}
@@ -90,7 +88,12 @@ func {{ .Descriptor.GetName }}InstanceFromArgs(objectFromArgs *{{ .Descriptor.Ge
 			{{- else }}
 			if args["{{ $field.GqlKey }}"] != nil {
 				val := args["{{  $field.GqlKey }}"]
+				{{- if $field.Proto3Optional }}
+				ptr := {{ $field.GoFromArgs }}
+				objectFromArgs.{{ $field.GoKey }} = &ptr
+				{{- else }}
 				objectFromArgs.{{ $field.GoKey }} = {{ $field.GoFromArgs }}
+				{{- end}}
 			}
 			{{- end }}
 		{{- end }}
@@ -152,13 +155,13 @@ var {{ $name }}GraphqlType = gql.NewUnion(gql.UnionConfig{
 `
 
 type FieldTypeVars struct {
-	TypeOfType string
-	Optional   bool
-	IsList     bool
-	GqlType    GqlType
-	Suffix     string
-	GoType     GoType
-	GqlKey     string
+	TypeOfType 		string
+	GraphqlOptional bool
+	IsList     		bool
+	GqlType    		GqlType
+	Suffix     		string
+	GoType     		GoType
+	GqlKey     		string
 }
 
 var (

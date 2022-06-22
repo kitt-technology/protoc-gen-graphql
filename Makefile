@@ -49,7 +49,7 @@ run-examples:
 
 .PHONY: docker
 docker:
-	docker build . -t kittoffices/protoc-gen-graphql
+	docker build . -t kittoffices/protoc-gen-graphql --platform linux/amd64
 	docker push kittoffices/protoc-gen-graphql
 
 .PHONY: generate
@@ -75,7 +75,7 @@ test:
 	protoc \
 		--proto_path . \
 		-I=. \
-		-I=./example/common \
+		-I=./example/common-example \
 		-I ${GOPATH}/src \
 		--go_out="module=${PACKAGE}:./tests/out" \
 		--go-grpc_out="module=${PACKAGE}:./tests/out" \
