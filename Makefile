@@ -49,7 +49,7 @@ run-examples:
 
 .PHONY: docker
 docker:
-	docker build . -t kittoffices/protoc-gen-graphql
+	docker build . -t kittoffices/protoc-gen-graphql --platform linux/amd64
 	docker push kittoffices/protoc-gen-graphql
 
 .PHONY: generate
