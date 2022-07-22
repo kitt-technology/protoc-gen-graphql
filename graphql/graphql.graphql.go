@@ -47,7 +47,7 @@ func BatchRequestFromArgs(args map[string]interface{}) *BatchRequest {
 func BatchRequestInstanceFromArgs(objectFromArgs *BatchRequest, args map[string]interface{}) *BatchRequest {
 	if args["keys"] != nil {
 		keysInterfaceList := args["keys"].([]interface{})
-		var keys []string
+		keys := make([]string, 0)
 
 		for _, val := range keysInterfaceList {
 			itemResolved := string(val.(string))
@@ -183,7 +183,7 @@ func FieldMaskFromArgs(args map[string]interface{}) *FieldMask {
 func FieldMaskInstanceFromArgs(objectFromArgs *FieldMask, args map[string]interface{}) *FieldMask {
 	if args["paths"] != nil {
 		pathsInterfaceList := args["paths"].([]interface{})
-		var paths []string
+		paths := make([]string, 0)
 
 		for _, val := range pathsInterfaceList {
 			itemResolved := string(val.(string))
