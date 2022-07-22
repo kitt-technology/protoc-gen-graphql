@@ -106,6 +106,10 @@ func (objectFromArgs *{{ .Descriptor.GetName }}) FromArgs(args map[string]interf
 	{{ .Descriptor.GetName }}InstanceFromArgs(objectFromArgs, args)
 }
 
+func (x *{{ .Descriptor.GetName }}) Raw() interface{} {
+	return x
+}
+
 func (msg *{{ .Descriptor.GetName }}) XXX_GraphqlType() *gql.Object {
 	return {{ .Descriptor.GetName }}GraphqlType
 }
