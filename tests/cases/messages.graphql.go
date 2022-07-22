@@ -195,6 +195,10 @@ func (objectFromArgs *GetBooksRequest) FromArgs(args map[string]interface{}) {
 	GetBooksRequestInstanceFromArgs(objectFromArgs, args)
 }
 
+func (x *GetBooksRequest) Raw() interface{} {
+	return x
+}
+
 func (msg *GetBooksRequest) XXX_GraphqlType() *gql.Object {
 	return GetBooksRequestGraphqlType
 }
@@ -260,6 +264,10 @@ func (objectFromArgs *PaginationOptions) FromArgs(args map[string]interface{}) {
 	PaginationOptionsInstanceFromArgs(objectFromArgs, args)
 }
 
+func (x *PaginationOptions) Raw() interface{} {
+	return x
+}
+
 func (msg *PaginationOptions) XXX_GraphqlType() *gql.Object {
 	return PaginationOptionsGraphqlType
 }
@@ -310,6 +318,10 @@ func FilterInstanceFromArgs(objectFromArgs *Filter, args map[string]interface{})
 
 func (objectFromArgs *Filter) FromArgs(args map[string]interface{}) {
 	FilterInstanceFromArgs(objectFromArgs, args)
+}
+
+func (x *Filter) Raw() interface{} {
+	return x
 }
 
 func (msg *Filter) XXX_GraphqlType() *gql.Object {
@@ -370,6 +382,10 @@ func (objectFromArgs *GetBooksResponse) FromArgs(args map[string]interface{}) {
 	GetBooksResponseInstanceFromArgs(objectFromArgs, args)
 }
 
+func (x *GetBooksResponse) Raw() interface{} {
+	return x
+}
+
 func (msg *GetBooksResponse) XXX_GraphqlType() *gql.Object {
 	return GetBooksResponseGraphqlType
 }
@@ -416,6 +432,10 @@ func GetBooksByAuthorResponseInstanceFromArgs(objectFromArgs *GetBooksByAuthorRe
 
 func (objectFromArgs *GetBooksByAuthorResponse) FromArgs(args map[string]interface{}) {
 	GetBooksByAuthorResponseInstanceFromArgs(objectFromArgs, args)
+}
+
+func (x *GetBooksByAuthorResponse) Raw() interface{} {
+	return x
 }
 
 func (msg *GetBooksByAuthorResponse) XXX_GraphqlType() *gql.Object {
@@ -474,6 +494,10 @@ func BooksByAuthorInstanceFromArgs(objectFromArgs *BooksByAuthor, args map[strin
 
 func (objectFromArgs *BooksByAuthor) FromArgs(args map[string]interface{}) {
 	BooksByAuthorInstanceFromArgs(objectFromArgs, args)
+}
+
+func (x *BooksByAuthor) Raw() interface{} {
+	return x
 }
 
 func (msg *BooksByAuthor) XXX_GraphqlType() *gql.Object {
@@ -678,6 +702,10 @@ func (objectFromArgs *Book) FromArgs(args map[string]interface{}) {
 	BookInstanceFromArgs(objectFromArgs, args)
 }
 
+func (x *Book) Raw() interface{} {
+	return x
+}
+
 func (msg *Book) XXX_GraphqlType() *gql.Object {
 	return BookGraphqlType
 }
@@ -728,6 +756,10 @@ func MoneyInstanceFromArgs(objectFromArgs *Money, args map[string]interface{}) *
 
 func (objectFromArgs *Money) FromArgs(args map[string]interface{}) {
 	MoneyInstanceFromArgs(objectFromArgs, args)
+}
+
+func (x *Money) Raw() interface{} {
+	return x
 }
 
 func (msg *Money) XXX_GraphqlType() *gql.Object {
