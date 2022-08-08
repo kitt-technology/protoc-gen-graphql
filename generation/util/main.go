@@ -2,6 +2,8 @@ package util
 
 import (
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"strings"
@@ -83,4 +85,35 @@ func badToUnderscore(r rune) rune {
 		return r
 	}
 	return '_'
+}
+
+func Title(str string) string{
+	return cases.Title(language.Und, cases.NoLower).String(str)
+}
+
+func ContainsFieldWithName(fields []*descriptorpb.FieldDescriptorProto, name string) bool{
+	for _, f := range fields{
+		if f.Name != nil && *f.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsFieldWithLabel(fields []*descriptorpb.FieldDescriptorProto, label string) bool{
+	for _, f := range fields{
+		if f.Label.String() == label {
+			return true
+		}
+	}
+	return false
+}
+
+func GetMessageType(root *descriptorpb.FileDescriptorProto, messageType string) *descriptorpb.DescriptorProto {
+	for _, msgType := range root.MessageType {
+		if Last(messageType) == *msgType.Name {
+			return msgType
+		}
+	}
+	return nil
 }

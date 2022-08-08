@@ -29,11 +29,21 @@ func WithLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, "{{ $loader.Method }}Loader", dataloader.NewBatchedLoader(
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result
-	
+
+			{{ if $loader.Custom }}
+			var requests []*{{ $loader.KeysType }}
+			for _, key := range keys {
+				requests = append(requests, key.(*{{ $loader.KeysType }}Key).{{ $loader.KeysType }})
+			}
+			resp, err := {{ $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &{{ $loader.RequestType }}{
+				{{ $loader.KeysField }}: requests,
+			})
+			{{- else }}
 			resp, err := {{ $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
 				{{ $loader.KeysField }}: keys.Keys(),
 			})
-	
+			{{- end }}
+		
 			if err != nil {
 				return results
 			}
@@ -41,6 +51,10 @@ func WithLoaders(ctx context.Context) context.Context {
 			for _, key := range keys.Keys() {
 				if val, ok := resp.{{ $loader.ResultsField }}[key]; ok {
 					results = append(results, &dataloader.Result{Data: val})
+				{{- if $loader.Custom }}
+				} else if err, ok := resp.Errors[key]; ok {
+					results = append(results, &dataloader.Result{Error: errors.New(err)})
+				{{- end }}
 				} else {
 					var empty {{ $loader.ResultsType }}
 					results = append(results, &dataloader.Result{Data: empty})
@@ -56,7 +70,22 @@ func WithLoaders(ctx context.Context) context.Context {
 {{ end }}
 
 {{ range $loader :=.Loaders }}
-func {{ $loader.Method }}(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+{{ if $loader.Custom }}
+
+type {{ $loader.KeysType }}Key struct {
+	*{{ $loader.KeysType }}
+}
+
+func (key *{{ $loader.KeysType }}Key) String() string {
+	return pg.ProtoKey(key)
+}
+
+func (key *{{ $loader.KeysType }}Key) Raw() interface{} {
+	return key
+}
+
+{{ end }}
+func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }} key *{{ $loader.KeysType }} {{ else }} key string {{ end }}) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("{{ $loader.Method }}Loader").(type) {
 	case *dataloader.Loader:
@@ -65,7 +94,7 @@ func {{ $loader.Method }}(p gql.ResolveParams, key string) (func() (interface{},
 		panic("Please call {{ $.Package }}.WithLoaders with the current context first")
 	}
 
-	thunk := loader.Load(p.Context, dataloader.StringKey(key))
+	thunk := loader.Load(p.Context,  {{ if $loader.Custom }} &{{ $loader.KeysType }}Key{key} {{ else }} dataloader.StringKey(key) {{ end }})
 	return func() (interface{}, error) {
 				res, err := thunk()
 				if err != nil {
@@ -75,6 +104,7 @@ func {{ $loader.Method }}(p gql.ResolveParams, key string) (func() (interface{},
 	}, nil
 }
 
+{{ if not $loader.Custom }}
 func {{ $loader.Method }}Many(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("{{ $loader.Method }}Loader").(type) {
@@ -103,6 +133,7 @@ func {{ $loader.Method }}Many(p gql.ResolveParams, keys []string) (func() (inter
 	}, nil
 }
 {{ end }}
+{{ end }}
 `
 
 var tpl *template.Template
@@ -119,6 +150,8 @@ type LoaderVars struct {
 	Method       string
 	RequestType  string
 	KeysField    string
+	KeysType     string
 	ResultsField string
 	ResultsType  string
+	Custom		 bool
 }
