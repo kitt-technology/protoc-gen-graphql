@@ -61,17 +61,4 @@ var {{ .Descriptor.GetName }}GraphqlEnum = gql.NewEnum(gql.EnumConfig{
 		{{- end }}
 	},
 })
-
-var {{ .Descriptor.GetName }}GraphqlType = gql.NewScalar(gql.ScalarConfig{
-	Name: "{{ .EnumName }}",
-	ParseValue: func(value interface{}) interface{} {
-		return nil
-	},
-	Serialize: func(value interface{}) interface{} {
-		return value.({{ .Descriptor.GetName }}).String()
-	},
-	ParseLiteral: func(valueAST ast.Value) interface{} {
-		return nil
-	},
-})
 `
