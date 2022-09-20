@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/graph-gophers/dataloader"
 	gql "github.com/graphql-go/graphql"
-	"github.com/graphql-go/graphql/language/ast"
 	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/grpc"
@@ -31,19 +30,6 @@ var GenreGraphqlEnum = gql.NewEnum(gql.EnumConfig{
 		"Fiction": &gql.EnumValueConfig{
 			Value: Genre(0),
 		},
-	},
-})
-
-var GenreGraphqlType = gql.NewScalar(gql.ScalarConfig{
-	Name: "Genre",
-	ParseValue: func(value interface{}) interface{} {
-		return nil
-	},
-	Serialize: func(value interface{}) interface{} {
-		return value.(Genre).String()
-	},
-	ParseLiteral: func(valueAST ast.Value) interface{} {
-		return nil
 	},
 })
 
