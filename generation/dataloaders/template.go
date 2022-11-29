@@ -104,8 +104,7 @@ func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }} key *{{ $
 	}, nil
 }
 
-{{ if not $loader.Custom }}
-func {{ $loader.Method }}Many(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func {{ $loader.Method }}Many(p gql.ResolveParams, {{ if $loader.Custom }} keys []*{{ $loader.KeysType }} {{ else }} keys []string{{ end }}) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("{{ $loader.Method }}Loader").(type) {
 	case *dataloader.Loader:
@@ -114,7 +113,14 @@ func {{ $loader.Method }}Many(p gql.ResolveParams, keys []string) (func() (inter
 		panic("Please call {{ $.Package }}.WithLoaders with the current context first")
 	}
 
-	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
+	{{ if $loader.Custom }}
+	loaderKeys := make(dataloader.Keys, len(keys))
+	for ix := range keys {
+		loaderKeys[ix] = &{{ $loader.KeysType }}Key{keys[ix]}
+	}
+	{{ end }}
+
+	thunk := loader.LoadMany(p.Context, {{ if $loader.Custom }} loaderKeys{{ else }} dataloader.NewKeysFromStrings(keys) {{ end }})
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 		
@@ -132,7 +138,6 @@ func {{ $loader.Method }}Many(p gql.ResolveParams, keys []string) (func() (inter
 		return results, nil
 	}, nil
 }
-{{ end }}
 {{ end }}
 `
 
@@ -153,5 +158,5 @@ type LoaderVars struct {
 	KeysType     string
 	ResultsField string
 	ResultsType  string
-	Custom		 bool
+	Custom       bool
 }

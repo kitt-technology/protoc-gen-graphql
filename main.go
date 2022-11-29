@@ -12,7 +12,6 @@ import (
 	"os"
 )
 
-
 func main() {
 	bytes, _ := ioutil.ReadAll(os.Stdin)
 

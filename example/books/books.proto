@@ -15,6 +15,7 @@ service Books {
 
   rpc getBooks(GetBooksRequest) returns (GetBooksResponse) {}
   rpc getBooksByAuthor(graphql.BatchRequest) returns (GetBooksByAuthorResponse) {}
+  rpc getBooksBatch(GetBooksBatchRequest) returns (GetBooksBatchResponse) {option (graphql.batch_loader) = true;}
 }
 
 message DoNothing {}
@@ -34,6 +35,15 @@ message GetBooksResponse {
 
 message GetBooksByAuthorResponse {
   map<string, BooksByAuthor> results = 1;
+}
+
+message GetBooksBatchRequest {
+  repeated GetBooksRequest reqs = 1;
+}
+
+message GetBooksBatchResponse {
+  map<string, GetBooksResponse> results = 1;
+  map<string, string> errors = 2;
 }
 
 message BooksByAuthor {

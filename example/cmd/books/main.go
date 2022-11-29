@@ -55,6 +55,16 @@ func (s BookService) GetBooksByAuthor(ctx context.Context, request *graphql.Batc
 	return &books.GetBooksByAuthorResponse{Results: bs}, nil
 }
 
+func (s BookService) GetBooksBatch(ctx context.Context, request *books.GetBooksBatchRequest) (*books.GetBooksBatchResponse, error) {
+	var res books.GetBooksBatchResponse
+	for _, req := range request.Reqs {
+		key := graphql.ProtoKey(req)
+		resp, err := s.GetBooks(ctx, req)
+		res.Results[key], res.Errors[key] = resp, err.Error()
+	}
+	return &res, nil
+}
+
 func (s BookService) GetBooks(ctx context.Context, request *books.GetBooksRequest) (*books.GetBooksResponse, error) {
 	var bs []*books.Book
 

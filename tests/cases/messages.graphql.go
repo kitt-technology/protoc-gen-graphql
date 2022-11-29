@@ -1003,3 +1003,36 @@ func GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface
 		return res.(*GetBooksResponse), nil
 	}, nil
 }
+
+func GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
+	var loader *dataloader.Loader
+	switch p.Context.Value("GetBooksBatchLoader").(type) {
+	case *dataloader.Loader:
+		loader = p.Context.Value("GetBooksBatchLoader").(*dataloader.Loader)
+	default:
+		panic("Please call books.WithLoaders with the current context first")
+	}
+
+	loaderKeys := make(dataloader.Keys, len(keys))
+	for ix := range keys {
+		loaderKeys[ix] = &GetBooksRequestKey{keys[ix]}
+	}
+
+	thunk := loader.LoadMany(p.Context, loaderKeys)
+	return func() (interface{}, error) {
+		resSlice, errSlice := thunk()
+
+		for _, err := range errSlice {
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		var results []*GetBooksResponse
+		for _, res := range resSlice {
+			results = append(results, res.(*GetBooksResponse))
+		}
+
+		return results, nil
+	}, nil
+}
