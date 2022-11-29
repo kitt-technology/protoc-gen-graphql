@@ -2,7 +2,6 @@ package cases
 
 import (
 	"context"
-	"errors"
 	"github.com/graph-gophers/dataloader"
 	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
@@ -911,8 +910,6 @@ func WithLoaders(ctx context.Context) context.Context {
 			for _, key := range keys.Keys() {
 				if val, ok := resp.Results[key]; ok {
 					results = append(results, &dataloader.Result{Data: val})
-				} else if err, ok := resp.Errors[key]; ok {
-					results = append(results, &dataloader.Result{Error: errors.New(err)})
 				} else {
 					var empty *GetBooksResponse
 					results = append(results, &dataloader.Result{Data: empty})

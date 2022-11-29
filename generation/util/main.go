@@ -87,26 +87,8 @@ func badToUnderscore(r rune) rune {
 	return '_'
 }
 
-func Title(str string) string{
+func Title(str string) string {
 	return cases.Title(language.Und, cases.NoLower).String(str)
-}
-
-func ContainsFieldWithName(fields []*descriptorpb.FieldDescriptorProto, name string) bool{
-	for _, f := range fields{
-		if f.Name != nil && *f.Name == name {
-			return true
-		}
-	}
-	return false
-}
-
-func ContainsFieldWithLabel(fields []*descriptorpb.FieldDescriptorProto, label string) bool{
-	for _, f := range fields{
-		if f.Label.String() == label {
-			return true
-		}
-	}
-	return false
 }
 
 func GetMessageType(root *descriptorpb.FileDescriptorProto, messageType string) *descriptorpb.DescriptorProto {

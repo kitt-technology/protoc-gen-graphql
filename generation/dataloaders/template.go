@@ -51,10 +51,6 @@ func WithLoaders(ctx context.Context) context.Context {
 			for _, key := range keys.Keys() {
 				if val, ok := resp.{{ $loader.ResultsField }}[key]; ok {
 					results = append(results, &dataloader.Result{Data: val})
-				{{- if $loader.Custom }}
-				} else if err, ok := resp.Errors[key]; ok {
-					results = append(results, &dataloader.Result{Error: errors.New(err)})
-				{{- end }}
 				} else {
 					var empty {{ $loader.ResultsType }}
 					results = append(results, &dataloader.Result{Data: empty})

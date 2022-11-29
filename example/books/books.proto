@@ -43,7 +43,6 @@ message GetBooksBatchRequest {
 
 message GetBooksBatchResponse {
   map<string, GetBooksResponse> results = 1;
-  map<string, string> errors = 2;
 }
 
 message BooksByAuthor {

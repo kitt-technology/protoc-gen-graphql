@@ -21,15 +21,6 @@ type Message struct {
 	Loaders     []LoaderVars
 }
 
-func (m Message) HasCustomLoaders() bool {
-	for _, l := range m.Loaders {
-		if l.Custom {
-			return true
-		}
-	}
-	return false
-}
-
 func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescriptorProto) (m Message) {
 	var methods []Method
 
@@ -53,10 +44,6 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 
 			if len(output.Field) == 0 || output.Field[0].Label.String() != "LABEL_REPEATED" || !strings.Contains(*output.Field[0].TypeName, "Entry") {
 				panic(fmt.Sprintf("batch loaders must have one field of the type: map<string, Result> for %s.%s", *msg.Name, *method.Name))
-			}
-
-			if custom && (!util.ContainsFieldWithLabel(output.Field, "LABEL_REPEATED") || !util.ContainsFieldWithName(output.Field, "errors")) {
-				panic(fmt.Sprintf("custom batch loaders must have one errors field for %s", util.Last(*method.OutputType)))
 			}
 
 			if custom && (len(input.Field) != 1 || input.Field[0].Label.String() != "LABEL_REPEATED") {
@@ -94,10 +81,10 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 				Method:       util.Title(*method.Name),
 				RequestType:  util.Title(util.Last(*method.InputType)),
 				KeysField:    keysField,
-				KeysType: 	  keysType,
+				KeysType:     keysType,
 				ResultsField: strcase.ToCamel(*field.Name),
 				ResultsType:  resultType,
-				Custom:  	  custom,
+				Custom:       custom,
 			})
 
 		} else {
@@ -123,11 +110,7 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 
 func (m Message) Imports() []string {
 	if len(m.Loaders) > 0 {
-		imports := []string{"context", "github.com/graph-gophers/dataloader"}
-		if m.HasCustomLoaders() {
-			imports = append(imports, "errors")
-		}
-		return imports
+		return []string{"context", "github.com/graph-gophers/dataloader"}
 	}
 	return []string{}
 }

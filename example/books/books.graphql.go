@@ -4,7 +4,6 @@ import (
 	gql "github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
 	"context"
-	"errors"
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
@@ -700,8 +699,6 @@ func WithLoaders(ctx context.Context) context.Context {
 			for _, key := range keys.Keys() {
 				if val, ok := resp.Results[key]; ok {
 					results = append(results, &dataloader.Result{Data: val})
-				} else if err, ok := resp.Errors[key]; ok {
-					results = append(results, &dataloader.Result{Error: errors.New(err)})
 				} else {
 					var empty *GetBooksResponse
 					results = append(results, &dataloader.Result{Data: empty})
