@@ -60,7 +60,9 @@ func (s BookService) GetBooksBatch(ctx context.Context, request *books.GetBooksB
 	for _, req := range request.Reqs {
 		key := graphql.ProtoKey(req)
 		resp, err := s.GetBooks(ctx, req)
-		res.Results[key], res.Errors[key] = resp, err.Error()
+		if err != nil {
+			res.Results[key] = resp
+		}
 	}
 	return &res, nil
 }
