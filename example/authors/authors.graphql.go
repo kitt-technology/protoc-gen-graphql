@@ -50,7 +50,7 @@ func GetAuthorsRequestFromArgs(args map[string]interface{}) *GetAuthorsRequest {
 func GetAuthorsRequestInstanceFromArgs(objectFromArgs *GetAuthorsRequest, args map[string]interface{}) *GetAuthorsRequest {
 	if args["ids"] != nil {
 		idsInterfaceList := args["ids"].([]interface{})
-		var ids []string
+		ids := make([]string, 0)
 
 		for _, val := range idsInterfaceList {
 			itemResolved := string(val.(string))
@@ -117,7 +117,7 @@ func GetAuthorsResponseFromArgs(args map[string]interface{}) *GetAuthorsResponse
 func GetAuthorsResponseInstanceFromArgs(objectFromArgs *GetAuthorsResponse, args map[string]interface{}) *GetAuthorsResponse {
 	if args["authors"] != nil {
 		authorsInterfaceList := args["authors"].([]interface{})
-		var authors []*Author
+		authors := make([]*Author, 0)
 
 		for _, val := range authorsInterfaceList {
 			itemResolved := AuthorFromArgs(val.(map[string]interface{}))
