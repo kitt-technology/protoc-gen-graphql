@@ -195,10 +195,6 @@ func (objectFromArgs *GetBooksRequest) FromArgs(args map[string]interface{}) {
 	GetBooksRequestInstanceFromArgs(objectFromArgs, args)
 }
 
-func (x *GetBooksRequest) Raw() interface{} {
-	return x
-}
-
 func (msg *GetBooksRequest) XXX_GraphqlType() *gql.Object {
 	return GetBooksRequestGraphqlType
 }
@@ -264,10 +260,6 @@ func (objectFromArgs *PaginationOptions) FromArgs(args map[string]interface{}) {
 	PaginationOptionsInstanceFromArgs(objectFromArgs, args)
 }
 
-func (x *PaginationOptions) Raw() interface{} {
-	return x
-}
-
 func (msg *PaginationOptions) XXX_GraphqlType() *gql.Object {
 	return PaginationOptionsGraphqlType
 }
@@ -318,10 +310,6 @@ func FilterInstanceFromArgs(objectFromArgs *Filter, args map[string]interface{})
 
 func (objectFromArgs *Filter) FromArgs(args map[string]interface{}) {
 	FilterInstanceFromArgs(objectFromArgs, args)
-}
-
-func (x *Filter) Raw() interface{} {
-	return x
 }
 
 func (msg *Filter) XXX_GraphqlType() *gql.Object {
@@ -382,10 +370,6 @@ func (objectFromArgs *GetBooksResponse) FromArgs(args map[string]interface{}) {
 	GetBooksResponseInstanceFromArgs(objectFromArgs, args)
 }
 
-func (x *GetBooksResponse) Raw() interface{} {
-	return x
-}
-
 func (msg *GetBooksResponse) XXX_GraphqlType() *gql.Object {
 	return GetBooksResponseGraphqlType
 }
@@ -395,6 +379,112 @@ func (msg *GetBooksResponse) XXX_GraphqlArgs() gql.FieldConfigArgument {
 }
 
 func (msg *GetBooksResponse) XXX_Package() string {
+	return "books"
+}
+
+var GetBooksBatchRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
+	Name: "GetBooksBatchRequest",
+	Fields: gql.Fields{
+		"reqs": &gql.Field{
+			Type: gql.NewList(gql.NewNonNull(GetBooksRequestGraphqlType)),
+		},
+	},
+})
+
+var GetBooksBatchRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
+	Name: "GetBooksBatchRequestInput",
+	Fields: gql.InputObjectConfigFieldMap{
+		"reqs": &gql.InputObjectFieldConfig{
+			Type: gql.NewList(gql.NewNonNull(GetBooksRequestGraphqlInputType)),
+		},
+	},
+})
+
+var GetBooksBatchRequestGraphqlArgs = gql.FieldConfigArgument{
+	"reqs": &gql.ArgumentConfig{
+		Type: gql.NewList(gql.NewNonNull(GetBooksRequestGraphqlInputType)),
+	},
+}
+
+func GetBooksBatchRequestFromArgs(args map[string]interface{}) *GetBooksBatchRequest {
+	return GetBooksBatchRequestInstanceFromArgs(&GetBooksBatchRequest{}, args)
+}
+
+func GetBooksBatchRequestInstanceFromArgs(objectFromArgs *GetBooksBatchRequest, args map[string]interface{}) *GetBooksBatchRequest {
+	if args["reqs"] != nil {
+		reqsInterfaceList := args["reqs"].([]interface{})
+		reqs := make([]*GetBooksRequest, 0)
+
+		for _, val := range reqsInterfaceList {
+			itemResolved := GetBooksRequestFromArgs(val.(map[string]interface{}))
+			reqs = append(reqs, itemResolved)
+		}
+		objectFromArgs.Reqs = reqs
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *GetBooksBatchRequest) FromArgs(args map[string]interface{}) {
+	GetBooksBatchRequestInstanceFromArgs(objectFromArgs, args)
+}
+
+func (msg *GetBooksBatchRequest) XXX_GraphqlType() *gql.Object {
+	return GetBooksBatchRequestGraphqlType
+}
+
+func (msg *GetBooksBatchRequest) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return GetBooksBatchRequestGraphqlArgs
+}
+
+func (msg *GetBooksBatchRequest) XXX_Package() string {
+	return "books"
+}
+
+var GetBooksBatchResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
+	Name: "GetBooksBatchResponse",
+	Fields: gql.Fields{
+		"_null": &gql.Field{
+			Type: gql.Boolean,
+		},
+	},
+})
+
+var GetBooksBatchResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
+	Name: "GetBooksBatchResponseInput",
+	Fields: gql.InputObjectConfigFieldMap{
+		"_null": &gql.InputObjectFieldConfig{
+			Type: gql.Boolean,
+		},
+	},
+})
+
+var GetBooksBatchResponseGraphqlArgs = gql.FieldConfigArgument{
+	"_null": &gql.ArgumentConfig{
+		Type: gql.Boolean,
+	},
+}
+
+func GetBooksBatchResponseFromArgs(args map[string]interface{}) *GetBooksBatchResponse {
+	return GetBooksBatchResponseInstanceFromArgs(&GetBooksBatchResponse{}, args)
+}
+
+func GetBooksBatchResponseInstanceFromArgs(objectFromArgs *GetBooksBatchResponse, args map[string]interface{}) *GetBooksBatchResponse {
+	return objectFromArgs
+}
+
+func (objectFromArgs *GetBooksBatchResponse) FromArgs(args map[string]interface{}) {
+	GetBooksBatchResponseInstanceFromArgs(objectFromArgs, args)
+}
+
+func (msg *GetBooksBatchResponse) XXX_GraphqlType() *gql.Object {
+	return GetBooksBatchResponseGraphqlType
+}
+
+func (msg *GetBooksBatchResponse) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return GetBooksBatchResponseGraphqlArgs
+}
+
+func (msg *GetBooksBatchResponse) XXX_Package() string {
 	return "books"
 }
 
@@ -432,10 +522,6 @@ func GetBooksByAuthorResponseInstanceFromArgs(objectFromArgs *GetBooksByAuthorRe
 
 func (objectFromArgs *GetBooksByAuthorResponse) FromArgs(args map[string]interface{}) {
 	GetBooksByAuthorResponseInstanceFromArgs(objectFromArgs, args)
-}
-
-func (x *GetBooksByAuthorResponse) Raw() interface{} {
-	return x
 }
 
 func (msg *GetBooksByAuthorResponse) XXX_GraphqlType() *gql.Object {
@@ -494,10 +580,6 @@ func BooksByAuthorInstanceFromArgs(objectFromArgs *BooksByAuthor, args map[strin
 
 func (objectFromArgs *BooksByAuthor) FromArgs(args map[string]interface{}) {
 	BooksByAuthorInstanceFromArgs(objectFromArgs, args)
-}
-
-func (x *BooksByAuthor) Raw() interface{} {
-	return x
 }
 
 func (msg *BooksByAuthor) XXX_GraphqlType() *gql.Object {
@@ -702,10 +784,6 @@ func (objectFromArgs *Book) FromArgs(args map[string]interface{}) {
 	BookInstanceFromArgs(objectFromArgs, args)
 }
 
-func (x *Book) Raw() interface{} {
-	return x
-}
-
 func (msg *Book) XXX_GraphqlType() *gql.Object {
 	return BookGraphqlType
 }
@@ -756,10 +834,6 @@ func MoneyInstanceFromArgs(objectFromArgs *Money, args map[string]interface{}) *
 
 func (objectFromArgs *Money) FromArgs(args map[string]interface{}) {
 	MoneyInstanceFromArgs(objectFromArgs, args)
-}
-
-func (x *Money) Raw() interface{} {
-	return x
 }
 
 func (msg *Money) XXX_GraphqlType() *gql.Object {
@@ -817,6 +891,35 @@ func WithLoaders(ctx context.Context) context.Context {
 		},
 	))
 
+	ctx = context.WithValue(ctx, "GetBooksBatchLoader", dataloader.NewBatchedLoader(
+		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+			var results []*dataloader.Result
+
+			var requests []*GetBooksRequest
+			for _, key := range keys {
+				requests = append(requests, key.(*GetBooksRequestKey).GetBooksRequest)
+			}
+			resp, err := BooksClientInstance.GetBooksBatch(ctx, &GetBooksBatchRequest{
+				Reqs: requests,
+			})
+
+			if err != nil {
+				return results
+			}
+
+			for _, key := range keys.Keys() {
+				if val, ok := resp.Results[key]; ok {
+					results = append(results, &dataloader.Result{Data: val})
+				} else {
+					var empty *GetBooksResponse
+					results = append(results, &dataloader.Result{Data: empty})
+				}
+			}
+
+			return results
+		},
+	))
+
 	return ctx
 }
 
@@ -861,6 +964,70 @@ func GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface
 		var results []*BooksByAuthor
 		for _, res := range resSlice {
 			results = append(results, res.(*BooksByAuthor))
+		}
+
+		return results, nil
+	}, nil
+}
+
+type GetBooksRequestKey struct {
+	*GetBooksRequest
+}
+
+func (key *GetBooksRequestKey) String() string {
+	return pg.ProtoKey(key)
+}
+
+func (key *GetBooksRequestKey) Raw() interface{} {
+	return key
+}
+
+func GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
+	var loader *dataloader.Loader
+	switch p.Context.Value("GetBooksBatchLoader").(type) {
+	case *dataloader.Loader:
+		loader = p.Context.Value("GetBooksBatchLoader").(*dataloader.Loader)
+	default:
+		panic("Please call books.WithLoaders with the current context first")
+	}
+
+	thunk := loader.Load(p.Context, &GetBooksRequestKey{key})
+	return func() (interface{}, error) {
+		res, err := thunk()
+		if err != nil {
+			return nil, err
+		}
+		return res.(*GetBooksResponse), nil
+	}, nil
+}
+
+func GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
+	var loader *dataloader.Loader
+	switch p.Context.Value("GetBooksBatchLoader").(type) {
+	case *dataloader.Loader:
+		loader = p.Context.Value("GetBooksBatchLoader").(*dataloader.Loader)
+	default:
+		panic("Please call books.WithLoaders with the current context first")
+	}
+
+	loaderKeys := make(dataloader.Keys, len(keys))
+	for ix := range keys {
+		loaderKeys[ix] = &GetBooksRequestKey{keys[ix]}
+	}
+
+	thunk := loader.LoadMany(p.Context, loaderKeys)
+	return func() (interface{}, error) {
+		resSlice, errSlice := thunk()
+
+		for _, err := range errSlice {
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		var results []*GetBooksResponse
+		for _, res := range resSlice {
+			results = append(results, res.(*GetBooksResponse))
 		}
 
 		return results, nil

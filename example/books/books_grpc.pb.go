@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 type BooksClient interface {
 	GetBooks(ctx context.Context, in *GetBooksRequest, opts ...grpc.CallOption) (*GetBooksResponse, error)
 	GetBooksByAuthor(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*GetBooksByAuthorResponse, error)
+	GetBooksBatch(ctx context.Context, in *GetBooksBatchRequest, opts ...grpc.CallOption) (*GetBooksBatchResponse, error)
 }
 
 type booksClient struct {
@@ -49,12 +50,22 @@ func (c *booksClient) GetBooksByAuthor(ctx context.Context, in *graphql.BatchReq
 	return out, nil
 }
 
+func (c *booksClient) GetBooksBatch(ctx context.Context, in *GetBooksBatchRequest, opts ...grpc.CallOption) (*GetBooksBatchResponse, error) {
+	out := new(GetBooksBatchResponse)
+	err := c.cc.Invoke(ctx, "/books.Books/getBooksBatch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BooksServer is the server API for Books service.
 // All implementations must embed UnimplementedBooksServer
 // for forward compatibility
 type BooksServer interface {
 	GetBooks(context.Context, *GetBooksRequest) (*GetBooksResponse, error)
 	GetBooksByAuthor(context.Context, *graphql.BatchRequest) (*GetBooksByAuthorResponse, error)
+	GetBooksBatch(context.Context, *GetBooksBatchRequest) (*GetBooksBatchResponse, error)
 	mustEmbedUnimplementedBooksServer()
 }
 
@@ -67,6 +78,9 @@ func (UnimplementedBooksServer) GetBooks(context.Context, *GetBooksRequest) (*Ge
 }
 func (UnimplementedBooksServer) GetBooksByAuthor(context.Context, *graphql.BatchRequest) (*GetBooksByAuthorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBooksByAuthor not implemented")
+}
+func (UnimplementedBooksServer) GetBooksBatch(context.Context, *GetBooksBatchRequest) (*GetBooksBatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBooksBatch not implemented")
 }
 func (UnimplementedBooksServer) mustEmbedUnimplementedBooksServer() {}
 
@@ -117,6 +131,24 @@ func _Books_GetBooksByAuthor_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Books_GetBooksBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBooksBatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BooksServer).GetBooksBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/books.Books/getBooksBatch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BooksServer).GetBooksBatch(ctx, req.(*GetBooksBatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Books_ServiceDesc is the grpc.ServiceDesc for Books service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -131,6 +163,10 @@ var Books_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "getBooksByAuthor",
 			Handler:    _Books_GetBooksByAuthor_Handler,
+		},
+		{
+			MethodName: "getBooksBatch",
+			Handler:    _Books_GetBooksBatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

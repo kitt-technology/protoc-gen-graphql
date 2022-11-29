@@ -29,6 +29,10 @@ extend google.protobuf.FieldOptions {
   bool skip_field = 1097;
 }
 
+extend google.protobuf.MethodOptions {
+  bool batch_loader = 1098;
+}
+
 message BatchRequest {
   repeated string keys = 1;
 }
