@@ -28,19 +28,17 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 
 	for _, method := range msg.Method {
 		// Get output type of method
-		var output *descriptorpb.DescriptorProto
-		for _, msgType := range root.MessageType {
-			if util.Last(*method.OutputType) == *msgType.Name {
-				output = msgType
-			}
-		}
+		output := util.GetMessageType(root, *method.OutputType)
+		// Get input type of method
+		input := util.GetMessageType(root, *method.InputType)
 
 		if util.Last(*method.OutputType) == "Empty" {
 			continue
 		}
 
 		// See if method is a batch loader
-		if *method.InputType == ".graphql.BatchRequest" {
+		custom := proto.HasExtension(method.Options, graphql.E_BatchLoader)
+		if *method.InputType == ".graphql.BatchRequest" || custom {
 			// Find type of map
 			var resultType string
 
@@ -48,9 +46,13 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 				panic(fmt.Sprintf("batch loaders must have one field of the type: map<string, Result> for %s.%s", *msg.Name, *method.Name))
 			}
 
+			if custom && (len(input.Field) != 1 || input.Field[0].Label.String() != "LABEL_REPEATED") {
+				panic(fmt.Sprintf("custom batch loaders must have only one field of the type: repeated %s for %s.%s", util.Last(*method.InputType), *msg.Name, *method.Name))
+			}
+
 			var field = output.Field[0]
 
-			resultType = strings.Title(util.Last(*field.TypeName))
+			resultType = util.Title(util.Last(*field.TypeName))
 			nestedTypeKey := util.Last(*field.TypeName)
 			for _, nestedType := range output.NestedType {
 				if *nestedType.Name == nestedTypeKey {
@@ -68,16 +70,25 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 				}
 			}
 
+			keysField := strcase.ToCamel("Keys")
+			keysType := "string"
+			if custom {
+				keysField = strcase.ToCamel(*input.Field[0].Name)
+				keysType = util.Last(*input.Field[0].TypeName)
+			}
+
 			m.Loaders = append(m.Loaders, LoaderVars{
-				Method:       strings.Title(*method.Name),
-				RequestType:  strings.Title(util.Last(*method.InputType)),
-				KeysField:    strcase.ToCamel("Keys"),
+				Method:       util.Title(*method.Name),
+				RequestType:  util.Title(util.Last(*method.InputType)),
+				KeysField:    keysField,
+				KeysType:     keysType,
 				ResultsField: strcase.ToCamel(*field.Name),
 				ResultsType:  resultType,
+				Custom:       custom,
 			})
 
 		} else {
-			methods = append(methods, Method{Input: util.Last(*method.InputType), Output: util.Last(*method.OutputType), Name: strings.Title(*method.Name)})
+			methods = append(methods, Method{Input: util.Last(*method.InputType), Output: util.Last(*method.OutputType), Name: util.Title(*method.Name)})
 		}
 	}
 
