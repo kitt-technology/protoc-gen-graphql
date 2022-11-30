@@ -3,7 +3,6 @@ package enum
 import (
 	"bytes"
 	"fmt"
-	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -33,7 +32,7 @@ func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
 }
 
 func (m Message) Imports() []string {
-	return []string{imports.GraphqlAst}
+	return []string{}
 }
 
 func (m Message) Generate() string {
@@ -59,19 +58,6 @@ var {{ .Descriptor.GetName }}GraphqlEnum = gql.NewEnum(gql.EnumConfig{
 			Value: {{ $.Descriptor.GetName }}({{ $val }}),
 		},
 		{{- end }}
-	},
-})
-
-var {{ .Descriptor.GetName }}GraphqlType = gql.NewScalar(gql.ScalarConfig{
-	Name: "{{ .EnumName }}",
-	ParseValue: func(value interface{}) interface{} {
-		return nil
-	},
-	Serialize: func(value interface{}) interface{} {
-		return value.({{ .Descriptor.GetName }}).String()
-	},
-	ParseLiteral: func(valueAST ast.Value) interface{} {
-		return nil
 	},
 })
 `
