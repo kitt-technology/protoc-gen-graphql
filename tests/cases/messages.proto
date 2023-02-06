@@ -3,7 +3,7 @@ syntax = "proto3";
 package books;
 
 import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
-import "github.com/kitt-technology/protoc-gen-graphql/example/common-example/common-example.proto";
+import "example/common-example/common-example.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 import "example/authors/authors.proto";
