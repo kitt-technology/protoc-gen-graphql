@@ -3,7 +3,6 @@ package enum
 import (
 	"bytes"
 	"fmt"
-	"github.com/kitt-technology/protoc-gen-graphql/display"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
@@ -36,7 +35,7 @@ func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
 	}
 
 	for _, value := range msg.Value {
-		displayName := proto.GetExtension(value.Options, display.E_EnumDisplayName)
+		displayName := proto.GetExtension(value.Options, graphql.E_DisplayName)
 		if displayName == "" {
 			m.EnumDisplayNames[*value.Name] = *value.Name
 		} else {
@@ -58,6 +57,23 @@ func (m Message) Generate() string {
 	}
 
 	fmt.Fprintf(os.Stderr, "Display names: %s\n", m.EnumDisplayNames)
+
+	var jsBuf bytes.Buffer
+	jsTemplate, err := template.New("js").Parse(jsTpl)
+	if err != nil {
+		panic(err)
+	}
+	jsTemplate.Execute(&jsBuf, m)
+	fmt.Fprintf(os.Stderr, "Template: %s\n", jsBuf.String())
+
+	// Write the JS buffer to a file:
+	jsFile, err := os.Create(m.EnumName + "DisplayNames.js")
+	if err != nil {
+		panic(err)
+	}
+	jsFile.Write(jsBuf.Bytes())
+	jsFile.Close()
+
 	var buf bytes.Buffer
 	mTpl, err := template.New("msg").Parse(msgTpl)
 	if err != nil {
@@ -93,3 +109,9 @@ var {{ .Descriptor.GetName }}GraphqlType = gql.NewScalar(gql.ScalarConfig{
 	},
 })
 `
+
+const jsTpl = `export const {{ .EnumName }}DisplayNames = {
+    {{- range $key, $val := .EnumDisplayNames }}
+    "{{ $key }}": "{{ $val }}",
+    {{- end }}
+}`

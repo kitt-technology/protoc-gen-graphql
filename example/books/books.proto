@@ -63,7 +63,7 @@ message Book {
 }
 
 enum Genre {
-  Fiction = 0 [(display.enum_display_name) = "Fiction Cheeze Genre"];
+  Fiction = 0 [(graphql.display_name) = "Fiction Cheeze Genre"];
   Biography = 1;
 }
 

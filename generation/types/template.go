@@ -155,13 +155,13 @@ var {{ $name }}GraphqlType = gql.NewUnion(gql.UnionConfig{
 `
 
 type FieldTypeVars struct {
-	TypeOfType 		string
+	TypeOfType      string
 	GraphqlOptional bool
-	IsList     		bool
-	GqlType    		GqlType
-	Suffix     		string
-	GoType     		GoType
-	GqlKey     		string
+	IsList          bool
+	GqlType         GqlType
+	Suffix          string
+	GoType          GoType
+	GqlKey          string
 }
 
 var (
