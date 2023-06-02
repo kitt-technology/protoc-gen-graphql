@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/kitt-technology/protoc-gen-graphql/generation"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	_ "github.com/kitt-technology/protoc-gen-graphql/graphql"
@@ -13,6 +14,8 @@ import (
 )
 
 func main() {
+	fmt.Fprintf(os.Stderr, "Debug message: %s\n", "CHEESE IS RUNNING")
+
 	bytes, _ := ioutil.ReadAll(os.Stdin)
 
 	SupportedFeatures := uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)

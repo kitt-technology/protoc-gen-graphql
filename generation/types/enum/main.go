@@ -11,24 +11,26 @@ import (
 )
 
 type Message struct {
-	Descriptor *descriptorpb.EnumDescriptorProto
-	Import     map[string]string
-	Values     map[string]string
-	EnumName   string
+	Descriptor   *descriptorpb.EnumDescriptorProto
+	Import       map[string]string
+	Values       map[string]string
+	DisplayNames map[string]string
+	EnumName     string
 }
 
 func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
 	if proto.HasExtension(msg.Options, graphql.E_EnumName) {
-		m.EnumName = proto.GetExtension(msg.Options, graphql.E_EnumName).(string) + "CHEESE"
+		m.EnumName = proto.GetExtension(msg.Options, graphql.E_EnumName).(string)
 	} else {
-		m.EnumName = *msg.Name + "CHEESE"
+		m.EnumName = *msg.Name
 	}
 
 	return Message{
-		Import:     make(map[string]string),
-		Values:     make(map[string]string),
-		Descriptor: msg,
-		EnumName:   m.EnumName,
+		Import:       make(map[string]string),
+		Values:       make(map[string]string),
+		DisplayNames: make(map[string]string),
+		Descriptor:   msg,
+		EnumName:     m.EnumName,
 	}
 }
 

@@ -24,6 +24,10 @@ extend google.protobuf.EnumOptions {
   string enum_name = 1086;
 }
 
+extend google.protobuf.EnumValueOptions {
+  string display_name = 1099;
+}
+
 extend google.protobuf.FieldOptions {
   bool optional = 1096;
   bool skip_field = 1097;
