@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"html/template"
+	"os"
 )
 
 type Message struct {
@@ -25,13 +26,25 @@ func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
 		m.EnumName = *msg.Name
 	}
 
-	return Message{
+	m = Message{
 		Import:       make(map[string]string),
 		Values:       make(map[string]string),
 		DisplayNames: make(map[string]string),
 		Descriptor:   msg,
 		EnumName:     m.EnumName,
 	}
+
+	for _, value := range msg.Value {
+		displayName := proto.GetExtension(value.Options, graphql.E_DisplayName)
+		if displayName == "" {
+			m.DisplayNames[*value.Name] = *value.Name
+		} else {
+			m.DisplayNames[*value.Name] = displayName.(string)
+		}
+
+	}
+
+	return m
 }
 
 func (m Message) Imports() []string {
@@ -42,6 +55,8 @@ func (m Message) Generate() string {
 	for _, field := range m.Descriptor.Value {
 		m.Values[*field.Name] = fmt.Sprint(*field.Number)
 	}
+
+	fmt.Fprintf(os.Stderr, "Display names: %s\n", m.DisplayNames)
 	var buf bytes.Buffer
 	mTpl, err := template.New("msg").Parse(msgTpl)
 	if err != nil {
