@@ -1,4 +1,4 @@
-package enum_display_names
+package display
 
 import (
 	gql "github.com/graphql-go/graphql"

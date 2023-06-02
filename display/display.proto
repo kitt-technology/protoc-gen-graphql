@@ -1,8 +1,8 @@
 syntax = "proto3";
-package enum_display_names;
+package display;
 
 import "google/protobuf/descriptor.proto";
-option go_package = "github.com/kitt-technology/protoc-gen-graphql/enum_display_names";
+option go_package = "github.com/kitt-technology/protoc-gen-graphql/display";
 
 extend google.protobuf.EnumValueOptions {
   string enum_display_name = 50001;

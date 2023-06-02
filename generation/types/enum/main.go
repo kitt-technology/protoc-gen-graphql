@@ -3,7 +3,7 @@ package enum
 import (
 	"bytes"
 	"fmt"
-	"github.com/kitt-technology/protoc-gen-graphql/enum-display-names"
+	"github.com/kitt-technology/protoc-gen-graphql/display"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
@@ -36,7 +36,7 @@ func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
 	}
 
 	for _, value := range msg.Value {
-		displayName := proto.GetExtension(value.Options, enum_display_names.E_EnumDisplayName)
+		displayName := proto.GetExtension(value.Options, display.E_EnumDisplayName)
 		if displayName == "" {
 			m.EnumDisplayNames[*value.Name] = *value.Name
 		} else {
