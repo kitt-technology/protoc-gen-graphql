@@ -3,6 +3,7 @@ package enum
 import (
 	"bytes"
 	"fmt"
+	"github.com/kitt-technology/protoc-gen-graphql/enum-display-names"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
@@ -12,11 +13,11 @@ import (
 )
 
 type Message struct {
-	Descriptor   *descriptorpb.EnumDescriptorProto
-	Import       map[string]string
-	Values       map[string]string
-	DisplayNames map[string]string
-	EnumName     string
+	Descriptor       *descriptorpb.EnumDescriptorProto
+	Import           map[string]string
+	Values           map[string]string
+	EnumDisplayNames map[string]string
+	EnumName         string
 }
 
 func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
@@ -27,19 +28,19 @@ func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
 	}
 
 	m = Message{
-		Import:       make(map[string]string),
-		Values:       make(map[string]string),
-		DisplayNames: make(map[string]string),
-		Descriptor:   msg,
-		EnumName:     m.EnumName,
+		Import:           make(map[string]string),
+		Values:           make(map[string]string),
+		EnumDisplayNames: make(map[string]string),
+		Descriptor:       msg,
+		EnumName:         m.EnumName,
 	}
 
 	for _, value := range msg.Value {
-		displayName := proto.GetExtension(value.Options, graphql.E_DisplayName)
+		displayName := proto.GetExtension(value.Options, enum_display_names.E_EnumDisplayName)
 		if displayName == "" {
-			m.DisplayNames[*value.Name] = *value.Name
+			m.EnumDisplayNames[*value.Name] = *value.Name
 		} else {
-			m.DisplayNames[*value.Name] = displayName.(string)
+			m.EnumDisplayNames[*value.Name] = displayName.(string)
 		}
 
 	}
@@ -56,7 +57,7 @@ func (m Message) Generate() string {
 		m.Values[*field.Name] = fmt.Sprint(*field.Number)
 	}
 
-	fmt.Fprintf(os.Stderr, "Display names: %s\n", m.DisplayNames)
+	fmt.Fprintf(os.Stderr, "Display names: %s\n", m.EnumDisplayNames)
 	var buf bytes.Buffer
 	mTpl, err := template.New("msg").Parse(msgTpl)
 	if err != nil {

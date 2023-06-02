@@ -3,6 +3,7 @@ syntax = "proto3";
 package books;
 
 import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
+import "github.com/kitt-technology/protoc-gen-graphql/enum_display_names/enum_display_names.proto";
 import "github.com/kitt-technology/protoc-gen-graphql/example/common-example/common-example.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
@@ -62,7 +63,7 @@ message Book {
 }
 
 enum Genre {
-  Fiction = 0 [(graphql.display_name) = "Fiction Cheese Genre"];
+  Fiction = 0 [(enum_display_names.enum_display_name) = "Fiction Cheeze Genre"];
   Biography = 1;
 }
 
