@@ -19,9 +19,9 @@ type Message struct {
 
 func New(msg *descriptorpb.EnumDescriptorProto) (m Message) {
 	if proto.HasExtension(msg.Options, graphql.E_EnumName) {
-		m.EnumName = proto.GetExtension(msg.Options, graphql.E_EnumName).(string)
+		m.EnumName = proto.GetExtension(msg.Options, graphql.E_EnumName).(string) + "CHEESE"
 	} else {
-		m.EnumName = *msg.Name
+		m.EnumName = *msg.Name + "CHEESE"
 	}
 
 	return Message{
@@ -38,7 +38,7 @@ func (m Message) Imports() []string {
 
 func (m Message) Generate() string {
 	for _, field := range m.Descriptor.Value {
-		m.Values[*field.Name] = fmt.Sprint(*field.Number)
+		m.Values[*field.Name] = fmt.Sprint(*field.Number) + "CHEESE"
 	}
 	var buf bytes.Buffer
 	mTpl, err := template.New("msg").Parse(msgTpl)
