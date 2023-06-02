@@ -62,7 +62,7 @@ message Book {
 }
 
 enum Genre {
-  Fiction = 0;
+  Fiction = 0 [(graphql.display_name) = "Fiction Cheese Genre"];
   Biography = 1;
 }
 
