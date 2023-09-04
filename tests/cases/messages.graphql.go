@@ -923,7 +923,7 @@ func WithLoaders(ctx context.Context) context.Context {
 	return ctx
 }
 
-func GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+func GetBooksByAuthor(p gql.ResolveParams, key string) (func() (*BooksByAuthor, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
@@ -933,7 +933,7 @@ func GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, err
 	}
 
 	thunk := loader.Load(p.Context, dataloader.StringKey(key))
-	return func() (interface{}, error) {
+	return func() (*BooksByAuthor, error) {
 		res, err := thunk()
 		if err != nil {
 			return nil, err
@@ -942,7 +942,7 @@ func GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, err
 	}, nil
 }
 
-func GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() ([]*BooksByAuthor, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
@@ -952,7 +952,7 @@ func GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface
 	}
 
 	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
-	return func() (interface{}, error) {
+	return func() ([]*BooksByAuthor, error) {
 		resSlice, errSlice := thunk()
 
 		for _, err := range errSlice {
@@ -982,7 +982,7 @@ func (key *GetBooksRequestKey) Raw() interface{} {
 	return key
 }
 
-func GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
+func GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (*GetBooksResponse, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksBatchLoader").(type) {
 	case *dataloader.Loader:
@@ -992,7 +992,7 @@ func GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface
 	}
 
 	thunk := loader.Load(p.Context, &GetBooksRequestKey{key})
-	return func() (interface{}, error) {
+	return func() (*GetBooksResponse, error) {
 		res, err := thunk()
 		if err != nil {
 			return nil, err
@@ -1001,7 +1001,7 @@ func GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface
 	}, nil
 }
 
-func GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
+func GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() ([]*GetBooksResponse, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksBatchLoader").(type) {
 	case *dataloader.Loader:
@@ -1016,7 +1016,7 @@ func GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (in
 	}
 
 	thunk := loader.LoadMany(p.Context, loaderKeys)
-	return func() (interface{}, error) {
+	return func() ([]*GetBooksResponse, error) {
 		resSlice, errSlice := thunk()
 
 		for _, err := range errSlice {
