@@ -936,7 +936,8 @@ func GetBooksByAuthor(p gql.ResolveParams, key string) (func() (*BooksByAuthor, 
 	return func() (*BooksByAuthor, error) {
 		res, err := thunk()
 		if err != nil {
-			return nil, err
+			var zeroValue *BooksByAuthor
+			return zeroValue, err
 		}
 		return res.(*BooksByAuthor), nil
 	}, nil
@@ -995,7 +996,8 @@ func GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (*GetBooks
 	return func() (*GetBooksResponse, error) {
 		res, err := thunk()
 		if err != nil {
-			return nil, err
+			var zeroValue *GetBooksResponse
+			return zeroValue, err
 		}
 		return res.(*GetBooksResponse), nil
 	}, nil
