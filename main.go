@@ -1,6 +1,9 @@
 package main
 
 import (
+	"io/ioutil"
+	"os"
+
 	"github.com/kitt-technology/protoc-gen-graphql/generation"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	_ "github.com/kitt-technology/protoc-gen-graphql/graphql"
@@ -8,9 +11,9 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/pluginpb"
 	_ "google.golang.org/protobuf/types/pluginpb"
-	"io/ioutil"
-	"os"
 )
+
+//.
 
 func main() {
 	bytes, _ := ioutil.ReadAll(os.Stdin)
