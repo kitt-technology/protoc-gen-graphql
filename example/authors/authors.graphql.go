@@ -320,7 +320,8 @@ func LoadAuthors(p gql.ResolveParams, key string) (func() (*Author, error), erro
 	return func() (*Author, error) {
 		res, err := thunk()
 		if err != nil {
-			return nil, err
+			var zeroValue *Author
+			return zeroValue, err
 		}
 		return res.(*Author), nil
 	}, nil
