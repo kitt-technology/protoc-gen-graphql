@@ -27,7 +27,6 @@ extend google.protobuf.EnumOptions {
 extend google.protobuf.FieldOptions {
   bool optional = 1096;
   bool skip_field = 1097;
-  bool inline = 1098;
 }
 
 extend google.protobuf.MethodOptions {
