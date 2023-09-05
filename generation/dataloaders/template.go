@@ -94,8 +94,7 @@ func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }} key *{{ $
 	return func() ({{ $loader.ResultsType }}, error) {
 				res, err := thunk()
 				if err != nil {
-					var zeroValue {{ $loader.ResultsType }}
-					return zeroValue, err
+					return nil, err
 				}
 				return res.({{ $loader.ResultsType }}), nil
 	}, nil
