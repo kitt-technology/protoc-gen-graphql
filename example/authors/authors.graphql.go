@@ -307,7 +307,7 @@ func WithLoaders(ctx context.Context) context.Context {
 	return ctx
 }
 
-func LoadAuthors(p gql.ResolveParams, key string) (func() (*Author, error), error) {
+func LoadAuthors(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadAuthorsLoader").(type) {
 	case *dataloader.Loader:
@@ -317,17 +317,16 @@ func LoadAuthors(p gql.ResolveParams, key string) (func() (*Author, error), erro
 	}
 
 	thunk := loader.Load(p.Context, dataloader.StringKey(key))
-	return func() (*Author, error) {
+	return func() (interface{}, error) {
 		res, err := thunk()
 		if err != nil {
-			var zeroValue *Author
-			return zeroValue, err
+			return nil, err
 		}
 		return res.(*Author), nil
 	}, nil
 }
 
-func LoadAuthorsMany(p gql.ResolveParams, keys []string) (func() ([]*Author, error), error) {
+func LoadAuthorsMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadAuthorsLoader").(type) {
 	case *dataloader.Loader:
@@ -337,7 +336,7 @@ func LoadAuthorsMany(p gql.ResolveParams, keys []string) (func() ([]*Author, err
 	}
 
 	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
-	return func() ([]*Author, error) {
+	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 
 		for _, err := range errSlice {
