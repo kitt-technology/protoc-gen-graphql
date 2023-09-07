@@ -81,7 +81,7 @@ func (key *{{ $loader.KeysType }}Key) Raw() interface{} {
 }
 
 {{ end }}
-func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }} key *{{ $loader.KeysType }} {{ else }} key string {{ end }}) (func() ({{ $loader.ResultsType }}, error), error) {
+func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }} key *{{ $loader.KeysType }} {{ else }} key string {{ end }}) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("{{ $loader.Method }}Loader").(type) {
 	case *dataloader.Loader:
@@ -91,17 +91,16 @@ func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }} key *{{ $
 	}
 
 	thunk := loader.Load(p.Context,  {{ if $loader.Custom }} &{{ $loader.KeysType }}Key{key} {{ else }} dataloader.StringKey(key) {{ end }})
-	return func() ({{ $loader.ResultsType }}, error) {
+	return func() (interface{}, error) {
 				res, err := thunk()
 				if err != nil {
-					var zeroValue {{ $loader.ResultsType }}
-					return zeroValue, err
+					return nil, err
 				}
 				return res.({{ $loader.ResultsType }}), nil
 	}, nil
 }
 
-func {{ $loader.Method }}Many(p gql.ResolveParams, {{ if $loader.Custom }} keys []*{{ $loader.KeysType }} {{ else }} keys []string{{ end }}) (func() ([]{{ $loader.ResultsType }}, error), error) {
+func {{ $loader.Method }}Many(p gql.ResolveParams, {{ if $loader.Custom }} keys []*{{ $loader.KeysType }} {{ else }} keys []string{{ end }}) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("{{ $loader.Method }}Loader").(type) {
 	case *dataloader.Loader:
@@ -118,7 +117,7 @@ func {{ $loader.Method }}Many(p gql.ResolveParams, {{ if $loader.Custom }} keys 
 	{{ end }}
 
 	thunk := loader.LoadMany(p.Context, {{ if $loader.Custom }} loaderKeys{{ else }} dataloader.NewKeysFromStrings(keys) {{ end }})
-	return func() ([]{{ $loader.ResultsType }}, error) {
+	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 		
 		for _, err := range errSlice {
