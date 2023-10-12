@@ -130,7 +130,7 @@ var {{ $name }}GraphqlType = gql.NewUnion(gql.UnionConfig{
 		switch p.Value.(type) {
 		{{- range $field := $fields }}
 		case *{{ $.Descriptor.GetName }}_{{- $field.GoKey }}:
-			return {{- $field.Type }}
+			return {{ $field.Type }}
 		{{- end }}
 		}
 		return nil
