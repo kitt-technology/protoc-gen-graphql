@@ -130,7 +130,24 @@ var {{ $name }}GraphqlType = gql.NewUnion(gql.UnionConfig{
 		switch p.Value.(type) {
 		{{- range $field := $fields }}
 		case *{{ $.Descriptor.GetName }}_{{- $field.GoKey }}:
-			return {{ $field.Type }}
+			fields := gql.Fields{}
+			for name, field := range {{ $field.GoType }}GraphqlType.Fields() {
+				fields[name] = &gql.Field{
+					Name: field.Name,
+					Type: field.Type,
+					Resolve: func(p gql.ResolveParams) (interface{}, error) {
+						wrapper := p.Source.(*{{ $.Descriptor.GetName }}_{{- $field.GoKey }})
+						p.Source = wrapper.{{- $field.GoKey }}
+						return gql.DefaultResolveFn(p)
+					},
+				}
+			}
+
+			{{- $field.Type }} = gql.NewObject(gql.ObjectConfig{
+				Name: {{- $field.GoType }}GraphqlType.Name(),
+				Fields: fields,
+			})
+			return {{- $field.Type }}
 		{{- end }}
 		}
 		return nil
