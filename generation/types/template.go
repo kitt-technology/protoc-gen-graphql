@@ -135,8 +135,8 @@ var {{ $name }}GraphqlType = gql.NewUnion(gql.UnionConfig{
 		switch p.Value.(type) {
 		{{- range $field := $fields }}
 		case *{{ $.Descriptor.GetName }}_{{- $field.GoKey }}:
-			if {{ $.Descriptor.GetName }}_{{- $field.GoKey }}GraphqlType != nil {
-				return {{ $.Descriptor.GetName }}_{{- $field.GoKey }}GraphqlType
+			if {{ $.Descriptor.GetName }}_{{- $field.GoKey }}WrapperGraphqlType != nil {
+				return {{ $.Descriptor.GetName }}_{{- $field.GoKey }}WrapperGraphqlType
 			}
 			fields := gql.Fields{}
 			for name, field := range {{ $field.GoType }}GraphqlType.Fields() {
@@ -151,11 +151,11 @@ var {{ $name }}GraphqlType = gql.NewUnion(gql.UnionConfig{
 				}
 			}
 
-			{{ $.Descriptor.GetName }}_{{- $field.GoKey }}GraphqlType = gql.NewObject(gql.ObjectConfig{
+			{{ $.Descriptor.GetName }}_{{- $field.GoKey }}WrapperGraphqlType = gql.NewObject(gql.ObjectConfig{
 				Name: {{- $field.GoType }}GraphqlType.Name(),
 				Fields: fields,
 			})
-			return {{ $.Descriptor.GetName }}_{{- $field.GoKey }}GraphqlType
+			return {{ $.Descriptor.GetName }}_{{- $field.GoKey }}WrapperGraphqlType
 		{{- end }}
 		}
 		return nil
