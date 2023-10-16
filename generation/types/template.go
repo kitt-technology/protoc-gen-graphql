@@ -119,6 +119,11 @@ func (msg *{{ .Descriptor.GetName }}) XXX_Package() string {
 }
 
 {{- range $name, $fields := .OneOfFields }}
+
+{{- range $field := $fields }}
+var {{ $.Descriptor.GetName }}_{{- $field.GoKey }}WrapperGraphqlType *gql.Object
+{{- end }}
+
 var {{ $name }}GraphqlType = gql.NewUnion(gql.UnionConfig{
 	Name: "{{ $name }}",
 	Types: []*gql.Object{
@@ -130,6 +135,9 @@ var {{ $name }}GraphqlType = gql.NewUnion(gql.UnionConfig{
 		switch p.Value.(type) {
 		{{- range $field := $fields }}
 		case *{{ $.Descriptor.GetName }}_{{- $field.GoKey }}:
+			if {{ $.Descriptor.GetName }}_{{- $field.GoKey }}GraphqlType != nil {
+				return {{ $.Descriptor.GetName }}_{{- $field.GoKey }}GraphqlType
+			}
 			fields := gql.Fields{}
 			for name, field := range {{ $field.GoType }}GraphqlType.Fields() {
 				fields[name] = &gql.Field{
@@ -143,11 +151,11 @@ var {{ $name }}GraphqlType = gql.NewUnion(gql.UnionConfig{
 				}
 			}
 
-			{{- $field.Type }} = gql.NewObject(gql.ObjectConfig{
+			{{ $.Descriptor.GetName }}_{{- $field.GoKey }}GraphqlType = gql.NewObject(gql.ObjectConfig{
 				Name: {{- $field.GoType }}GraphqlType.Name(),
 				Fields: fields,
 			})
-			return {{- $field.Type }}
+			return {{ $.Descriptor.GetName }}_{{- $field.GoKey }}GraphqlType
 		{{- end }}
 		}
 		return nil
