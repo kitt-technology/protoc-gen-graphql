@@ -29,10 +29,10 @@ type Field struct {
 	InputType  string
 	ArgType    string
 
-	IsList     bool
-	TypeOfType string
-	IsPointer  bool
-	Proto3Optional 	bool
+	IsList         bool
+	TypeOfType     string
+	IsPointer      bool
+	Proto3Optional bool
 }
 
 type Message struct {
@@ -164,24 +164,24 @@ func (m Message) Generate() string {
 		}
 
 		fieldVars := Field{
-			GqlKey:     *field.JsonName,
-			GoKey:      goKey(field),
-			GoType:     goType,
-			TypeOfType: string(typeOfType),
-			IsList:     isList,
-			IsPointer:  isPointer,
+			GqlKey:         *field.JsonName,
+			GoKey:          goKey(field),
+			GoType:         goType,
+			TypeOfType:     string(typeOfType),
+			IsList:         isList,
+			IsPointer:      isPointer,
 			Proto3Optional: field.GetProto3Optional(),
 		}
 
 		// Generate input type
 		typeVars := FieldTypeVars{
-			TypeOfType: string(typeOfType),
-			IsList:     isList,
-			GoType:     goType,
-			GqlType:    gqlType,
-			GqlKey:     *field.JsonName,
-			Suffix:     "GraphqlInputType",
-			GraphqlOptional:   graphqlOptional,
+			TypeOfType:      string(typeOfType),
+			IsList:          isList,
+			GoType:          goType,
+			GqlType:         gqlType,
+			GqlKey:          *field.JsonName,
+			Suffix:          "GraphqlInputType",
+			GraphqlOptional: graphqlOptional,
 		}
 		var buf bytes.Buffer
 		typeTemplate.Execute(&buf, typeVars)
@@ -313,7 +313,8 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 		return "pg.PageInfo", "pg.PageInfo", Object
 	}
 
-	panic(field)
+	fieldTypeName := field.GetTypeName()[1:]
+	return GoType(fieldTypeName), GqlType(fieldTypeName), Common
 }
 
 func goKey(field *descriptorpb.FieldDescriptorProto) string {

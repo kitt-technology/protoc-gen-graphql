@@ -5,6 +5,7 @@ import (
 	"github.com/graph-gophers/dataloader"
 	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
+	"github.com/kitt-technology/protoc-gen-graphql/example/authors"
 	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/grpc"
@@ -642,6 +643,9 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"pages": &gql.Field{
 			Type: gql.Int,
 		},
+		"author": &gql.Field{
+			Type: authors.AuthorGraphqlType,
+		},
 	},
 })
 
@@ -681,6 +685,9 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"pages": &gql.InputObjectFieldConfig{
 			Type: gql.Int,
 		},
+		"author": &gql.InputObjectFieldConfig{
+			Type: authors.AuthorGraphqlInputType,
+		},
 	},
 })
 
@@ -717,6 +724,9 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"pages": &gql.ArgumentConfig{
 		Type: gql.Int,
+	},
+	"author": &gql.ArgumentConfig{
+		Type: authors.AuthorGraphqlInputType,
 	},
 }
 
@@ -776,6 +786,10 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 		val := args["pages"]
 		ptr := int32(val.(int))
 		objectFromArgs.Pages = &ptr
+	}
+	if args["author"] != nil {
+		val := args["author"]
+		objectFromArgs.Author = authors.AuthorFromArgs(val.(map[string]interface{}))
 	}
 	return objectFromArgs
 }
