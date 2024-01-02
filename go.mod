@@ -1,11 +1,11 @@
 module github.com/kitt-technology/protoc-gen-graphql
 
-go 1.14
+go 1.21.3
 
 require (
 	github.com/golang/protobuf v1.5.0
 	github.com/graph-gophers/dataloader v5.0.0+incompatible
-	github.com/graphql-go/graphql v0.8.0
+	github.com/graphql-go/graphql v0.8.1
 	github.com/iancoleman/strcase v0.1.3
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/sergi/go-diff v1.1.0
