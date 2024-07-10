@@ -2,10 +2,10 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
-	"github.com/iancoleman/strcase"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/util"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
@@ -29,10 +29,10 @@ type Field struct {
 	InputType  string
 	ArgType    string
 
-	IsList     bool
-	TypeOfType string
-	IsPointer  bool
-	Proto3Optional 	bool
+	IsList         bool
+	TypeOfType     string
+	IsPointer      bool
+	Proto3Optional bool
 }
 
 type Message struct {
@@ -47,6 +47,8 @@ type Message struct {
 }
 
 func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, graphqlImportMap map[string]GraphqlImport) (m Message) {
+
+	fmt.Println("NEW DOING", msg)
 	pkg := file.Package
 
 	var actualPkg string
@@ -164,24 +166,24 @@ func (m Message) Generate() string {
 		}
 
 		fieldVars := Field{
-			GqlKey:     *field.JsonName,
-			GoKey:      goKey(field),
-			GoType:     goType,
-			TypeOfType: string(typeOfType),
-			IsList:     isList,
-			IsPointer:  isPointer,
+			GqlKey:         *field.JsonName,
+			GoKey:          goKey(field),
+			GoType:         goType,
+			TypeOfType:     string(typeOfType),
+			IsList:         isList,
+			IsPointer:      isPointer,
 			Proto3Optional: field.GetProto3Optional(),
 		}
 
 		// Generate input type
 		typeVars := FieldTypeVars{
-			TypeOfType: string(typeOfType),
-			IsList:     isList,
-			GoType:     goType,
-			GqlType:    gqlType,
-			GqlKey:     *field.JsonName,
-			Suffix:     "GraphqlInputType",
-			GraphqlOptional:   graphqlOptional,
+			TypeOfType:      string(typeOfType),
+			IsList:          isList,
+			GoType:          goType,
+			GqlType:         gqlType,
+			GqlKey:          *field.JsonName,
+			Suffix:          "GraphqlInputType",
+			GraphqlOptional: graphqlOptional,
 		}
 		var buf bytes.Buffer
 		typeTemplate.Execute(&buf, typeVars)
