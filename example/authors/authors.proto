@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package authors;
+package authorsvc;
 
 import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
 
