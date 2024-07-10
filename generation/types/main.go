@@ -301,8 +301,8 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 	// Search through message descriptors
 	for _, messageType := range root.MessageType {
 		if *messageType.Name == util.Last(field.GetTypeName()) {
-			fmt.Println("message type name", GqlType(*messageType.Name))
-			fmt.Println(GoType(util.Last(field.GetTypeName())))
+			fmt.Println("\n***message type name", GqlType(*messageType.Name))
+			fmt.Println("field type name", field.GetTypeName(), field.GetName())
 			return GoType(util.Last(field.GetTypeName())), GqlType(*messageType.Name), Object
 		}
 	}
