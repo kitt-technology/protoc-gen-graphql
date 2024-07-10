@@ -128,6 +128,8 @@ func (m Message) Generate() string {
 			goType, gqlType, typeOfType = Types(field, m.Root, m.PackageImportMap)
 		}
 
+		fmt.Println("got gql type", gqlType)
+
 		switch {
 		case typeOfType == Wrapper:
 			m.Import[imports.WrappersPbImport] = imports.WrappersPbImport
