@@ -302,7 +302,10 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 	for _, messageType := range root.MessageType {
 		if *messageType.Name == util.Last(field.GetTypeName()) {
 			fmt.Println("\n***message type name", GqlType(*messageType.Name))
-			fmt.Println("field type name", field.GetTypeName(), field.GetName())
+			fmt.Println("field type name", field.GetTypeName(), "field get name", field.GetName())
+			fmt.Println("root package", root.GetPackage())
+			withPkg := fmt.Sprintf("%s_%s", root.GetPackage(), *messageType.Name)
+			fmt.Println("with package", withPkg)
 			return GoType(util.Last(field.GetTypeName())), GqlType(*messageType.Name), Object
 		}
 	}
