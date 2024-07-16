@@ -27,17 +27,17 @@ func main() {
 	plugin, _ := opts.New(&req)
 
 	filesToProcess := make([]*protogen.File, 0)
-	//for _, file := range plugin.Files {
-	//	if shouldProcess(file) {
-	//		filesToProcess = append(filesToProcess, file)
-	//		parsedFile := generation.New(file)
-	//		generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
-	//		_, err = generateFile.Write([]byte(parsedFile.ToString()))
-	//		if err != nil {
-	//			panic(err)
-	//		}
-	//	}
-	//}
+	for _, file := range plugin.Files {
+		if shouldProcess(file) {
+			filesToProcess = append(filesToProcess, file)
+			//parsedFile := generation.New(file)
+			//generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
+			//_, err = generateFile.Write([]byte(parsedFile.ToString()))
+			//if err != nil {
+			//	panic(err)
+			//}
+		}
+	}
 
 	parsedFile := generation.NewFromMultiple(filesToProcess)
 	generateFile := plugin.NewGeneratedFile(filesToProcess[0].GeneratedFilenamePrefix+".graphql.go", ".")
