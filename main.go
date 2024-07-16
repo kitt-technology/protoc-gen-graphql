@@ -62,6 +62,7 @@ func main() {
 	generateFile := plugin.NewGeneratedFile(filesToProcess[0].GeneratedFilenamePrefix+".graphql.go", ".")
 	_, err = generateFile.Write([]byte(parsedFile.ToString()))
 	if err != nil {
+		fmt.Println("<<<<ERROR1>>>>")
 		panic(err)
 	}
 
