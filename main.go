@@ -31,6 +31,11 @@ func main() {
 
 	fmt.Println("to gen", req.FileToGenerate)
 	fmt.Println("proto files", req.ProtoFile)
+	for _, file := range plugin.Files {
+		fmt.Println("file gopkg: ", file.GoPackageName)
+		fmt.Println("file name: ", file.GeneratedFilenamePrefix)
+		fmt.Println("file message length: ", len(file.Messages))
+	}
 
 	for _, file := range plugin.Files {
 		if shouldProcess(file) {
