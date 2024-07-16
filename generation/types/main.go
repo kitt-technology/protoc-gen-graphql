@@ -44,10 +44,10 @@ type Message struct {
 	Import           map[string]string
 	ObjectName       string
 	PackageImportMap map[string]GraphqlImport
-	Roots            []*descriptorpb.FileDescriptorProto
+	AllRoots         []*descriptorpb.FileDescriptorProto
 }
 
-func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, graphqlImportMap map[string]GraphqlImport) (m Message) {
+func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, graphqlImportMap map[string]GraphqlImport, allRoots []*descriptorpb.FileDescriptorProto) (m Message) {
 	pkg := file.Package
 
 	var actualPkg string
@@ -64,6 +64,7 @@ func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorPro
 		Package:          actualPkg,
 		OneOfFields:      make(map[string]map[string]Field, 0),
 		PackageImportMap: graphqlImportMap,
+		AllRoots:         allRoots,
 	}
 }
 
@@ -121,9 +122,9 @@ func (m Message) Generate() string {
 			}
 		}
 
-		goType, gqlType, typeOfType := Types(field, m.Root, m.PackageImportMap)
+		goType, gqlType, typeOfType := Types(field, m.Root, m.PackageImportMap, m.AllRoots)
 		if isList {
-			goType, gqlType, typeOfType = Types(field, m.Root, m.PackageImportMap)
+			goType, gqlType, typeOfType = Types(field, m.Root, m.PackageImportMap, m.AllRoots)
 		}
 
 		switch {

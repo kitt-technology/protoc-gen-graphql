@@ -10,6 +10,7 @@ import (
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"sort"
 	"strings"
 	"text/template"
@@ -63,6 +64,51 @@ func NewFromMultiple(files []*protogen.File) (f File) {
 	return f
 }
 
+func NewFromMultiple2(files []*protogen.File) (f File) {
+	exemplar := files[0]
+	f.Package = exemplar.GoPackageName
+
+	var allProtos []*descriptorpb.FileDescriptorProto
+	for _, file := range files {
+		allProtos = append(allProtos, file.Proto)
+	}
+
+	for _, file := range files {
+		for _, service := range file.Proto.Service {
+			f.Message = append(f.Message, dataloaders.New(service, file.Proto))
+			f.Imports = append(f.Imports, imports.PggImport)
+		}
+
+		for _, e := range file.Proto.EnumType {
+			f.TypeDefs = append(f.TypeDefs, enum.New(e))
+		}
+
+		if proto.HasExtension(file.Proto.Options, graphql.E_Package) {
+			importPath, gqlPkg, ok := util.ParseGraphqlPackage(file.Proto)
+			if !ok {
+				panic("invalid graphql.package: " + file.Proto.GetName())
+			}
+			// Using graphql.package, could fall back to go_package?
+			GraphqlImportMap[*file.Proto.Package] = types.GraphqlImport{
+				ImportPath: importPath,
+				GoPackage:  gqlPkg,
+			}
+		}
+
+		for _, msg := range file.Proto.MessageType {
+			if proto.HasExtension(msg.Options, graphql.E_SkipMessage) &&
+				proto.GetExtension(msg.Options, graphql.E_SkipMessage).(bool) {
+				continue
+			}
+			f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto, GraphqlImportMap, allProtos))
+		}
+
+	}
+
+	return f
+
+}
+
 func New(file *protogen.File) (f File) {
 	f.Package = file.GoPackageName
 
@@ -92,7 +138,7 @@ func New(file *protogen.File) (f File) {
 			proto.GetExtension(msg.Options, graphql.E_SkipMessage).(bool) {
 			continue
 		}
-		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto, GraphqlImportMap))
+		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto, GraphqlImportMap, []*descriptorpb.FileDescriptorProto{file.Proto}))
 
 	}
 	return f
