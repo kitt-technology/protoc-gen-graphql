@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	panic("POOOOOOOO")
+	
 	bytes, _ := ioutil.ReadAll(os.Stdin)
 
 	SupportedFeatures := uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
