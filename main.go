@@ -25,15 +25,11 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("the request is", req)
-
-	fmt.Println("bytes are", string(bytes))
-
 	opts := protogen.Options{}
 	plugin, _ := opts.New(&req)
 
 	for _, file := range plugin.Files {
-		fmt.Println("the file is", file)
+		fmt.Println("poop", file.GoPackageName, file.GeneratedFilenamePrefix)
 		if shouldProcess(file) {
 			parsedFile := generation.New(file)
 			generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
