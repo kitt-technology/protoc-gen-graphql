@@ -7,4 +7,5 @@ option go_package = "example/authors;authors";
 message Award {
   string title = 1;
   int64 year = 2;
+  int64 importance = 3;
 }
