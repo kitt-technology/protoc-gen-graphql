@@ -37,19 +37,32 @@ func main() {
 		fmt.Println("file message length: ", len(file.Messages))
 	}
 
+	filesToProcess := make([]*protogen.File, 0)
 	for _, file := range plugin.Files {
 		if shouldProcess(file) {
-			parsedFile := generation.New(file)
-			fmt.Println("<<<<", "*1*", parsedFile.Package, "*2*", len(parsedFile.Message), "*3*", file.GeneratedFilenamePrefix, "*4*", len(file.Messages),
-				"*5*", len(parsedFile.TypeDefs), "*6*", len(parsedFile.Imports),
-				"*7*", len(parsedFile.ImportMap),
-				">>>>>")
-			generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
-			_, err = generateFile.Write([]byte(parsedFile.ToString()))
-			if err != nil {
-				panic(err)
-			}
+			filesToProcess = append(filesToProcess, file)
+			//parsedFile := generation.New(file)
+			//fmt.Println("<<<<", "*1*", parsedFile.Package, "*2*", len(parsedFile.Message), "*3*", file.GeneratedFilenamePrefix, "*4*", len(file.Messages),
+			//	"*5*", len(parsedFile.TypeDefs), "*6*", len(parsedFile.Imports),
+			//	"*7*", len(parsedFile.ImportMap),
+			//	">>>>>")
+			//generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
+			//_, err = generateFile.Write([]byte(parsedFile.ToString()))
+			//if err != nil {
+			//	panic(err)
+			//}
 		}
+	}
+
+	parsedFile := generation.NewFromMultiple(filesToProcess)
+	fmt.Println("<<<<", "*1*", parsedFile.Package, "*2*", len(parsedFile.Message),
+		"*5*", len(parsedFile.TypeDefs), "*6*", len(parsedFile.Imports),
+		"*7*", len(parsedFile.ImportMap),
+		">>>>>")
+	generateFile := plugin.NewGeneratedFile(filesToProcess[0].GeneratedFilenamePrefix+".graphql.go", ".")
+	_, err = generateFile.Write([]byte(parsedFile.ToString()))
+	if err != nil {
+		panic(err)
 	}
 
 	stdout := plugin.Response()

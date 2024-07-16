@@ -52,6 +52,17 @@ type File struct {
 	ImportMap map[string]string
 }
 
+func NewFromMultiple(files []*protogen.File) (f File) {
+	for _, protogenFile := range files {
+		parsed := New(protogenFile)
+		f.Message = append(f.Message, parsed.Message...)
+		f.TypeDefs = append(f.TypeDefs, parsed.TypeDefs...)
+		f.Imports = append(f.Imports, parsed.Imports...)
+		f.Package = protogenFile.GoPackageName
+	}
+	return f
+}
+
 func New(file *protogen.File) (f File) {
 	f.Package = file.GoPackageName
 
