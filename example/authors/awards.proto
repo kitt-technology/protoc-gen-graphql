@@ -1,8 +1,7 @@
 syntax = "proto3";
 
-package authors;
+package awards;
 option go_package = "example/authors;authors";
-
 
 message Award {
   string title = 1;

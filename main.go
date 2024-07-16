@@ -26,24 +26,26 @@ func main() {
 	opts := protogen.Options{}
 	plugin, _ := opts.New(&req)
 
-	filesToProcess := make([]*protogen.File, 0)
+	filesGroupedByPackage := make(map[string][]*protogen.File)
+
 	for _, file := range plugin.Files {
 		if shouldProcess(file) {
-			filesToProcess = append(filesToProcess, file)
-			//parsedFile := generation.New(file)
-			//generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
-			//_, err = generateFile.Write([]byte(parsedFile.ToString()))
-			//if err != nil {
-			//	panic(err)
-			//}
+			goPkgNameString := string(file.GoPackageName)
+			if _, ok := filesGroupedByPackage[goPkgNameString]; !ok {
+				filesGroupedByPackage[goPkgNameString] = make([]*protogen.File, 0)
+			}
+			filesGroupedByPackage[goPkgNameString] = append(filesGroupedByPackage[goPkgNameString], file)
 		}
 	}
 
-	parsedFile := generation.NewFromMultiple(filesToProcess)
-	generateFile := plugin.NewGeneratedFile(filesToProcess[0].GeneratedFilenamePrefix+".graphql.go", ".")
-	_, err = generateFile.Write([]byte(parsedFile.ToString()))
-	if err != nil {
-		panic(err)
+	for _, packageFiles := range filesGroupedByPackage {
+		parsedFile := generation.NewFromMultiple(packageFiles)
+		generateFile := plugin.NewGeneratedFile(packageFiles[0].GeneratedFilenamePrefix+".graphql.go", ".")
+		_, err = generateFile.Write([]byte(parsedFile.ToString()))
+		if err != nil {
+			panic(err)
+		}
+
 	}
 
 	stdout := plugin.Response()
