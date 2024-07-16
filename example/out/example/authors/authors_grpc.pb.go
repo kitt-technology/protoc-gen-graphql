@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v5.27.0
-// source: authors/authors.proto
+// source: authors.proto
 
 package authors
 
@@ -143,5 +143,5 @@ var Authors_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "authors/authors.proto",
+	Metadata: "authors.proto",
 }
