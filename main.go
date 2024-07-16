@@ -29,12 +29,11 @@ func main() {
 	plugin, _ := opts.New(&req)
 
 	for _, file := range plugin.Files {
-		fmt.Println("poop", file.GoPackageName, file.GeneratedFilenamePrefix)
+		fmt.Println("\n\npoop", file.GoPackageName, file.GeneratedFilenamePrefix)
 		if shouldProcess(file) {
 			parsedFile := generation.New(file)
 			generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
 			_, err = generateFile.Write([]byte(parsedFile.ToString()))
-			fmt.Println("parsed file is", parsedFile.ToString())
 			if err != nil {
 				panic(err)
 			}
