@@ -29,10 +29,10 @@ type Field struct {
 	InputType  string
 	ArgType    string
 
-	IsList     bool
-	TypeOfType string
-	IsPointer  bool
-	Proto3Optional 	bool
+	IsList         bool
+	TypeOfType     string
+	IsPointer      bool
+	Proto3Optional bool
 }
 
 type Message struct {
@@ -44,6 +44,7 @@ type Message struct {
 	Import           map[string]string
 	ObjectName       string
 	PackageImportMap map[string]GraphqlImport
+	Roots            []*descriptorpb.FileDescriptorProto
 }
 
 func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, graphqlImportMap map[string]GraphqlImport) (m Message) {
@@ -164,24 +165,24 @@ func (m Message) Generate() string {
 		}
 
 		fieldVars := Field{
-			GqlKey:     *field.JsonName,
-			GoKey:      goKey(field),
-			GoType:     goType,
-			TypeOfType: string(typeOfType),
-			IsList:     isList,
-			IsPointer:  isPointer,
+			GqlKey:         *field.JsonName,
+			GoKey:          goKey(field),
+			GoType:         goType,
+			TypeOfType:     string(typeOfType),
+			IsList:         isList,
+			IsPointer:      isPointer,
 			Proto3Optional: field.GetProto3Optional(),
 		}
 
 		// Generate input type
 		typeVars := FieldTypeVars{
-			TypeOfType: string(typeOfType),
-			IsList:     isList,
-			GoType:     goType,
-			GqlType:    gqlType,
-			GqlKey:     *field.JsonName,
-			Suffix:     "GraphqlInputType",
-			GraphqlOptional:   graphqlOptional,
+			TypeOfType:      string(typeOfType),
+			IsList:          isList,
+			GoType:          goType,
+			GqlType:         gqlType,
+			GqlKey:          *field.JsonName,
+			Suffix:          "GraphqlInputType",
+			GraphqlOptional: graphqlOptional,
 		}
 		var buf bytes.Buffer
 		typeTemplate.Execute(&buf, typeVars)
@@ -251,7 +252,7 @@ const (
 	Common              = "Common"
 )
 
-func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport) (GoType, GqlType, FieldType) {
+func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport, allRoots []*descriptorpb.FileDescriptorProto) (GoType, GqlType, FieldType) {
 	if field.GetTypeName() != "" {
 		switch field.GetTypeName() {
 		case ".google.protobuf.StringValue":
@@ -311,6 +312,14 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 
 	if field.GetTypeName() == ".graphql.PageInfo" {
 		return "pg.PageInfo", "pg.PageInfo", Object
+	}
+
+	for _, allRoot := range allRoots {
+		for _, messageType := range allRoot.MessageType {
+			if *messageType.Name == util.Last(field.GetTypeName()) {
+				return GoType(util.Last(field.GetTypeName())), GqlType(*messageType.Name), Object
+			}
+		}
 	}
 
 	panic(field)
