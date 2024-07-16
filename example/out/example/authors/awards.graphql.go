@@ -19,6 +19,84 @@ func Fields(opts ...grpc.DialOption) []*gql.Field {
 
 var fields []*gql.Field
 
+var AwardGraphqlType = gql.NewObject(gql.ObjectConfig{
+	Name: "Award",
+	Fields: gql.Fields{
+		"title": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
+		},
+		"year": &gql.Field{
+			Type: gql.NewNonNull(gql.Int),
+		},
+		"importance": &gql.Field{
+			Type: gql.NewNonNull(gql.Int),
+		},
+	},
+})
+
+var AwardGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
+	Name: "AwardInput",
+	Fields: gql.InputObjectConfigFieldMap{
+		"title": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
+		},
+		"year": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.Int),
+		},
+		"importance": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.Int),
+		},
+	},
+})
+
+var AwardGraphqlArgs = gql.FieldConfigArgument{
+	"title": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
+	},
+	"year": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.Int),
+	},
+	"importance": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.Int),
+	},
+}
+
+func AwardFromArgs(args map[string]interface{}) *Award {
+	return AwardInstanceFromArgs(&Award{}, args)
+}
+
+func AwardInstanceFromArgs(objectFromArgs *Award, args map[string]interface{}) *Award {
+	if args["title"] != nil {
+		val := args["title"]
+		objectFromArgs.Title = string(val.(string))
+	}
+	if args["year"] != nil {
+		val := args["year"]
+		objectFromArgs.Year = int64(val.(int))
+	}
+	if args["importance"] != nil {
+		val := args["importance"]
+		objectFromArgs.Importance = int64(val.(int))
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *Award) FromArgs(args map[string]interface{}) {
+	AwardInstanceFromArgs(objectFromArgs, args)
+}
+
+func (msg *Award) XXX_GraphqlType() *gql.Object {
+	return AwardGraphqlType
+}
+
+func (msg *Award) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return AwardGraphqlArgs
+}
+
+func (msg *Award) XXX_Package() string {
+	return "authors"
+}
+
 var GetAuthorsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "GetAuthorsRequest",
 	Fields: gql.Fields{
@@ -205,6 +283,9 @@ var AuthorGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"name": &gql.Field{
 			Type: gql.NewNonNull(gql.String),
 		},
+		"awards": &gql.Field{
+			Type: AwardGraphqlType,
+		},
 	},
 })
 
@@ -217,6 +298,9 @@ var AuthorGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"name": &gql.InputObjectFieldConfig{
 			Type: gql.NewNonNull(gql.String),
 		},
+		"awards": &gql.InputObjectFieldConfig{
+			Type: AwardGraphqlInputType,
+		},
 	},
 })
 
@@ -226,6 +310,9 @@ var AuthorGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"name": &gql.ArgumentConfig{
 		Type: gql.NewNonNull(gql.String),
+	},
+	"awards": &gql.ArgumentConfig{
+		Type: AwardGraphqlInputType,
 	},
 }
 
@@ -241,6 +328,10 @@ func AuthorInstanceFromArgs(objectFromArgs *Author, args map[string]interface{})
 	if args["name"] != nil {
 		val := args["name"]
 		objectFromArgs.Name = string(val.(string))
+	}
+	if args["awards"] != nil {
+		val := args["awards"]
+		objectFromArgs.Awards = AwardFromArgs(val.(map[string]interface{}))
 	}
 	return objectFromArgs
 }
@@ -258,84 +349,6 @@ func (msg *Author) XXX_GraphqlArgs() gql.FieldConfigArgument {
 }
 
 func (msg *Author) XXX_Package() string {
-	return "authors"
-}
-
-var AwardGraphqlType = gql.NewObject(gql.ObjectConfig{
-	Name: "Award",
-	Fields: gql.Fields{
-		"title": &gql.Field{
-			Type: gql.NewNonNull(gql.String),
-		},
-		"year": &gql.Field{
-			Type: gql.NewNonNull(gql.Int),
-		},
-		"importance": &gql.Field{
-			Type: gql.NewNonNull(gql.Int),
-		},
-	},
-})
-
-var AwardGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
-	Name: "AwardInput",
-	Fields: gql.InputObjectConfigFieldMap{
-		"title": &gql.InputObjectFieldConfig{
-			Type: gql.NewNonNull(gql.String),
-		},
-		"year": &gql.InputObjectFieldConfig{
-			Type: gql.NewNonNull(gql.Int),
-		},
-		"importance": &gql.InputObjectFieldConfig{
-			Type: gql.NewNonNull(gql.Int),
-		},
-	},
-})
-
-var AwardGraphqlArgs = gql.FieldConfigArgument{
-	"title": &gql.ArgumentConfig{
-		Type: gql.NewNonNull(gql.String),
-	},
-	"year": &gql.ArgumentConfig{
-		Type: gql.NewNonNull(gql.Int),
-	},
-	"importance": &gql.ArgumentConfig{
-		Type: gql.NewNonNull(gql.Int),
-	},
-}
-
-func AwardFromArgs(args map[string]interface{}) *Award {
-	return AwardInstanceFromArgs(&Award{}, args)
-}
-
-func AwardInstanceFromArgs(objectFromArgs *Award, args map[string]interface{}) *Award {
-	if args["title"] != nil {
-		val := args["title"]
-		objectFromArgs.Title = string(val.(string))
-	}
-	if args["year"] != nil {
-		val := args["year"]
-		objectFromArgs.Year = int64(val.(int))
-	}
-	if args["importance"] != nil {
-		val := args["importance"]
-		objectFromArgs.Importance = int64(val.(int))
-	}
-	return objectFromArgs
-}
-
-func (objectFromArgs *Award) FromArgs(args map[string]interface{}) {
-	AwardInstanceFromArgs(objectFromArgs, args)
-}
-
-func (msg *Award) XXX_GraphqlType() *gql.Object {
-	return AwardGraphqlType
-}
-
-func (msg *Award) XXX_GraphqlArgs() gql.FieldConfigArgument {
-	return AwardGraphqlArgs
-}
-
-func (msg *Award) XXX_Package() string {
 	return "authors"
 }
 

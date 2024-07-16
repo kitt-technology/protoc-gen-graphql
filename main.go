@@ -38,9 +38,10 @@ func main() {
 		}
 	}
 
-	for _, packageFiles := range filesGroupedByPackage {
+	for packageName, packageFiles := range filesGroupedByPackage {
 		parsedFile := generation.NewFromMultiple2(packageFiles)
-		generateFile := plugin.NewGeneratedFile(packageFiles[0].GeneratedFilenamePrefix+".graphql.go", ".")
+
+		generateFile := plugin.NewGeneratedFile(packageName+".graphql.go", ".")
 		_, err = generateFile.Write([]byte(parsedFile.ToString()))
 		if err != nil {
 			panic(err)
