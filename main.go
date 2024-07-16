@@ -10,6 +10,7 @@ import (
 	_ "google.golang.org/protobuf/types/pluginpb"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -38,10 +39,25 @@ func main() {
 		}
 	}
 
-	for packageName, packageFiles := range filesGroupedByPackage {
+	for _, packageFiles := range filesGroupedByPackage {
 		parsedFile := generation.NewFromMultiple2(packageFiles)
+		prefix := packageFiles[0].GeneratedFilenamePrefix
 
-		generateFile := plugin.NewGeneratedFile(packageName+".graphql.go", ".")
+		//if there are multiple files, rename the generated graphql file to 'combined'
+		if len(packageFiles) > 1 {
+			newPart := "combined"
+
+			// Split the string by "/"
+			parts := strings.Split(prefix, "/")
+
+			// Replace the last part
+			parts[len(parts)-1] = newPart
+
+			// Join the parts back together
+			prefix = strings.Join(parts, "/")
+		}
+
+		generateFile := plugin.NewGeneratedFile(prefix+".graphql.go", ".")
 		_, err = generateFile.Write([]byte(parsedFile.ToString()))
 		if err != nil {
 			panic(err)
