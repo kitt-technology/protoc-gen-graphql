@@ -40,7 +40,7 @@ func main() {
 	for _, file := range plugin.Files {
 		if shouldProcess(file) {
 			parsedFile := generation.New(file)
-			fmt.Println("***", parsedFile.Package, len(parsedFile.Message))
+			fmt.Println("<<<<", parsedFile.Package, len(parsedFile.Message), file.GeneratedFilenamePrefix, ">>>>>")
 			generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
 			_, err = generateFile.Write([]byte(parsedFile.ToString()))
 			if err != nil {
