@@ -3,7 +3,7 @@ syntax = "proto3";
 package authors;
 
 import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
-import "/example/authors/awards.proto";
+import "awards.proto";
 
 option go_package = "example/authors;authors";
 
@@ -30,5 +30,5 @@ message AuthorsBatchResponse {
 message Author {
   string id = 1;
   string name = 2;
-  awards.Award awards = 3;
+  Award awards = 3;
 }
