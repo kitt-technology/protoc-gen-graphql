@@ -15,6 +15,7 @@ import (
 
 func main() {
 	fmt.Println("os stdin", os.Stdin)
+
 	bytes, _ := ioutil.ReadAll(os.Stdin)
 
 	SupportedFeatures := uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
@@ -28,8 +29,10 @@ func main() {
 	opts := protogen.Options{}
 	plugin, _ := opts.New(&req)
 
+	fmt.Println("to gen", req.FileToGenerate)
+	fmt.Println("proto files", req.ProtoFile)
+
 	for _, file := range plugin.Files {
-		fmt.Println("\n\npoop", file.GoPackageName, file.GeneratedFilenamePrefix)
 		if shouldProcess(file) {
 			parsedFile := generation.New(file)
 			generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
