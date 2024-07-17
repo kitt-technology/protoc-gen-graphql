@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	
+
 	bytes, _ := ioutil.ReadAll(os.Stdin)
 
 	SupportedFeatures := uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
@@ -41,7 +41,7 @@ func main() {
 	}
 
 	for _, packageFiles := range filesGroupedByPackage {
-		parsedFile := generation.NewFromMultiple2(packageFiles)
+		parsedFile := generation.NewFromMultiple(packageFiles)
 		prefix := packageFiles[0].GeneratedFilenamePrefix
 
 		//if there are multiple files, rename the generated graphql file to 'combined'
