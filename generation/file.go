@@ -2,6 +2,10 @@ package generation
 
 import (
 	"bytes"
+	"sort"
+	"strings"
+	"text/template"
+
 	"github.com/kitt-technology/protoc-gen-graphql/generation/dataloaders"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types"
@@ -11,9 +15,6 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
-	"sort"
-	"strings"
-	"text/template"
 )
 
 const fileTpl = `
@@ -54,17 +55,6 @@ type File struct {
 }
 
 func NewFromMultiple(files []*protogen.File) (f File) {
-	for _, protogenFile := range files {
-		parsed := New(protogenFile)
-		f.Message = append(f.Message, parsed.Message...)
-		f.TypeDefs = append(f.TypeDefs, parsed.TypeDefs...)
-		f.Imports = append(f.Imports, parsed.Imports...)
-		f.Package = protogenFile.GoPackageName
-	}
-	return f
-}
-
-func NewFromMultiple2(files []*protogen.File) (f File) {
 	exemplar := files[0]
 	f.Package = exemplar.GoPackageName
 
@@ -75,7 +65,7 @@ func NewFromMultiple2(files []*protogen.File) (f File) {
 
 	for _, file := range files {
 		for _, service := range file.Proto.Service {
-			f.Message = append(f.Message, dataloaders.New(service, file.Proto))
+			f.Message = append(f.Message, dataloaders.New(service, allProtos))
 			f.Imports = append(f.Imports, imports.PggImport)
 		}
 
@@ -113,7 +103,7 @@ func New(file *protogen.File) (f File) {
 	f.Package = file.GoPackageName
 
 	for _, service := range file.Proto.Service {
-		f.Message = append(f.Message, dataloaders.New(service, file.Proto))
+		f.Message = append(f.Message, dataloaders.New(service, []*descriptorpb.FileDescriptorProto{file.Proto}))
 		f.Imports = append(f.Imports, imports.PggImport)
 	}
 

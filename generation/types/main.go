@@ -122,9 +122,9 @@ func (m Message) Generate() string {
 			}
 		}
 
-		goType, gqlType, typeOfType := Types(field, m.Root, m.PackageImportMap, m.AllRoots)
+		goType, gqlType, typeOfType := Types(field, m.AllRoots, m.PackageImportMap)
 		if isList {
-			goType, gqlType, typeOfType = Types(field, m.Root, m.PackageImportMap, m.AllRoots)
+			goType, gqlType, typeOfType = Types(field, m.AllRoots, m.PackageImportMap)
 		}
 
 		switch {
@@ -253,7 +253,7 @@ const (
 	Common              = "Common"
 )
 
-func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport, allRoots []*descriptorpb.FileDescriptorProto) (GoType, GqlType, FieldType) {
+func Types(field *descriptorpb.FieldDescriptorProto, allRoots []*descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport) (GoType, GqlType, FieldType) {
 	if field.GetTypeName() != "" {
 		switch field.GetTypeName() {
 		case ".google.protobuf.StringValue":
@@ -288,39 +288,40 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 		return "[]byte", "gql.String", Primitive
 	}
 
-	for pkg, graphqlType := range packageImportMap {
-		typeNameWithProtoImport := field.GetTypeName()[1:]
-		if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg) {
-			typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg)
-			typeNameWithGoImport := graphqlType.GoPackage + typeName
-			return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common
+	for _, root := range allRoots {
+		for pkg, graphqlType := range packageImportMap {
+			typeNameWithProtoImport := field.GetTypeName()[1:]
+			if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg) {
+				typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg)
+				typeNameWithGoImport := graphqlType.GoPackage + typeName
+				return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common
+			}
 		}
-	}
 
-	// Search through message descriptors
-	for _, messageType := range root.MessageType {
-		if *messageType.Name == util.Last(field.GetTypeName()) {
-			return GoType(util.Last(field.GetTypeName())), GqlType(*messageType.Name), Object
-		}
-	}
-
-	// Search through enums
-	for _, enumType := range root.EnumType {
-		if *enumType.Name == util.Last(field.GetTypeName()) {
-			return GoType(util.Last(field.GetTypeName())), GqlType(*enumType.Name), Enum
-		}
-	}
-
-	if field.GetTypeName() == ".graphql.PageInfo" {
-		return "pg.PageInfo", "pg.PageInfo", Object
-	}
-
-	for _, allRoot := range allRoots {
-		for _, messageType := range allRoot.MessageType {
+		// Search through message descriptors
+		for _, messageType := range root.MessageType {
 			if *messageType.Name == util.Last(field.GetTypeName()) {
 				return GoType(util.Last(field.GetTypeName())), GqlType(*messageType.Name), Object
 			}
 		}
+
+		// Search through enums
+		for _, enumType := range root.EnumType {
+			if *enumType.Name == util.Last(field.GetTypeName()) {
+				return GoType(util.Last(field.GetTypeName())), GqlType(*enumType.Name), Enum
+			}
+		}
+
+		if field.GetTypeName() == ".graphql.PageInfo" {
+			return "pg.PageInfo", "pg.PageInfo", Object
+		}
+
+		for _, messageType := range root.MessageType {
+			if *messageType.Name == util.Last(field.GetTypeName()) {
+				return GoType(util.Last(field.GetTypeName())), GqlType(*messageType.Name), Object
+			}
+		}
+
 	}
 
 	panic(field)
