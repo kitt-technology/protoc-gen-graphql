@@ -12,6 +12,7 @@ service Authors {
       "localhost:50052";
   rpc getAuthors(GetAuthorsRequest) returns (GetAuthorsResponse) {}
   rpc loadAuthors(graphql.BatchRequest) returns (AuthorsBatchResponse) {};
+  rpc getAwards(GetAwardsRequest) returns (GetAwardsResponse) {};
 }
 
 message GetAuthorsRequest {
