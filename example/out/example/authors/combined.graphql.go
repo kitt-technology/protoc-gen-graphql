@@ -5,6 +5,7 @@ import (
 	"google.golang.org/grpc"
 	"context"
 	"github.com/graph-gophers/dataloader"
+	"github.com/graphql-go/graphql/language/ast"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
 
@@ -19,6 +20,34 @@ func Fields(opts ...grpc.DialOption) []*gql.Field {
 
 var fields []*gql.Field
 
+var AwardTypeGraphqlEnum = gql.NewEnum(gql.EnumConfig{
+	Name: "AwardType",
+	Values: gql.EnumValueConfigMap{
+		"BestModernFiction": &gql.EnumValueConfig{
+			Value: AwardType(2),
+		},
+		"BookOfTheYear": &gql.EnumValueConfig{
+			Value: AwardType(1),
+		},
+		"UnknownAwardType": &gql.EnumValueConfig{
+			Value: AwardType(0),
+		},
+	},
+})
+
+var AwardTypeGraphqlType = gql.NewScalar(gql.ScalarConfig{
+	Name: "AwardType",
+	ParseValue: func(value interface{}) interface{} {
+		return nil
+	},
+	Serialize: func(value interface{}) interface{} {
+		return value.(AwardType).String()
+	},
+	ParseLiteral: func(valueAST ast.Value) interface{} {
+		return nil
+	},
+})
+
 var AwardGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "Award",
 	Fields: gql.Fields{
@@ -30,6 +59,12 @@ var AwardGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 		"importance": &gql.Field{
 			Type: gql.NewNonNull(gql.Int),
+		},
+		"type": &gql.Field{
+			Type: AwardTypeGraphqlEnum,
+		},
+		"id": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
 		},
 	},
 })
@@ -46,6 +81,12 @@ var AwardGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"importance": &gql.InputObjectFieldConfig{
 			Type: gql.NewNonNull(gql.Int),
 		},
+		"type": &gql.InputObjectFieldConfig{
+			Type: AwardTypeGraphqlEnum,
+		},
+		"id": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
+		},
 	},
 })
 
@@ -58,6 +99,12 @@ var AwardGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"importance": &gql.ArgumentConfig{
 		Type: gql.NewNonNull(gql.Int),
+	},
+	"type": &gql.ArgumentConfig{
+		Type: AwardTypeGraphqlEnum,
+	},
+	"id": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
 	},
 }
 
@@ -78,6 +125,14 @@ func AwardInstanceFromArgs(objectFromArgs *Award, args map[string]interface{}) *
 		val := args["importance"]
 		objectFromArgs.Importance = int64(val.(int))
 	}
+	if args["type"] != nil {
+		val := args["type"]
+		objectFromArgs.Type = val.(AwardType)
+	}
+	if args["id"] != nil {
+		val := args["id"]
+		objectFromArgs.Id = string(val.(string))
+	}
 	return objectFromArgs
 }
 
@@ -94,6 +149,122 @@ func (msg *Award) XXX_GraphqlArgs() gql.FieldConfigArgument {
 }
 
 func (msg *Award) XXX_Package() string {
+	return "authors"
+}
+
+var GetAwardsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
+	Name: "GetAwardsRequest",
+	Fields: gql.Fields{
+		"ids": &gql.Field{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+		},
+	},
+})
+
+var GetAwardsRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
+	Name: "GetAwardsRequestInput",
+	Fields: gql.InputObjectConfigFieldMap{
+		"ids": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+		},
+	},
+})
+
+var GetAwardsRequestGraphqlArgs = gql.FieldConfigArgument{
+	"ids": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+	},
+}
+
+func GetAwardsRequestFromArgs(args map[string]interface{}) *GetAwardsRequest {
+	return GetAwardsRequestInstanceFromArgs(&GetAwardsRequest{}, args)
+}
+
+func GetAwardsRequestInstanceFromArgs(objectFromArgs *GetAwardsRequest, args map[string]interface{}) *GetAwardsRequest {
+	if args["ids"] != nil {
+		idsInterfaceList := args["ids"].([]interface{})
+		ids := make([]string, 0)
+
+		for _, val := range idsInterfaceList {
+			itemResolved := string(val.(string))
+			ids = append(ids, itemResolved)
+		}
+		objectFromArgs.Ids = ids
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *GetAwardsRequest) FromArgs(args map[string]interface{}) {
+	GetAwardsRequestInstanceFromArgs(objectFromArgs, args)
+}
+
+func (msg *GetAwardsRequest) XXX_GraphqlType() *gql.Object {
+	return GetAwardsRequestGraphqlType
+}
+
+func (msg *GetAwardsRequest) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return GetAwardsRequestGraphqlArgs
+}
+
+func (msg *GetAwardsRequest) XXX_Package() string {
+	return "authors"
+}
+
+var GetAwardsResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
+	Name: "GetAwardsResponse",
+	Fields: gql.Fields{
+		"awards": &gql.Field{
+			Type: gql.NewList(gql.NewNonNull(AwardGraphqlType)),
+		},
+	},
+})
+
+var GetAwardsResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
+	Name: "GetAwardsResponseInput",
+	Fields: gql.InputObjectConfigFieldMap{
+		"awards": &gql.InputObjectFieldConfig{
+			Type: gql.NewList(gql.NewNonNull(AwardGraphqlInputType)),
+		},
+	},
+})
+
+var GetAwardsResponseGraphqlArgs = gql.FieldConfigArgument{
+	"awards": &gql.ArgumentConfig{
+		Type: gql.NewList(gql.NewNonNull(AwardGraphqlInputType)),
+	},
+}
+
+func GetAwardsResponseFromArgs(args map[string]interface{}) *GetAwardsResponse {
+	return GetAwardsResponseInstanceFromArgs(&GetAwardsResponse{}, args)
+}
+
+func GetAwardsResponseInstanceFromArgs(objectFromArgs *GetAwardsResponse, args map[string]interface{}) *GetAwardsResponse {
+	if args["awards"] != nil {
+		awardsInterfaceList := args["awards"].([]interface{})
+		awards := make([]*Award, 0)
+
+		for _, val := range awardsInterfaceList {
+			itemResolved := AwardFromArgs(val.(map[string]interface{}))
+			awards = append(awards, itemResolved)
+		}
+		objectFromArgs.Awards = awards
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *GetAwardsResponse) FromArgs(args map[string]interface{}) {
+	GetAwardsResponseInstanceFromArgs(objectFromArgs, args)
+}
+
+func (msg *GetAwardsResponse) XXX_GraphqlType() *gql.Object {
+	return GetAwardsResponseGraphqlType
+}
+
+func (msg *GetAwardsResponse) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return GetAwardsResponseGraphqlArgs
+}
+
+func (msg *GetAwardsResponse) XXX_Package() string {
 	return "authors"
 }
 
@@ -364,6 +535,15 @@ func init() {
 		Args: GetAuthorsRequestGraphqlArgs,
 		Resolve: func(p gql.ResolveParams) (interface{}, error) {
 			return AuthorsClientInstance.GetAuthors(p.Context, GetAuthorsRequestFromArgs(p.Args))
+		},
+	})
+
+	fields = append(fields, &gql.Field{
+		Name: "authors_GetAwards",
+		Type: GetAwardsResponseGraphqlType,
+		Args: GetAwardsRequestGraphqlArgs,
+		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			return AuthorsClientInstance.GetAwards(p.Context, GetAwardsRequestFromArgs(p.Args))
 		},
 	})
 

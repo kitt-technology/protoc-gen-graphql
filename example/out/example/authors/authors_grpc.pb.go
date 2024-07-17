@@ -22,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Authors_GetAuthors_FullMethodName  = "/authors.Authors/getAuthors"
 	Authors_LoadAuthors_FullMethodName = "/authors.Authors/loadAuthors"
+	Authors_GetAwards_FullMethodName   = "/authors.Authors/getAwards"
 )
 
 // AuthorsClient is the client API for Authors service.
@@ -30,6 +31,7 @@ const (
 type AuthorsClient interface {
 	GetAuthors(ctx context.Context, in *GetAuthorsRequest, opts ...grpc.CallOption) (*GetAuthorsResponse, error)
 	LoadAuthors(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*AuthorsBatchResponse, error)
+	GetAwards(ctx context.Context, in *GetAwardsRequest, opts ...grpc.CallOption) (*GetAwardsResponse, error)
 }
 
 type authorsClient struct {
@@ -58,12 +60,22 @@ func (c *authorsClient) LoadAuthors(ctx context.Context, in *graphql.BatchReques
 	return out, nil
 }
 
+func (c *authorsClient) GetAwards(ctx context.Context, in *GetAwardsRequest, opts ...grpc.CallOption) (*GetAwardsResponse, error) {
+	out := new(GetAwardsResponse)
+	err := c.cc.Invoke(ctx, Authors_GetAwards_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthorsServer is the server API for Authors service.
 // All implementations must embed UnimplementedAuthorsServer
 // for forward compatibility
 type AuthorsServer interface {
 	GetAuthors(context.Context, *GetAuthorsRequest) (*GetAuthorsResponse, error)
 	LoadAuthors(context.Context, *graphql.BatchRequest) (*AuthorsBatchResponse, error)
+	GetAwards(context.Context, *GetAwardsRequest) (*GetAwardsResponse, error)
 	mustEmbedUnimplementedAuthorsServer()
 }
 
@@ -76,6 +88,9 @@ func (UnimplementedAuthorsServer) GetAuthors(context.Context, *GetAuthorsRequest
 }
 func (UnimplementedAuthorsServer) LoadAuthors(context.Context, *graphql.BatchRequest) (*AuthorsBatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoadAuthors not implemented")
+}
+func (UnimplementedAuthorsServer) GetAwards(context.Context, *GetAwardsRequest) (*GetAwardsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAwards not implemented")
 }
 func (UnimplementedAuthorsServer) mustEmbedUnimplementedAuthorsServer() {}
 
@@ -126,6 +141,24 @@ func _Authors_LoadAuthors_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Authors_GetAwards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAwardsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthorsServer).GetAwards(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Authors_GetAwards_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthorsServer).GetAwards(ctx, req.(*GetAwardsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Authors_ServiceDesc is the grpc.ServiceDesc for Authors service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -140,6 +173,10 @@ var Authors_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "loadAuthors",
 			Handler:    _Authors_LoadAuthors_Handler,
+		},
+		{
+			MethodName: "getAwards",
+			Handler:    _Authors_GetAwards_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
