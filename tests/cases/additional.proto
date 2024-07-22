@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package books;
+
+option go_package = "github.com/kitt-technology/protoc-gen-graphql/cases;cases";
+
+message Publisher {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+}
