@@ -29,10 +29,10 @@ type Field struct {
 	InputType  string
 	ArgType    string
 
-	IsList     bool
-	TypeOfType string
-	IsPointer  bool
-	Proto3Optional 	bool
+	IsList         bool
+	TypeOfType     string
+	IsPointer      bool
+	Proto3Optional bool
 }
 
 type Message struct {
@@ -44,9 +44,10 @@ type Message struct {
 	Import           map[string]string
 	ObjectName       string
 	PackageImportMap map[string]GraphqlImport
+	AllRoots         []*descriptorpb.FileDescriptorProto
 }
 
-func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, graphqlImportMap map[string]GraphqlImport) (m Message) {
+func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, graphqlImportMap map[string]GraphqlImport, allRoots []*descriptorpb.FileDescriptorProto) (m Message) {
 	pkg := file.Package
 
 	var actualPkg string
@@ -63,6 +64,7 @@ func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorPro
 		Package:          actualPkg,
 		OneOfFields:      make(map[string]map[string]Field, 0),
 		PackageImportMap: graphqlImportMap,
+		AllRoots:         allRoots,
 	}
 }
 
@@ -120,9 +122,9 @@ func (m Message) Generate() string {
 			}
 		}
 
-		goType, gqlType, typeOfType := Types(field, m.Root, m.PackageImportMap)
+		goType, gqlType, typeOfType := Types(field, m.AllRoots, m.PackageImportMap)
 		if isList {
-			goType, gqlType, typeOfType = Types(field, m.Root, m.PackageImportMap)
+			goType, gqlType, typeOfType = Types(field, m.AllRoots, m.PackageImportMap)
 		}
 
 		switch {
@@ -164,24 +166,24 @@ func (m Message) Generate() string {
 		}
 
 		fieldVars := Field{
-			GqlKey:     *field.JsonName,
-			GoKey:      goKey(field),
-			GoType:     goType,
-			TypeOfType: string(typeOfType),
-			IsList:     isList,
-			IsPointer:  isPointer,
+			GqlKey:         *field.JsonName,
+			GoKey:          goKey(field),
+			GoType:         goType,
+			TypeOfType:     string(typeOfType),
+			IsList:         isList,
+			IsPointer:      isPointer,
 			Proto3Optional: field.GetProto3Optional(),
 		}
 
 		// Generate input type
 		typeVars := FieldTypeVars{
-			TypeOfType: string(typeOfType),
-			IsList:     isList,
-			GoType:     goType,
-			GqlType:    gqlType,
-			GqlKey:     *field.JsonName,
-			Suffix:     "GraphqlInputType",
-			GraphqlOptional:   graphqlOptional,
+			TypeOfType:      string(typeOfType),
+			IsList:          isList,
+			GoType:          goType,
+			GqlType:         gqlType,
+			GqlKey:          *field.JsonName,
+			Suffix:          "GraphqlInputType",
+			GraphqlOptional: graphqlOptional,
 		}
 		var buf bytes.Buffer
 		typeTemplate.Execute(&buf, typeVars)
@@ -251,7 +253,7 @@ const (
 	Common              = "Common"
 )
 
-func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport) (GoType, GqlType, FieldType) {
+func Types(field *descriptorpb.FieldDescriptorProto, allRoots []*descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport) (GoType, GqlType, FieldType) {
 	if field.GetTypeName() != "" {
 		switch field.GetTypeName() {
 		case ".google.protobuf.StringValue":
@@ -286,31 +288,40 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 		return "[]byte", "gql.String", Primitive
 	}
 
-	for pkg, graphqlType := range packageImportMap {
-		typeNameWithProtoImport := field.GetTypeName()[1:]
-		if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg) {
-			typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg)
-			typeNameWithGoImport := graphqlType.GoPackage + typeName
-			return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common
+	for _, root := range allRoots {
+		for pkg, graphqlType := range packageImportMap {
+			typeNameWithProtoImport := field.GetTypeName()[1:]
+			if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg) {
+				typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg)
+				typeNameWithGoImport := graphqlType.GoPackage + typeName
+				return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common
+			}
 		}
-	}
 
-	// Search through message descriptors
-	for _, messageType := range root.MessageType {
-		if *messageType.Name == util.Last(field.GetTypeName()) {
-			return GoType(util.Last(field.GetTypeName())), GqlType(*messageType.Name), Object
+		// Search through message descriptors
+		for _, messageType := range root.MessageType {
+			if *messageType.Name == util.Last(field.GetTypeName()) {
+				return GoType(util.Last(field.GetTypeName())), GqlType(*messageType.Name), Object
+			}
 		}
-	}
 
-	// Search through enums
-	for _, enumType := range root.EnumType {
-		if *enumType.Name == util.Last(field.GetTypeName()) {
-			return GoType(util.Last(field.GetTypeName())), GqlType(*enumType.Name), Enum
+		// Search through enums
+		for _, enumType := range root.EnumType {
+			if *enumType.Name == util.Last(field.GetTypeName()) {
+				return GoType(util.Last(field.GetTypeName())), GqlType(*enumType.Name), Enum
+			}
 		}
-	}
 
-	if field.GetTypeName() == ".graphql.PageInfo" {
-		return "pg.PageInfo", "pg.PageInfo", Object
+		if field.GetTypeName() == ".graphql.PageInfo" {
+			return "pg.PageInfo", "pg.PageInfo", Object
+		}
+
+		for _, messageType := range root.MessageType {
+			if *messageType.Name == util.Last(field.GetTypeName()) {
+				return GoType(util.Last(field.GetTypeName())), GqlType(*messageType.Name), Object
+			}
+		}
+
 	}
 
 	panic(field)

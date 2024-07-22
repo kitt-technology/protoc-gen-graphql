@@ -10,9 +10,11 @@ import (
 	_ "google.golang.org/protobuf/types/pluginpb"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 func main() {
+
 	bytes, _ := ioutil.ReadAll(os.Stdin)
 
 	SupportedFeatures := uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
@@ -26,15 +28,42 @@ func main() {
 	opts := protogen.Options{}
 	plugin, _ := opts.New(&req)
 
+	filesGroupedByPackage := make(map[string][]*protogen.File)
+
 	for _, file := range plugin.Files {
 		if shouldProcess(file) {
-			parsedFile := generation.New(file)
-			generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
-			_, err = generateFile.Write([]byte(parsedFile.ToString()))
-			if err != nil {
-				panic(err)
+			goPkgNameString := string(file.GoPackageName)
+			if _, ok := filesGroupedByPackage[goPkgNameString]; !ok {
+				filesGroupedByPackage[goPkgNameString] = make([]*protogen.File, 0)
 			}
+			filesGroupedByPackage[goPkgNameString] = append(filesGroupedByPackage[goPkgNameString], file)
 		}
+	}
+
+	for _, packageFiles := range filesGroupedByPackage {
+		parsedFile := generation.NewFromMultiple(packageFiles)
+		prefix := packageFiles[0].GeneratedFilenamePrefix
+
+		//if there are multiple files, rename the generated graphql file to 'combined'
+		if len(packageFiles) > 1 {
+			newPart := "combined"
+
+			// Split the string by "/"
+			parts := strings.Split(prefix, "/")
+
+			// Replace the last part
+			parts[len(parts)-1] = newPart
+
+			// Join the parts back together
+			prefix = strings.Join(parts, "/")
+		}
+
+		generateFile := plugin.NewGeneratedFile(prefix+".graphql.go", ".")
+		_, err = generateFile.Write([]byte(parsedFile.ToString()))
+		if err != nil {
+			panic(err)
+		}
+
 	}
 
 	stdout := plugin.Response()

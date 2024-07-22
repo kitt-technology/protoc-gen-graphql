@@ -3,13 +3,14 @@ package dataloaders
 import (
 	"bytes"
 	"fmt"
+	"strings"
+
 	"github.com/iancoleman/strcase"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/util"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
-	"strings"
 )
 
 type Message struct {
@@ -21,16 +22,16 @@ type Message struct {
 	Loaders     []LoaderVars
 }
 
-func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescriptorProto) (m Message) {
+func New(msg *descriptorpb.ServiceDescriptorProto, allRoots []*descriptorpb.FileDescriptorProto) (m Message) {
 	var methods []Method
 
 	dns := proto.GetExtension(msg.Options, graphql.E_Host).(string)
 
 	for _, method := range msg.Method {
 		// Get output type of method
-		output := util.GetMessageType(root, *method.OutputType)
+		output := util.GetMessageType(allRoots, *method.OutputType)
 		// Get input type of method
-		input := util.GetMessageType(root, *method.InputType)
+		input := util.GetMessageType(allRoots, *method.InputType)
 
 		if util.Last(*method.OutputType) == "Empty" {
 			continue
@@ -64,7 +65,7 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 							resultType = "*" + resultType
 						}
 					} else {
-						rt, _, _ := types.Types(nestedType.Field[1], root, map[string]types.GraphqlImport{})
+						rt, _, _ := types.Types(nestedType.Field[1], allRoots, map[string]types.GraphqlImport{})
 						resultType = string(rt)
 					}
 				}
@@ -93,8 +94,9 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 	}
 
 	var pkg string
-	if root.Package != nil {
-		pkg = *root.Package
+	exemplarRoot := allRoots[0]
+	if exemplarRoot.Package != nil {
+		pkg = *exemplarRoot.Package
 	}
 	pkgPath := strings.Split(pkg, ".")
 
