@@ -31,5 +31,5 @@ message AuthorsBatchResponse {
 message Author {
   string id = 1;
   string name = 2;
-  Award awards = 3;
+ Award award =3;
 }
