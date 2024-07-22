@@ -5,7 +5,6 @@ import (
 	"github.com/graph-gophers/dataloader"
 	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
-	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -21,6 +20,84 @@ func Fields(opts ...grpc.DialOption) []*gql.Field {
 }
 
 var fields []*gql.Field
+
+var PublisherGraphqlType = gql.NewObject(gql.ObjectConfig{
+	Name: "Publisher",
+	Fields: gql.Fields{
+		"id": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
+		},
+		"name": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
+		},
+		"address": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
+		},
+	},
+})
+
+var PublisherGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
+	Name: "PublisherInput",
+	Fields: gql.InputObjectConfigFieldMap{
+		"id": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
+		},
+		"name": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
+		},
+		"address": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
+		},
+	},
+})
+
+var PublisherGraphqlArgs = gql.FieldConfigArgument{
+	"id": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
+	},
+	"name": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
+	},
+	"address": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
+	},
+}
+
+func PublisherFromArgs(args map[string]interface{}) *Publisher {
+	return PublisherInstanceFromArgs(&Publisher{}, args)
+}
+
+func PublisherInstanceFromArgs(objectFromArgs *Publisher, args map[string]interface{}) *Publisher {
+	if args["id"] != nil {
+		val := args["id"]
+		objectFromArgs.Id = string(val.(string))
+	}
+	if args["name"] != nil {
+		val := args["name"]
+		objectFromArgs.Name = string(val.(string))
+	}
+	if args["address"] != nil {
+		val := args["address"]
+		objectFromArgs.Address = string(val.(string))
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *Publisher) FromArgs(args map[string]interface{}) {
+	PublisherInstanceFromArgs(objectFromArgs, args)
+}
+
+func (msg *Publisher) XXX_GraphqlType() *gql.Object {
+	return PublisherGraphqlType
+}
+
+func (msg *Publisher) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return PublisherGraphqlArgs
+}
+
+func (msg *Publisher) XXX_Package() string {
+	return "books"
+}
 
 var GenreGraphqlEnum = gql.NewEnum(gql.EnumConfig{
 	Name: "Genre",
@@ -613,7 +690,7 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: pg.TimestampGraphqlType,
 		},
 		"price": &gql.Field{
-			Type: common_example.MoneyGraphqlType,
+			Type: MoneyGraphqlType,
 		},
 		"priceTwo": &gql.Field{
 			Type: MoneyGraphqlType,
@@ -637,10 +714,13 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 			},
 		},
 		"historicPrices": &gql.Field{
-			Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlType)),
+			Type: gql.NewList(gql.NewNonNull(MoneyGraphqlType)),
 		},
 		"pages": &gql.Field{
 			Type: gql.Int,
+		},
+		"publisher": &gql.Field{
+			Type: PublisherGraphqlType,
 		},
 	},
 })
@@ -664,7 +744,7 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: pg.TimestampGraphqlInputType,
 		},
 		"price": &gql.InputObjectFieldConfig{
-			Type: common_example.MoneyGraphqlInputType,
+			Type: MoneyGraphqlInputType,
 		},
 		"priceTwo": &gql.InputObjectFieldConfig{
 			Type: MoneyGraphqlInputType,
@@ -676,10 +756,13 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: gql.String,
 		},
 		"historicPrices": &gql.InputObjectFieldConfig{
-			Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlInputType)),
+			Type: gql.NewList(gql.NewNonNull(MoneyGraphqlInputType)),
 		},
 		"pages": &gql.InputObjectFieldConfig{
 			Type: gql.Int,
+		},
+		"publisher": &gql.InputObjectFieldConfig{
+			Type: PublisherGraphqlInputType,
 		},
 	},
 })
@@ -701,7 +784,7 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 		Type: pg.TimestampGraphqlInputType,
 	},
 	"price": &gql.ArgumentConfig{
-		Type: common_example.MoneyGraphqlInputType,
+		Type: MoneyGraphqlInputType,
 	},
 	"priceTwo": &gql.ArgumentConfig{
 		Type: MoneyGraphqlInputType,
@@ -713,10 +796,13 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.String,
 	},
 	"historicPrices": &gql.ArgumentConfig{
-		Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlInputType)),
+		Type: gql.NewList(gql.NewNonNull(MoneyGraphqlInputType)),
 	},
 	"pages": &gql.ArgumentConfig{
 		Type: gql.Int,
+	},
+	"publisher": &gql.ArgumentConfig{
+		Type: PublisherGraphqlInputType,
 	},
 }
 
@@ -748,7 +834,7 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	}
 	if args["price"] != nil {
 		val := args["price"]
-		objectFromArgs.Price = common_example.MoneyFromArgs(val.(map[string]interface{}))
+		objectFromArgs.Price = MoneyFromArgs(val.(map[string]interface{}))
 	}
 	if args["priceTwo"] != nil {
 		val := args["priceTwo"]
@@ -764,10 +850,10 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	}
 	if args["historicPrices"] != nil {
 		historicPricesInterfaceList := args["historicPrices"].([]interface{})
-		historicPrices := make([]*common_example.Money, 0)
+		historicPrices := make([]*Money, 0)
 
 		for _, val := range historicPricesInterfaceList {
-			itemResolved := common_example.MoneyFromArgs(val.(map[string]interface{}))
+			itemResolved := MoneyFromArgs(val.(map[string]interface{}))
 			historicPrices = append(historicPrices, itemResolved)
 		}
 		objectFromArgs.HistoricPrices = historicPrices
@@ -776,6 +862,10 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 		val := args["pages"]
 		ptr := int32(val.(int))
 		objectFromArgs.Pages = &ptr
+	}
+	if args["publisher"] != nil {
+		val := args["publisher"]
+		objectFromArgs.Publisher = PublisherFromArgs(val.(map[string]interface{}))
 	}
 	return objectFromArgs
 }
