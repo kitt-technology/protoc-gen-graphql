@@ -1,15 +1,14 @@
 package util
 
 import (
-	"strings"
-	"unicode"
-	"unicode/utf8"
-
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 func Last(path string) string {
@@ -92,14 +91,11 @@ func Title(str string) string {
 	return cases.Title(language.Und, cases.NoLower).String(str)
 }
 
-func GetMessageType(allRoots []*descriptorpb.FileDescriptorProto, messageType string) *descriptorpb.DescriptorProto {
-	for _, root := range allRoots {
-		for _, msgType := range root.MessageType {
-			if Last(messageType) == *msgType.Name {
-				return msgType
-			}
+func GetMessageType(root *descriptorpb.FileDescriptorProto, messageType string) *descriptorpb.DescriptorProto {
+	for _, msgType := range root.MessageType {
+		if Last(messageType) == *msgType.Name {
+			return msgType
 		}
 	}
-
 	return nil
 }

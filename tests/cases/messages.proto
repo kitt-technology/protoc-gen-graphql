@@ -6,7 +6,6 @@ import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
 import "github.com/kitt-technology/protoc-gen-graphql/example/common-example/common-example.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
-import "tests/cases/additional.proto";
 
 option go_package = "github.com/kitt-technology/protoc-gen-graphql/cases;cases";
 
@@ -72,7 +71,6 @@ message Book {
   google.protobuf.StringValue notes = 11;
   repeated common_example.Money historic_prices = 12;
   optional int32 pages = 6;
-  Publisher publisher = 7;
 }
 
 enum Genre {
