@@ -82,7 +82,6 @@ func New(file *protogen.File) (f File) {
 			continue
 		}
 		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto, GraphqlImportMap))
-
 	}
 	return f
 }
