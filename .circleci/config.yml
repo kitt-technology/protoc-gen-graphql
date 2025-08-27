@@ -25,7 +25,7 @@ jobs:
 
   release:
     docker:
-      - image: cimg/go:1.21.5
+      - image: cimg/go:1.23
     steps:
       - checkout
       - run: curl -sL https://git.io/goreleaser | bash
