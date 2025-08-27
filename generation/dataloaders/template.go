@@ -7,8 +7,13 @@ const msgTpl = `
 var {{ .Descriptor.Name }}ClientInstance {{ .Descriptor.Name }}Client
 
 func init() {
+	host := "{{ .Dns }}"
+	envHost := os.Getenv("SERVICE_HOST")
+	if envHost != "" {
+		host = envHost
+	}
 	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
-		{{ .Descriptor.Name }}ClientInstance = New{{ .Descriptor.Name }}Client(pg.GrpcConnection("{{ .Dns }}", opts...))
+		{{ .Descriptor.Name }}ClientInstance = New{{ .Descriptor.Name }}Client(pg.GrpcConnection(host, opts...))
 	})
 	
 	{{- range $method := .Methods }}
