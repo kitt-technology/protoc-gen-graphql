@@ -3,13 +3,14 @@ package dataloaders
 import (
 	"bytes"
 	"fmt"
+	"strings"
+
 	"github.com/iancoleman/strcase"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/util"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
-	"strings"
 )
 
 type Message struct {
