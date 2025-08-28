@@ -8,7 +8,7 @@ var {{ .Descriptor.Name }}ClientInstance {{ .Descriptor.Name }}Client
 
 func init() {
 	host := "{{ .Dns }}"
-	envHost := os.Getenv(fmt.Sprintf("%s_HOST", strings.ToUpper({{ $.ServiceName }})))
+	envHost := os.Getenv(fmt.Sprintf("%s_HOST", strings.ToUpper("{{ $.ServiceName }}")))
 	if envHost != "" {
 		host = envHost
 	}

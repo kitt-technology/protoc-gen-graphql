@@ -111,9 +111,9 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 
 func (m Message) Imports() []string {
 	if len(m.Loaders) > 0 {
-		return []string{"context", "github.com/graph-gophers/dataloader", "os"}
+		return []string{"context", "github.com/graph-gophers/dataloader", "os", "strings", "fmt"}
 	}
-	return []string{"os"}
+	return []string{"os", "strings", "fmt"}
 }
 
 func (m Message) Generate() string {
