@@ -113,7 +113,7 @@ func (m Message) Imports() []string {
 	if len(m.Loaders) > 0 {
 		return []string{"context", "github.com/graph-gophers/dataloader", "os"}
 	}
-	return []string{}
+	return []string{"os"}
 }
 
 func (m Message) Generate() string {
