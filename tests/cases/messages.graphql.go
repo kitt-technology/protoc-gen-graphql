@@ -851,8 +851,13 @@ func (msg *Money) XXX_Package() string {
 var BooksClientInstance BooksClient
 
 func init() {
+	host := "localhost:50051"
+	envHost := os.Getenv("SERVICE_HOST")
+	if envHost != "" {
+		host = envHost
+	}
 	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
-		BooksClientInstance = NewBooksClient(pg.GrpcConnection("localhost:50051", opts...))
+		BooksClientInstance = NewBooksClient(pg.GrpcConnection(host, opts...))
 	})
 	fields = append(fields, &gql.Field{
 		Name: "books_GetBooks",
