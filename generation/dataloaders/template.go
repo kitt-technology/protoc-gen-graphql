@@ -64,7 +64,7 @@ func WithLoaders(ctx context.Context) context.Context {
 			for _, key := range keys {
 				requests = append(requests, key.(*{{ $loader.KeysType }}Key).{{ $loader.KeysType }})
 			}
-			var resp *{{ $loader.RequestType }}Response
+			var resp *{{ $loader.ResponseType }}
 			var err error
 			if {{ $.Descriptor.Name }}ServiceInstance != nil {
 				resp, err = {{ $.Descriptor.Name }}ServiceInstance.{{ $loader.Method }}(ctx, &{{ $loader.RequestType }}{
@@ -79,7 +79,7 @@ func WithLoaders(ctx context.Context) context.Context {
 				})
 			}
 			{{- else }}
-			var resp *pg.BatchResponse
+			var resp *{{ $loader.ResponseType }}
 			var err error
 			if {{ $.Descriptor.Name }}ServiceInstance != nil {
 				resp, err = {{ $.Descriptor.Name }}ServiceInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
@@ -201,6 +201,7 @@ func init() {
 type LoaderVars struct {
 	Method       string
 	RequestType  string
+	ResponseType string
 	KeysField    string
 	KeysType     string
 	ResultsField string

@@ -81,6 +81,7 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 			m.Loaders = append(m.Loaders, LoaderVars{
 				Method:       util.Title(*method.Name),
 				RequestType:  util.Title(util.Last(*method.InputType)),
+				ResponseType: util.Title(util.Last(*method.OutputType)),
 				KeysField:    keysField,
 				KeysType:     keysType,
 				ResultsField: strcase.ToCamel(*field.Name),

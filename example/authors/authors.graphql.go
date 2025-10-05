@@ -314,7 +314,7 @@ func WithLoaders(ctx context.Context) context.Context {
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result
 
-			var resp *pg.BatchResponse
+			var resp *AuthorsBatchResponse
 			var err error
 			if AuthorsServiceInstance != nil {
 				resp, err = AuthorsServiceInstance.LoadAuthors(ctx, &pg.BatchRequest{
