@@ -690,7 +690,7 @@ func WithLoaders(ctx context.Context) context.Context {
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result
 
-			var resp *pg.BatchResponse
+			var resp *GetBooksByAuthorResponse
 			var err error
 			if BooksServiceInstance != nil {
 				resp, err = BooksServiceInstance.GetBooksByAuthor(ctx, &pg.BatchRequest{
@@ -730,7 +730,7 @@ func WithLoaders(ctx context.Context) context.Context {
 			for _, key := range keys {
 				requests = append(requests, key.(*GetBooksRequestKey).GetBooksRequest)
 			}
-			var resp *GetBooksBatchRequestResponse
+			var resp *GetBooksBatchResponse
 			var err error
 			if BooksServiceInstance != nil {
 				resp, err = BooksServiceInstance.GetBooksBatch(ctx, &GetBooksBatchRequest{
