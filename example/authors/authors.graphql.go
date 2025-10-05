@@ -5,6 +5,7 @@ import (
 	"google.golang.org/grpc"
 	"context"
 	"github.com/graph-gophers/dataloader"
+	"os"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
 
@@ -262,20 +263,50 @@ func (msg *Author) XXX_Package() string {
 }
 
 var AuthorsClientInstance AuthorsClient
+var AuthorsServiceInstance AuthorsServer
+var AuthorsDialOpts []grpc.DialOption
 
 func init() {
-	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
-		AuthorsClientInstance = NewAuthorsClient(pg.GrpcConnection("localhost:50052", opts...))
-	})
 	fields = append(fields, &gql.Field{
 		Name: "authors_GetAuthors",
 		Type: GetAuthorsResponseGraphqlType,
 		Args: GetAuthorsRequestGraphqlArgs,
 		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			if AuthorsServiceInstance != nil {
+				return AuthorsServiceInstance.GetAuthors(p.Context, GetAuthorsRequestFromArgs(p.Args))
+			}
+			if AuthorsClientInstance == nil {
+				AuthorsClientInstance = getAuthorsClient()
+			}
 			return AuthorsClientInstance.GetAuthors(p.Context, GetAuthorsRequestFromArgs(p.Args))
 		},
 	})
 
+}
+
+func getAuthorsClient() AuthorsClient {
+	host := "localhost:50052"
+	envHost := os.Getenv("SERVICE_HOST")
+	if envHost != "" {
+		host = envHost
+	}
+	return NewAuthorsClient(pg.GrpcConnection(host, AuthorsDialOpts...))
+}
+
+func init() {
+	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
+		AuthorsDialOpts = opts
+	})
+}
+
+// SetAuthorsService sets the service implementation for direct calls (no gRPC)
+func SetAuthorsService(service AuthorsServer) {
+	AuthorsServiceInstance = service
+}
+
+// SetAuthorsClient sets the gRPC client for remote calls
+func SetAuthorsClient(client AuthorsClient) {
+	AuthorsClientInstance = client
 }
 
 func WithLoaders(ctx context.Context) context.Context {
@@ -283,9 +314,20 @@ func WithLoaders(ctx context.Context) context.Context {
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result
 
-			resp, err := AuthorsClientInstance.LoadAuthors(ctx, &pg.BatchRequest{
-				Keys: keys.Keys(),
-			})
+			var resp *pg.BatchResponse
+			var err error
+			if AuthorsServiceInstance != nil {
+				resp, err = AuthorsServiceInstance.LoadAuthors(ctx, &pg.BatchRequest{
+					Keys: keys.Keys(),
+				})
+			} else {
+				if AuthorsClientInstance == nil {
+					AuthorsClientInstance = getAuthorsClient()
+				}
+				resp, err = AuthorsClientInstance.LoadAuthors(ctx, &pg.BatchRequest{
+					Keys: keys.Keys(),
+				})
+			}
 
 			if err != nil {
 				return results

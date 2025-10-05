@@ -9,6 +9,7 @@ import (
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	"os"
 )
 
 var fieldInits []func(...grpc.DialOption)
@@ -849,25 +850,50 @@ func (msg *Money) XXX_Package() string {
 }
 
 var BooksClientInstance BooksClient
+var BooksServiceInstance BooksServer
+var BooksDialOpts []grpc.DialOption
 
 func init() {
-	host := "localhost:50051"
-	envHost := os.Getenv("SERVICE_HOST")
-	if envHost != "" {
-		host = envHost
-	}
-	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
-		BooksClientInstance = NewBooksClient(pg.GrpcConnection(host, opts...))
-	})
 	fields = append(fields, &gql.Field{
 		Name: "books_GetBooks",
 		Type: GetBooksResponseGraphqlType,
 		Args: GetBooksRequestGraphqlArgs,
 		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			if BooksServiceInstance != nil {
+				return BooksServiceInstance.GetBooks(p.Context, GetBooksRequestFromArgs(p.Args))
+			}
+			if BooksClientInstance == nil {
+				BooksClientInstance = getBooksClient()
+			}
 			return BooksClientInstance.GetBooks(p.Context, GetBooksRequestFromArgs(p.Args))
 		},
 	})
 
+}
+
+func getBooksClient() BooksClient {
+	host := "localhost:50051"
+	envHost := os.Getenv("SERVICE_HOST")
+	if envHost != "" {
+		host = envHost
+	}
+	return NewBooksClient(pg.GrpcConnection(host, BooksDialOpts...))
+}
+
+func init() {
+	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
+		BooksDialOpts = opts
+	})
+}
+
+// SetBooksService sets the service implementation for direct calls (no gRPC)
+func SetBooksService(service BooksServer) {
+	BooksServiceInstance = service
+}
+
+// SetBooksClient sets the gRPC client for remote calls
+func SetBooksClient(client BooksClient) {
+	BooksClientInstance = client
 }
 
 func WithLoaders(ctx context.Context) context.Context {
@@ -875,9 +901,20 @@ func WithLoaders(ctx context.Context) context.Context {
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result
 
-			resp, err := BooksClientInstance.GetBooksByAuthor(ctx, &pg.BatchRequest{
-				Keys: keys.Keys(),
-			})
+			var resp *pg.BatchResponse
+			var err error
+			if BooksServiceInstance != nil {
+				resp, err = BooksServiceInstance.GetBooksByAuthor(ctx, &pg.BatchRequest{
+					Keys: keys.Keys(),
+				})
+			} else {
+				if BooksClientInstance == nil {
+					BooksClientInstance = getBooksClient()
+				}
+				resp, err = BooksClientInstance.GetBooksByAuthor(ctx, &pg.BatchRequest{
+					Keys: keys.Keys(),
+				})
+			}
 
 			if err != nil {
 				return results
@@ -904,9 +941,20 @@ func WithLoaders(ctx context.Context) context.Context {
 			for _, key := range keys {
 				requests = append(requests, key.(*GetBooksRequestKey).GetBooksRequest)
 			}
-			resp, err := BooksClientInstance.GetBooksBatch(ctx, &GetBooksBatchRequest{
-				Reqs: requests,
-			})
+			var resp *GetBooksBatchRequestResponse
+			var err error
+			if BooksServiceInstance != nil {
+				resp, err = BooksServiceInstance.GetBooksBatch(ctx, &GetBooksBatchRequest{
+					Reqs: requests,
+				})
+			} else {
+				if BooksClientInstance == nil {
+					BooksClientInstance = getBooksClient()
+				}
+				resp, err = BooksClientInstance.GetBooksBatch(ctx, &GetBooksBatchRequest{
+					Reqs: requests,
+				})
+			}
 
 			if err != nil {
 				return results

@@ -5,27 +5,51 @@ import "text/template"
 const msgTpl = `
 
 var {{ .Descriptor.Name }}ClientInstance {{ .Descriptor.Name }}Client
+var {{ .Descriptor.Name }}ServiceInstance {{ .Descriptor.Name }}Server
+var {{ .Descriptor.Name }}DialOpts []grpc.DialOption
 
 func init() {
-	host := "{{ .Dns }}"
-	envHost := os.Getenv("SERVICE_HOST")
-	if envHost != "" {
-		host = envHost
-	}
-	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
-		{{ .Descriptor.Name }}ClientInstance = New{{ .Descriptor.Name }}Client(pg.GrpcConnection(host, opts...))
-	})
-	
 	{{- range $method := .Methods }}
 	fields = append(fields, &gql.Field{
 		Name: "{{ $.ServiceName }}_{{ $method.Name }}",
 		Type: {{ $method.Output }}GraphqlType,
 		Args: {{ $method.Input }}GraphqlArgs,
 		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			if {{ $.Descriptor.Name }}ServiceInstance != nil {
+				return {{ $.Descriptor.Name }}ServiceInstance.{{ $method.Name }}(p.Context, {{ $method.Input }}FromArgs(p.Args))
+			}
+			if {{ $.Descriptor.Name }}ClientInstance == nil {
+				{{ $.Descriptor.Name }}ClientInstance = get{{ $.Descriptor.Name }}Client()
+			}
 			return {{ $.Descriptor.Name }}ClientInstance.{{ $method.Name }}(p.Context, {{ $method.Input }}FromArgs(p.Args))
 		},
 	})
 	{{ end }}
+}
+
+func get{{ .Descriptor.Name }}Client() {{ .Descriptor.Name }}Client {
+	host := "{{ .Dns }}"
+	envHost := os.Getenv("SERVICE_HOST")
+	if envHost != "" {
+		host = envHost
+	}
+	return New{{ .Descriptor.Name }}Client(pg.GrpcConnection(host, {{ .Descriptor.Name }}DialOpts...))
+}
+
+func init() {
+	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
+		{{ .Descriptor.Name }}DialOpts = opts
+	})
+}
+
+// Set{{ .Descriptor.Name }}Service sets the service implementation for direct calls (no gRPC)
+func Set{{ .Descriptor.Name }}Service(service {{ .Descriptor.Name }}Server) {
+	{{ .Descriptor.Name }}ServiceInstance = service
+}
+
+// Set{{ .Descriptor.Name }}Client sets the gRPC client for remote calls
+func Set{{ .Descriptor.Name }}Client(client {{ .Descriptor.Name }}Client) {
+	{{ .Descriptor.Name }}ClientInstance = client
 }
 
 {{ if .Loaders }}
@@ -40,19 +64,41 @@ func WithLoaders(ctx context.Context) context.Context {
 			for _, key := range keys {
 				requests = append(requests, key.(*{{ $loader.KeysType }}Key).{{ $loader.KeysType }})
 			}
-			resp, err := {{ $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &{{ $loader.RequestType }}{
-				{{ $loader.KeysField }}: requests,
-			})
+			var resp *{{ $loader.RequestType }}Response
+			var err error
+			if {{ $.Descriptor.Name }}ServiceInstance != nil {
+				resp, err = {{ $.Descriptor.Name }}ServiceInstance.{{ $loader.Method }}(ctx, &{{ $loader.RequestType }}{
+					{{ $loader.KeysField }}: requests,
+				})
+			} else {
+				if {{ $.Descriptor.Name }}ClientInstance == nil {
+					{{ $.Descriptor.Name }}ClientInstance = get{{ $.Descriptor.Name }}Client()
+				}
+				resp, err = {{ $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &{{ $loader.RequestType }}{
+					{{ $loader.KeysField }}: requests,
+				})
+			}
 			{{- else }}
-			resp, err := {{ $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
-				{{ $loader.KeysField }}: keys.Keys(),
-			})
+			var resp *pg.BatchResponse
+			var err error
+			if {{ $.Descriptor.Name }}ServiceInstance != nil {
+				resp, err = {{ $.Descriptor.Name }}ServiceInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
+					{{ $loader.KeysField }}: keys.Keys(),
+				})
+			} else {
+				if {{ $.Descriptor.Name }}ClientInstance == nil {
+					{{ $.Descriptor.Name }}ClientInstance = get{{ $.Descriptor.Name }}Client()
+				}
+				resp, err = {{ $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
+					{{ $loader.KeysField }}: keys.Keys(),
+				})
+			}
 			{{- end }}
-		
+
 			if err != nil {
 				return results
 			}
-	
+
 			for _, key := range keys.Keys() {
 				if val, ok := resp.{{ $loader.ResultsField }}[key]; ok {
 					results = append(results, &dataloader.Result{Data: val})
@@ -61,7 +107,7 @@ func WithLoaders(ctx context.Context) context.Context {
 					results = append(results, &dataloader.Result{Data: empty})
 				}
 			}
-	
+
 			return results
 		},
 	))
