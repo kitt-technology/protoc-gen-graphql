@@ -639,22 +639,22 @@ type BooksConfig struct {
 	dialOpts []grpc.DialOption
 }
 
-// WithBooksService sets the service implementation for direct calls (no gRPC)
-func WithBooksService(service BooksServer) BooksOption {
+// WithService sets the service implementation for direct calls (no gRPC)
+func WithService(service BooksServer) BooksOption {
 	return func(cfg *BooksConfig) {
 		cfg.service = service
 	}
 }
 
-// WithBooksClient sets the gRPC client for remote calls
-func WithBooksClient(client BooksClient) BooksOption {
+// WithClient sets the gRPC client for remote calls
+func WithClient(client BooksClient) BooksOption {
 	return func(cfg *BooksConfig) {
 		cfg.client = client
 	}
 }
 
-// WithBooksDialOptions sets the dial options for the gRPC client
-func WithBooksDialOptions(opts ...grpc.DialOption) BooksOption {
+// WithDialOptions sets the dial options for the gRPC client
+func WithDialOptions(opts ...grpc.DialOption) BooksOption {
 	return func(cfg *BooksConfig) {
 		cfg.dialOpts = opts
 	}

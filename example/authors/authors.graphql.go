@@ -263,22 +263,22 @@ type AuthorsConfig struct {
 	dialOpts []grpc.DialOption
 }
 
-// WithAuthorsService sets the service implementation for direct calls (no gRPC)
-func WithAuthorsService(service AuthorsServer) AuthorsOption {
+// WithService sets the service implementation for direct calls (no gRPC)
+func WithService(service AuthorsServer) AuthorsOption {
 	return func(cfg *AuthorsConfig) {
 		cfg.service = service
 	}
 }
 
-// WithAuthorsClient sets the gRPC client for remote calls
-func WithAuthorsClient(client AuthorsClient) AuthorsOption {
+// WithClient sets the gRPC client for remote calls
+func WithClient(client AuthorsClient) AuthorsOption {
 	return func(cfg *AuthorsConfig) {
 		cfg.client = client
 	}
 }
 
-// WithAuthorsDialOptions sets the dial options for the gRPC client
-func WithAuthorsDialOptions(opts ...grpc.DialOption) AuthorsOption {
+// WithDialOptions sets the dial options for the gRPC client
+func WithDialOptions(opts ...grpc.DialOption) AuthorsOption {
 	return func(cfg *AuthorsConfig) {
 		cfg.dialOpts = opts
 	}

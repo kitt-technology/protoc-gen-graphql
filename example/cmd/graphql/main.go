@@ -24,8 +24,8 @@ func main() {
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
 	// Initialize services and get fields
-	ctx, authorsFields := authors.Init(context.Background(), authors.WithAuthorsDialOptions(opts...))
-	ctx, booksFields := books.Init(ctx, books.WithBooksDialOptions(opts...))
+	ctx, authorsFields := authors.Init(context.Background(), authors.WithDialOptions(opts...))
+	ctx, booksFields := books.Init(ctx, books.WithDialOptions(opts...))
 
 	fields := append(authorsFields, booksFields...)
 	field := graphql.Fields{}

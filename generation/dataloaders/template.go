@@ -14,24 +14,24 @@ type {{ .Descriptor.Name }}Config struct {
 	service {{ .Descriptor.Name }}Server
 	client  {{ .Descriptor.Name }}Client
 	dialOpts []grpc.DialOption
-}t
+}
 
-// With{{ .Descriptor.Name }}Service sets the service implementation for direct calls (no gRPC)
-func With{{ .Descriptor.Name }}Service(service {{ .Descriptor.Name }}Server) {{ .Descriptor.Name }}Option {
+// WithService sets the service implementation for direct calls (no gRPC)
+func WithService(service {{ .Descriptor.Name }}Server) {{ .Descriptor.Name }}Option {
 	return func(cfg *{{ .Descriptor.Name }}Config) {
 		cfg.service = service
 	}
 }
 
-// With{{ .Descriptor.Name }}Client sets the gRPC client for remote calls
-func With{{ .Descriptor.Name }}Client(client {{ .Descriptor.Name }}Client) {{ .Descriptor.Name }}Option {
+// WithClient sets the gRPC client for remote calls
+func WithClient(client {{ .Descriptor.Name }}Client) {{ .Descriptor.Name }}Option {
 	return func(cfg *{{ .Descriptor.Name }}Config) {
 		cfg.client = client
 	}
 }
 
-// With{{ .Descriptor.Name }}DialOptions sets the dial options for the gRPC client
-func With{{ .Descriptor.Name }}DialOptions(opts ...grpc.DialOption) {{ .Descriptor.Name }}Option {
+// WithDialOptions sets the dial options for the gRPC client
+func WithDialOptions(opts ...grpc.DialOption) {{ .Descriptor.Name }}Option {
 	return func(cfg *{{ .Descriptor.Name }}Config) {
 		cfg.dialOpts = opts
 	}
