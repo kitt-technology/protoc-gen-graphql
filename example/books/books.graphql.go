@@ -2,26 +2,15 @@ package books
 
 import (
 	gql "github.com/graphql-go/graphql"
-	"google.golang.org/grpc"
 	"context"
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"os"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
-
-var fieldInits []func(...grpc.DialOption)
-
-func Fields(opts ...grpc.DialOption) []*gql.Field {
-	for _, fieldInit := range fieldInits {
-		fieldInit(opts...)
-	}
-	return fields
-}
-
-var fields []*gql.Field
 
 var GenreGraphqlEnum = gql.NewEnum(gql.EnumConfig{
 	Name: "Genre",
@@ -642,7 +631,46 @@ var BooksClientInstance BooksClient
 var BooksServiceInstance BooksServer
 var BooksDialOpts []grpc.DialOption
 
-func init() {
+type BooksOption func(*BooksConfig)
+
+type BooksConfig struct {
+	service  BooksServer
+	client   BooksClient
+	dialOpts []grpc.DialOption
+}
+
+// WithBooksService sets the service implementation for direct calls (no gRPC)
+func WithBooksService(service BooksServer) BooksOption {
+	return func(cfg *BooksConfig) {
+		cfg.service = service
+	}
+}
+
+// WithBooksClient sets the gRPC client for remote calls
+func WithBooksClient(client BooksClient) BooksOption {
+	return func(cfg *BooksConfig) {
+		cfg.client = client
+	}
+}
+
+// WithBooksDialOptions sets the dial options for the gRPC client
+func WithBooksDialOptions(opts ...grpc.DialOption) BooksOption {
+	return func(cfg *BooksConfig) {
+		cfg.dialOpts = opts
+	}
+}
+
+func Init(ctx context.Context, opts ...BooksOption) (context.Context, []*gql.Field) {
+	cfg := &BooksConfig{}
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
+	BooksServiceInstance = cfg.service
+	BooksClientInstance = cfg.client
+	BooksDialOpts = cfg.dialOpts
+
+	var fields []*gql.Field
 	fields = append(fields, &gql.Field{
 		Name: "books_GetBooks",
 		Type: GetBooksResponseGraphqlType,
@@ -658,6 +686,9 @@ func init() {
 		},
 	})
 
+	ctx = BooksWithLoaders(ctx)
+
+	return ctx, fields
 }
 
 func getBooksClient() BooksClient {
@@ -667,12 +698,6 @@ func getBooksClient() BooksClient {
 		host = envHost
 	}
 	return NewBooksClient(pg.GrpcConnection(host, BooksDialOpts...))
-}
-
-func init() {
-	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
-		BooksDialOpts = opts
-	})
 }
 
 // SetBooksService sets the service implementation for direct calls (no gRPC)
@@ -685,7 +710,7 @@ func SetBooksClient(client BooksClient) {
 	BooksClientInstance = client
 }
 
-func WithLoaders(ctx context.Context) context.Context {
+func BooksWithLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, "GetBooksByAuthorLoader", dataloader.NewBatchedLoader(
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result

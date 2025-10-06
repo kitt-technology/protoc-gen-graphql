@@ -8,7 +8,46 @@ var {{ .Descriptor.Name }}ClientInstance {{ .Descriptor.Name }}Client
 var {{ .Descriptor.Name }}ServiceInstance {{ .Descriptor.Name }}Server
 var {{ .Descriptor.Name }}DialOpts []grpc.DialOption
 
-func init() {
+type {{ .Descriptor.Name }}Option func(*{{ .Descriptor.Name }}Config)
+
+type {{ .Descriptor.Name }}Config struct {
+	service {{ .Descriptor.Name }}Server
+	client  {{ .Descriptor.Name }}Client
+	dialOpts []grpc.DialOption
+}t
+
+// With{{ .Descriptor.Name }}Service sets the service implementation for direct calls (no gRPC)
+func With{{ .Descriptor.Name }}Service(service {{ .Descriptor.Name }}Server) {{ .Descriptor.Name }}Option {
+	return func(cfg *{{ .Descriptor.Name }}Config) {
+		cfg.service = service
+	}
+}
+
+// With{{ .Descriptor.Name }}Client sets the gRPC client for remote calls
+func With{{ .Descriptor.Name }}Client(client {{ .Descriptor.Name }}Client) {{ .Descriptor.Name }}Option {
+	return func(cfg *{{ .Descriptor.Name }}Config) {
+		cfg.client = client
+	}
+}
+
+// With{{ .Descriptor.Name }}DialOptions sets the dial options for the gRPC client
+func With{{ .Descriptor.Name }}DialOptions(opts ...grpc.DialOption) {{ .Descriptor.Name }}Option {
+	return func(cfg *{{ .Descriptor.Name }}Config) {
+		cfg.dialOpts = opts
+	}
+}
+
+func Init(ctx context.Context, opts ...{{ .Descriptor.Name }}Option) (context.Context, []*gql.Field) {
+	cfg := &{{ .Descriptor.Name }}Config{}
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
+	{{ .Descriptor.Name }}ServiceInstance = cfg.service
+	{{ .Descriptor.Name }}ClientInstance = cfg.client
+	{{ .Descriptor.Name }}DialOpts = cfg.dialOpts
+
+	var fields []*gql.Field
 	{{- range $method := .Methods }}
 	fields = append(fields, &gql.Field{
 		Name: "{{ $.ServiceName }}_{{ $method.Name }}",
@@ -25,6 +64,12 @@ func init() {
 		},
 	})
 	{{ end }}
+
+	{{ if .Loaders }}
+	ctx = {{ .Descriptor.Name }}WithLoaders(ctx)
+	{{ end }}
+
+	return ctx, fields
 }
 
 func get{{ .Descriptor.Name }}Client() {{ .Descriptor.Name }}Client {
@@ -34,12 +79,6 @@ func get{{ .Descriptor.Name }}Client() {{ .Descriptor.Name }}Client {
 		host = envHost
 	}
 	return New{{ .Descriptor.Name }}Client(pg.GrpcConnection(host, {{ .Descriptor.Name }}DialOpts...))
-}
-
-func init() {
-	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
-		{{ .Descriptor.Name }}DialOpts = opts
-	})
 }
 
 // Set{{ .Descriptor.Name }}Service sets the service implementation for direct calls (no gRPC)
@@ -53,7 +92,7 @@ func Set{{ .Descriptor.Name }}Client(client {{ .Descriptor.Name }}Client) {
 }
 
 {{ if .Loaders }}
-func WithLoaders(ctx context.Context) context.Context {
+func {{ .Descriptor.Name }}WithLoaders(ctx context.Context) context.Context {
 	{{- range $loader :=.Loaders }}
 	ctx = context.WithValue(ctx, "{{ $loader.Method }}Loader", dataloader.NewBatchedLoader(
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
