@@ -111,7 +111,7 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 }
 
 func (m Message) Imports() []string {
-	imports := []string{"os"}
+	imports := []string{"os", "google.golang.org/grpc"}
 	if len(m.Loaders) > 0 {
 		imports = append(imports, "context", "github.com/graph-gophers/dataloader")
 	}

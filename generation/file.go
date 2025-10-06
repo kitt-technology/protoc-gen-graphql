@@ -20,21 +20,9 @@ package {{ .Package }}
 
 import (
 	gql "github.com/graphql-go/graphql"
-	"google.golang.org/grpc"
 	{{- range .Imports }}
 	{{ if has_alias . }}{{ . }}{{else}}"{{ . }}"{{end}}{{ end }}
 )
-
-var fieldInits []func(...grpc.DialOption)
-
-func Fields(opts ...grpc.DialOption) []*gql.Field {
-	for _, fieldInit := range fieldInits {
-		fieldInit(opts...)
-	}
-	return fields
-}
-
-var fields []*gql.Field
 `
 
 var GraphqlImportMap = make(map[string]types.GraphqlImport, 0)

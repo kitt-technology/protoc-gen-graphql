@@ -2,23 +2,12 @@ package authors
 
 import (
 	gql "github.com/graphql-go/graphql"
-	"google.golang.org/grpc"
 	"context"
 	"github.com/graph-gophers/dataloader"
+	"google.golang.org/grpc"
 	"os"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
-
-var fieldInits []func(...grpc.DialOption)
-
-func Fields(opts ...grpc.DialOption) []*gql.Field {
-	for _, fieldInit := range fieldInits {
-		fieldInit(opts...)
-	}
-	return fields
-}
-
-var fields []*gql.Field
 
 var GetAuthorsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "GetAuthorsRequest",
@@ -266,7 +255,46 @@ var AuthorsClientInstance AuthorsClient
 var AuthorsServiceInstance AuthorsServer
 var AuthorsDialOpts []grpc.DialOption
 
-func init() {
+type AuthorsOption func(*AuthorsConfig)
+
+type AuthorsConfig struct {
+	service  AuthorsServer
+	client   AuthorsClient
+	dialOpts []grpc.DialOption
+}
+
+// WithAuthorsService sets the service implementation for direct calls (no gRPC)
+func WithAuthorsService(service AuthorsServer) AuthorsOption {
+	return func(cfg *AuthorsConfig) {
+		cfg.service = service
+	}
+}
+
+// WithAuthorsClient sets the gRPC client for remote calls
+func WithAuthorsClient(client AuthorsClient) AuthorsOption {
+	return func(cfg *AuthorsConfig) {
+		cfg.client = client
+	}
+}
+
+// WithAuthorsDialOptions sets the dial options for the gRPC client
+func WithAuthorsDialOptions(opts ...grpc.DialOption) AuthorsOption {
+	return func(cfg *AuthorsConfig) {
+		cfg.dialOpts = opts
+	}
+}
+
+func Init(ctx context.Context, opts ...AuthorsOption) (context.Context, []*gql.Field) {
+	cfg := &AuthorsConfig{}
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
+	AuthorsServiceInstance = cfg.service
+	AuthorsClientInstance = cfg.client
+	AuthorsDialOpts = cfg.dialOpts
+
+	var fields []*gql.Field
 	fields = append(fields, &gql.Field{
 		Name: "authors_GetAuthors",
 		Type: GetAuthorsResponseGraphqlType,
@@ -282,6 +310,9 @@ func init() {
 		},
 	})
 
+	ctx = AuthorsWithLoaders(ctx)
+
+	return ctx, fields
 }
 
 func getAuthorsClient() AuthorsClient {
@@ -291,12 +322,6 @@ func getAuthorsClient() AuthorsClient {
 		host = envHost
 	}
 	return NewAuthorsClient(pg.GrpcConnection(host, AuthorsDialOpts...))
-}
-
-func init() {
-	fieldInits = append(fieldInits, func(opts ...grpc.DialOption) {
-		AuthorsDialOpts = opts
-	})
 }
 
 // SetAuthorsService sets the service implementation for direct calls (no gRPC)
@@ -309,7 +334,7 @@ func SetAuthorsClient(client AuthorsClient) {
 	AuthorsClientInstance = client
 }
 
-func WithLoaders(ctx context.Context) context.Context {
+func AuthorsWithLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, "LoadAuthorsLoader", dataloader.NewBatchedLoader(
 		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
 			var results []*dataloader.Result

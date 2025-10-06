@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -21,7 +22,12 @@ type postData struct {
 
 func main() {
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	fields := append(authors.Fields(opts...), books.Fields(opts...)...)
+
+	// Initialize services and get fields
+	ctx, authorsFields := authors.Init(context.Background(), authors.WithAuthorsDialOptions(opts...))
+	ctx, booksFields := books.Init(ctx, books.WithBooksDialOptions(opts...))
+
+	fields := append(authorsFields, booksFields...)
 	field := graphql.Fields{}
 	for _, f := range fields {
 		field[f.Name] = f
@@ -44,10 +50,7 @@ func main() {
 			return
 		}
 
-		// Append dataloaders to the context
-		ctx := books.WithLoaders(req.Context())
-		ctx = authors.WithLoaders(ctx)
-
+		// Initialize services and get context with dataloaders
 		result := graphql.Do(graphql.Params{
 			Context:        ctx,
 			Schema:         schema,
