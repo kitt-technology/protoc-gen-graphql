@@ -30,12 +30,13 @@ jobs:
         PROTOC_VERSION=25.1
         curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
         unzip protoc-${PROTOC_VERSION}-linux-x86_64.zip -d $HOME/.local
+        rm protoc-${PROTOC_VERSION}-linux-x86_64.zip
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v5
+      uses: goreleaser/goreleaser-action@v6
       with:
-        version: latest
+        version: '~> v2'
         args: release --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
