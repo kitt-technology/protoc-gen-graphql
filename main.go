@@ -21,37 +21,41 @@
 package main
 
 import (
+	"io"
+	"os"
+
 	"github.com/kitt-technology/protoc-gen-graphql/generation"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
-	_ "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/pluginpb"
-	_ "google.golang.org/protobuf/types/pluginpb"
-	"io"
-	"os"
 )
 
 func main() {
-	bytes, _ := io.ReadAll(os.Stdin)
+	bytes, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		panic(err)
+	}
 
 	SupportedFeatures := uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 
 	var req pluginpb.CodeGeneratorRequest
-	err := proto.Unmarshal(bytes, &req)
+	err = proto.Unmarshal(bytes, &req)
 	if err != nil {
 		panic(err)
 	}
 
 	opts := protogen.Options{}
-	plugin, _ := opts.New(&req)
+	plugin, err := opts.New(&req)
+	if err != nil {
+		panic(err)
+	}
 
 	for _, file := range plugin.Files {
 		if shouldProcess(file) {
 			parsedFile := generation.New(file)
 			generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
-			_, err = generateFile.Write([]byte(parsedFile.ToString()))
-			if err != nil {
+			if _, err = generateFile.Write([]byte(parsedFile.ToString())); err != nil {
 				panic(err)
 			}
 		}
@@ -59,10 +63,12 @@ func main() {
 
 	stdout := plugin.Response()
 	stdout.SupportedFeatures = &SupportedFeatures
-	out, _ := proto.Marshal(stdout)
-
-	_, err = os.Stdout.Write(out)
+	out, err := proto.Marshal(stdout)
 	if err != nil {
+		panic(err)
+	}
+
+	if _, err = os.Stdout.Write(out); err != nil {
 		panic(err)
 	}
 }

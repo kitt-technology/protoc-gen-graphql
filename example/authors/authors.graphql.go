@@ -1,12 +1,13 @@
 package authors
 
 import (
-	gql "github.com/graphql-go/graphql"
 	"context"
-	"github.com/graph-gophers/dataloader"
-	"google.golang.org/grpc"
 	"os"
+
+	"github.com/graph-gophers/dataloader"
+	gql "github.com/graphql-go/graphql"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"google.golang.org/grpc"
 )
 
 var GetAuthorsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{

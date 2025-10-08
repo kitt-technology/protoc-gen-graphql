@@ -1,14 +1,15 @@
 package util
 
 import (
+	"strings"
+	"unicode"
+	"unicode/utf8"
+
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
-	"strings"
-	"unicode"
-	"unicode/utf8"
 )
 
 func Last(path string) string {
@@ -19,7 +20,7 @@ func Last(path string) string {
 // The parsing for graphql.package is copied from protoc-gen-go's package parsing
 // https://github.com/golang/protobuf/blob/ae97035608a719c7a1c1c41bed0ae0744bdb0c6f/protoc-gen-go/generator/generator.go#L275
 
-func ParseGraphqlPackage(file *descriptorpb.FileDescriptorProto) (importPath string, pkg string, ok bool) {
+func ParseGraphqlPackage(file *descriptorpb.FileDescriptorProto) (importPath, pkg string, ok bool) {
 	if !proto.HasExtension(file.Options, graphql.E_Package) {
 		return "", "", false
 	}

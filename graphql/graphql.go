@@ -1,13 +1,13 @@
 package graphql
 
 import (
-	"github.com/golang/protobuf/proto"
 	gql "github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 )
 
 func GrpcConnection(host string, option ...grpc.DialOption) *grpc.ClientConn {
-	conn, err := grpc.Dial(
+	conn, err := grpc.NewClient(
 		host,
 		option...,
 	)

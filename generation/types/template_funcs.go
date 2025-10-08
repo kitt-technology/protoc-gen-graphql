@@ -20,8 +20,8 @@ func wrapperToPrimitive(wrapperType GoType) string {
 
 func stripPrecision(arg GoType) string {
 	if strings.Contains(string(arg), "int") {
-		output := strings.Replace(string(arg), "64", "", -1)
-		return strings.Replace(output, "32", "", -1)
+		output := strings.ReplaceAll(string(arg), "64", "")
+		return strings.ReplaceAll(output, "32", "")
 	}
 
 	if strings.Contains(string(arg), "float") {

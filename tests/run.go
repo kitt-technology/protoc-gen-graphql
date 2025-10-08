@@ -3,10 +3,11 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/sergi/go-diff/diffmatchpatch"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 func main() {
