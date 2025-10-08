@@ -1,15 +1,16 @@
 package books
 
 import (
-	gql "github.com/graphql-go/graphql"
 	"context"
+	"os"
+
 	"github.com/graph-gophers/dataloader"
+	gql "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
-	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
+	common_example "github.com/kitt-technology/protoc-gen-graphql/example/common-example"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-	"os"
-	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
 
 var GenreGraphqlEnum = gql.NewEnum(gql.EnumConfig{

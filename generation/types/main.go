@@ -2,7 +2,7 @@ package types
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"strings"
 
 	"github.com/iancoleman/strcase"
@@ -29,10 +29,10 @@ type Field struct {
 	InputType  string
 	ArgType    string
 
-	IsList     bool
-	TypeOfType string
-	IsPointer  bool
-	Proto3Optional 	bool
+	IsList         bool
+	TypeOfType     string
+	IsPointer      bool
+	Proto3Optional bool
 }
 
 type Message struct {
@@ -114,7 +114,6 @@ func (m Message) Generate() string {
 					isList = true
 				}
 
-				break
 			default:
 				isList = true
 			}
@@ -164,41 +163,53 @@ func (m Message) Generate() string {
 		}
 
 		fieldVars := Field{
-			GqlKey:     *field.JsonName,
-			GoKey:      goKey(field),
-			GoType:     goType,
-			TypeOfType: string(typeOfType),
-			IsList:     isList,
-			IsPointer:  isPointer,
+			GqlKey:         *field.JsonName,
+			GoKey:          goKey(field),
+			GoType:         goType,
+			TypeOfType:     string(typeOfType),
+			IsList:         isList,
+			IsPointer:      isPointer,
 			Proto3Optional: field.GetProto3Optional(),
 		}
 
 		// Generate input type
 		typeVars := FieldTypeVars{
-			TypeOfType: string(typeOfType),
-			IsList:     isList,
-			GoType:     goType,
-			GqlType:    gqlType,
-			GqlKey:     *field.JsonName,
-			Suffix:     "GraphqlInputType",
-			GraphqlOptional:   graphqlOptional,
+			TypeOfType:      string(typeOfType),
+			IsList:          isList,
+			GoType:          goType,
+			GqlType:         gqlType,
+			GqlKey:          *field.JsonName,
+			Suffix:          "GraphqlInputType",
+			GraphqlOptional: graphqlOptional,
 		}
 		var buf bytes.Buffer
-		typeTemplate.Execute(&buf, typeVars)
-		inputType, err := ioutil.ReadAll(&buf)
+		if err := typeTemplate.Execute(&buf, typeVars); err != nil {
+			panic(err)
+		}
+		inputType, err := io.ReadAll(&buf)
 		if err != nil {
 			panic(err)
 		}
 
 		// Generate generic type
 		typeVars.Suffix = "GraphqlType"
-		typeTemplate.Execute(&buf, typeVars)
-		normalType, err := ioutil.ReadAll(&buf)
+		if err := typeTemplate.Execute(&buf, typeVars); err != nil {
+			panic(err)
+		}
+		normalType, err := io.ReadAll(&buf)
+		if err != nil {
+			panic(err)
+		}
 		typeVars.Suffix = "GraphqlType"
 
 		// Generate "FromArg" string
-		goFromArgsTemplate.Execute(&buf, typeVars)
-		goFromArg, err := ioutil.ReadAll(&buf)
+		if err := goFromArgsTemplate.Execute(&buf, typeVars); err != nil {
+			panic(err)
+		}
+		goFromArg, err := io.ReadAll(&buf)
+		if err != nil {
+			panic(err)
+		}
 		fieldVars.GoFromArgs = string(goFromArg)
 		fieldVars.InputType = string(inputType)
 		fieldVars.Type = string(normalType)
@@ -226,7 +237,9 @@ func (m Message) Generate() string {
 	}
 
 	var buf bytes.Buffer
-	messageTemplate.Execute(&buf, m)
+	if err := messageTemplate.Execute(&buf, m); err != nil {
+		panic(err)
+	}
 
 	return buf.String()
 }
@@ -244,11 +257,11 @@ type (
 
 const (
 	Wrapper   FieldType = "Wrapper"
-	Object              = "Object"
-	Primitive           = "Primitive"
-	Enum                = "Enum"
-	Timestamp           = "Timestamp"
-	Common              = "Common"
+	Object    FieldType = "Object"
+	Primitive FieldType = "Primitive"
+	Enum      FieldType = "Enum"
+	Timestamp FieldType = "Timestamp"
+	Common    FieldType = "Common"
 )
 
 func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport) (GoType, GqlType, FieldType) {

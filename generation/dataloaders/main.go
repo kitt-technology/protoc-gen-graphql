@@ -129,7 +129,9 @@ func (m Message) Imports() []string {
 
 func (m Message) Generate() string {
 	var buf bytes.Buffer
-	tpl.Execute(&buf, m)
+	if err := tpl.Execute(&buf, m); err != nil {
+		panic(err)
+	}
 	return buf.String()
 }
 

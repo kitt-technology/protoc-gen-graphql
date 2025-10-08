@@ -2,6 +2,10 @@ package generation
 
 import (
 	"bytes"
+	"sort"
+	"strings"
+	"text/template"
+
 	"github.com/kitt-technology/protoc-gen-graphql/generation/dataloaders"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types"
@@ -10,9 +14,6 @@ import (
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
-	"sort"
-	"strings"
-	"text/template"
 )
 
 const fileTpl = `
@@ -107,7 +108,9 @@ func (f File) ToString() string {
 		panic(err)
 	}
 
-	tpl.Execute(&buf, f)
+	if err := tpl.Execute(&buf, f); err != nil {
+		panic(err)
+	}
 
 	out := buf.String()
 

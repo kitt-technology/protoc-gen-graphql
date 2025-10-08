@@ -11,6 +11,7 @@ import (
 	"github.com/kitt-technology/protoc-gen-graphql/example/authors"
 	"github.com/kitt-technology/protoc-gen-graphql/example/books"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -21,7 +22,7 @@ type postData struct {
 }
 
 func main() {
-	opts := []grpc.DialOption{grpc.WithInsecure()}
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 
 	// Initialize services and get fields
 	ctx, authorsFields := authors.Init(context.Background(), authors.WithDialOptions(opts...))

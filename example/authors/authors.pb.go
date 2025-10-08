@@ -7,12 +7,13 @@
 package authors
 
 import (
-	graphql "github.com/kitt-technology/protoc-gen-graphql/graphql"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	graphql "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (

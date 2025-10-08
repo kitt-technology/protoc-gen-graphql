@@ -1,17 +1,17 @@
 package graphql
 
 import (
-	"github.com/golang/protobuf/ptypes/timestamp"
-	gql "github.com/graphql-go/graphql"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"strconv"
 	"time"
+
+	gql "github.com/graphql-go/graphql"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func ToTimestamp(field interface{}) *timestamp.Timestamp {
+func ToTimestamp(field interface{}) *timestamppb.Timestamp {
 	timeMap := field.(map[string]interface{})
 	t, _ := time.Parse(time.RFC3339, timeMap["ISOString"].(string))
-	ts := timestamp.Timestamp{
+	ts := timestamppb.Timestamp{
 		Seconds: t.Unix(),
 	}
 	return &ts

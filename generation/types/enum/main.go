@@ -3,11 +3,12 @@ package enum
 import (
 	"bytes"
 	"fmt"
+	"html/template"
+
 	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
-	"html/template"
 )
 
 type Message struct {
@@ -45,7 +46,9 @@ func (m Message) Generate() string {
 	if err != nil {
 		panic(err)
 	}
-	mTpl.Execute(&buf, m)
+	if err := mTpl.Execute(&buf, m); err != nil {
+		panic(err)
+	}
 
 	return buf.String()
 }
