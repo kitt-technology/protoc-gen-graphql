@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net"
+
 	"github.com/kitt-technology/protoc-gen-graphql/example/authors"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
-	"net"
 )
 
 func main() {
@@ -31,7 +32,7 @@ type AuthorService struct {
 	authors.UnimplementedAuthorsServer
 }
 
-func (a AuthorService) LoadAuthors(ctx context.Context, request *graphql.BatchRequest) (*authors.AuthorsBatchResponse, error) {
+func (a AuthorService) LoadAuthors(ctx context.Context, request *authors.LoadAuthorsRequest) (*authors.AuthorsBatchResponse, error) {
 	as := make(map[string]*authors.Author)
 
 	for _, key := range request.Keys {

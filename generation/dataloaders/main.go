@@ -38,8 +38,8 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 		}
 
 		// See if method is a batch loader
-		custom := proto.HasExtension(method.Options, graphql.E_BatchLoader)
-		if *method.InputType == ".graphql.BatchRequest" || custom {
+		isBatchLoader := proto.HasExtension(method.Options, graphql.E_BatchLoader)
+		if isBatchLoader {
 			// Find type of map
 			var resultType string
 
@@ -47,8 +47,8 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 				panic(fmt.Sprintf("batch loaders must have one field of the type: map<string, Result> for %s.%s", *msg.Name, *method.Name))
 			}
 
-			if custom && (len(input.Field) != 1 || input.Field[0].Label.String() != "LABEL_REPEATED") {
-				panic(fmt.Sprintf("custom batch loaders must have only one field of the type: repeated %s for %s.%s", util.Last(*method.InputType), *msg.Name, *method.Name))
+			if len(input.Field) != 1 || input.Field[0].Label.String() != "LABEL_REPEATED" {
+				panic(fmt.Sprintf("batch loaders must have only one repeated field for %s.%s", *msg.Name, *method.Name))
 			}
 
 			var field = output.Field[0]
@@ -71,12 +71,21 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 				}
 			}
 
-			keysField := strcase.ToCamel("Keys")
-			keysType := "string"
-			if custom {
-				keysField = strcase.ToCamel(*input.Field[0].Name)
+			keysField := strcase.ToCamel(*input.Field[0].Name)
+
+			var keysType string
+			if input.Field[0].TypeName != nil && *input.Field[0].TypeName != "" {
+				// Complex type (message, enum, etc.)
 				keysType = util.Last(*input.Field[0].TypeName)
+			} else {
+				// Scalar type (string, int, etc.)
+				goType, _, _ := types.Types(input.Field[0], root, map[string]types.GraphqlImport{})
+				keysType = string(goType)
 			}
+
+			// Determine if this is a simple string key (can use dataloader.StringKey)
+			// or a custom type (needs custom Key wrapper)
+			isStringKey := keysType == "string"
 
 			m.Loaders = append(m.Loaders, LoaderVars{
 				Method:       util.Title(*method.Name),
@@ -86,7 +95,7 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 				KeysType:     keysType,
 				ResultsField: strcase.ToCamel(*field.Name),
 				ResultsType:  resultType,
-				Custom:       custom,
+				Custom:       !isStringKey,
 			})
 
 		} else {

@@ -38,7 +38,7 @@ func (s BookService) DoNothing(ctx context.Context, nothing *books.DoNothing) (*
 	return &books.DoNothing{}, nil
 }
 
-func (s BookService) GetBooksByAuthor(ctx context.Context, request *graphql.BatchRequest) (*books.GetBooksByAuthorResponse, error) {
+func (s BookService) GetBooksByAuthor(ctx context.Context, request *books.GetBooksByAuthorRequest) (*books.GetBooksByAuthorResponse, error) {
 	var bs = make(map[string]*books.BooksByAuthor)
 
 	for _, authorId := range request.Keys {
