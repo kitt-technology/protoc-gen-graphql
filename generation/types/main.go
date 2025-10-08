@@ -78,21 +78,25 @@ func (m Message) Imports() []string {
 func (m Message) Generate() string {
 	// If there's a custom name, grab it
 	if proto.HasExtension(m.Descriptor.Options, graphql.E_ObjectName) {
-		m.ObjectName = proto.GetExtension(m.Descriptor.Options, graphql.E_ObjectName).(string)
+		if name, ok := proto.GetExtension(m.Descriptor.Options, graphql.E_ObjectName).(string); ok {
+			m.ObjectName = name
+		} else {
+			m.ObjectName = *m.Descriptor.Name
+		}
 	} else {
 		m.ObjectName = *m.Descriptor.Name
 	}
 
 	for _, field := range m.Descriptor.Field {
-		if proto.HasExtension(field.Options, graphql.E_SkipField) &&
-			proto.GetExtension(field.Options, graphql.E_SkipField).(bool) {
-			continue
+		if proto.HasExtension(field.Options, graphql.E_SkipField) {
+			if skip, ok := proto.GetExtension(field.Options, graphql.E_SkipField).(bool); ok && skip {
+				continue
+			}
 		}
 		isList := false
 
-		switch field.Label.String() {
 		// It's a list or a map
-		case "LABEL_REPEATED":
+		if field.Label.String() == "LABEL_REPEATED" {
 			switch field.Type.String() {
 			case "TYPE_MESSAGE":
 				// Is it a map?
@@ -145,7 +149,7 @@ func (m Message) Generate() string {
 		graphqlOptional := field.TypeName != nil
 		if proto.HasExtension(field.Options, graphql.E_Optional) {
 			val := proto.GetExtension(field.Options, graphql.E_Optional)
-			if val.(bool) {
+			if optional, ok := val.(bool); ok && optional {
 				graphqlOptional = true
 			}
 		}

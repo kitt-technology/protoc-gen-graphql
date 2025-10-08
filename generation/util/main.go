@@ -24,7 +24,10 @@ func ParseGraphqlPackage(file *descriptorpb.FileDescriptorProto) (importPath, pk
 	if !proto.HasExtension(file.Options, graphql.E_Package) {
 		return "", "", false
 	}
-	graphqlPackage := proto.GetExtension(file.Options, graphql.E_Package).(string)
+	graphqlPackage, ok := proto.GetExtension(file.Options, graphql.E_Package).(string)
+	if !ok {
+		return "", "", false
+	}
 
 	sc := strings.Index(graphqlPackage, ";")
 	if sc >= 0 {

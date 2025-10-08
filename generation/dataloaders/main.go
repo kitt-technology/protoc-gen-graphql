@@ -25,7 +25,7 @@ type Message struct {
 func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescriptorProto) (m Message) {
 	var methods []Method
 
-	dns := proto.GetExtension(msg.Options, graphql.E_Host).(string)
+	dns, _ := proto.GetExtension(msg.Options, graphql.E_Host).(string)
 
 	for _, method := range msg.Method {
 		// Get output type of method

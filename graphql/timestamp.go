@@ -9,8 +9,18 @@ import (
 )
 
 func ToTimestamp(field interface{}) *timestamppb.Timestamp {
-	timeMap := field.(map[string]interface{})
-	t, _ := time.Parse(time.RFC3339, timeMap["ISOString"].(string))
+	timeMap, ok := field.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	isoString, ok := timeMap["ISOString"].(string)
+	if !ok {
+		return nil
+	}
+	t, err := time.Parse(time.RFC3339, isoString)
+	if err != nil {
+		return nil
+	}
 	ts := timestamppb.Timestamp{
 		Seconds: t.Unix(),
 	}
@@ -32,22 +42,31 @@ var TimestampGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"ISOString": &gql.Field{
 			Type: gql.String,
 			Resolve: func(p gql.ResolveParams) (interface{}, error) {
-				return time.Unix(p.Source.(*timestamppb.Timestamp).Seconds, 0).Format(time.RFC3339), nil
+				if ts, ok := p.Source.(*timestamppb.Timestamp); ok {
+					return time.Unix(ts.Seconds, 0).Format(time.RFC3339), nil
+				}
+				return nil, nil
 			},
 		},
 		"unix": &gql.Field{
 			Type: gql.Int,
 			Resolve: func(p gql.ResolveParams) (interface{}, error) {
-				return time.Unix(p.Source.(*timestamppb.Timestamp).Seconds, 0).Unix(), nil
+				if ts, ok := p.Source.(*timestamppb.Timestamp); ok {
+					return time.Unix(ts.Seconds, 0).Unix(), nil
+				}
+				return nil, nil
 			},
 		},
 		"msSinceEpoch": &gql.Field{
 			Type:        gql.String,
 			Description: "Milliseconds since epoch (useful in JS) as a string value. Go graphql does not support int64",
 			Resolve: func(p gql.ResolveParams) (interface{}, error) {
-				t := time.Unix(p.Source.(*timestamppb.Timestamp).Seconds, 0).UnixNano()
-				ms := t / int64(time.Millisecond)
-				return strconv.FormatInt(ms, 10), nil
+				if ts, ok := p.Source.(*timestamppb.Timestamp); ok {
+					t := time.Unix(ts.Seconds, 0).UnixNano()
+					ms := t / int64(time.Millisecond)
+					return strconv.FormatInt(ms, 10), nil
+				}
+				return nil, nil
 			},
 		},
 		"format": &gql.Field{
@@ -61,7 +80,12 @@ var TimestampGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: gql.String,
 			// Mon Jan 2 15:04:05 -0700 MST 2006
 			Resolve: func(p gql.ResolveParams) (interface{}, error) {
-				return time.Unix(p.Source.(*timestamppb.Timestamp).Seconds, 0).Format(p.Args["layout"].(string)), nil
+				if ts, ok := p.Source.(*timestamppb.Timestamp); ok {
+					if layout, ok := p.Args["layout"].(string); ok {
+						return time.Unix(ts.Seconds, 0).Format(layout), nil
+					}
+				}
+				return nil, nil
 			},
 		},
 	},
