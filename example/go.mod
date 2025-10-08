@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/Rhymond/go-money v1.0.3
 	github.com/graph-gophers/dataloader v5.0.0+incompatible
-	github.com/graphql-go/graphql v0.8.0
+	github.com/graphql-go/graphql v0.8.1
 	github.com/kitt-technology/protoc-gen-graphql v0.43.1-0.20220808081844-61d92b8c99c6
 	golang.org/x/net v0.41.0
 	golang.org/x/text v0.26.0
