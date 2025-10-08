@@ -1,5 +1,8 @@
 .idea
 tests/out
+tests/cases/*.graphql.go
+tests/cases/*.pb.go
+tests/cases/*_grpc.pb.go
 vendor
 node_modules
 .DS_Store
