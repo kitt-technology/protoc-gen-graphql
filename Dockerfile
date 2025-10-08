@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.23-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git make protobuf protobuf-dev
@@ -26,7 +26,7 @@ FROM builder AS test
 RUN make test
 
 # Runtime stage for CI/testing
-FROM golang:1.23-alpine AS runtime
+FROM golang:1.25-alpine AS runtime
 
 # Install runtime dependencies
 RUN apk add --no-cache \
