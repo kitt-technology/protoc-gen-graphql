@@ -1,0 +1,82 @@
+run:
+  timeout: 5m
+  tests: true
+  skip-dirs:
+    - tests/out
+    - example
+
+linters:
+  disable-all: true
+  enable:
+    # Enabled by default linters:
+    - errcheck      # Checks for unchecked errors
+    - gosimple      # Simplify code
+    - govet         # Reports suspicious constructs
+    - ineffassign   # Detects unused assignments
+    - staticcheck   # Go static analysis
+    - unused        # Checks for unused code
+
+    # Additional recommended linters:
+    - gofmt         # Checks code is gofmt-ed
+    - goimports     # Checks import formatting
+    - misspell      # Finds commonly misspelled words
+    - revive        # Fast, configurable, extensible, flexible linter
+    - unconvert     # Removes unnecessary type conversions
+    - unparam       # Reports unused function parameters
+    - gosec         # Security issues
+    - gocritic      # Provides diagnostics that check for bugs, performance and style issues
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: false
+
+  govet:
+    enable-all: true
+    disable:
+      - shadow
+      - fieldalignment
+
+  revive:
+    rules:
+      - name: exported
+        disabled: true  # Allow unexported returns in exported functions
+      - name: package-comments
+        disabled: true  # Don't require package comments
+      - name: unused-parameter
+        disabled: true  # Allow unused parameters (common in interface implementations)
+
+  gosec:
+    excludes:
+      - G204  # Audit use of command execution
+      - G304  # File path provided as taint input
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - performance
+      - style
+    disabled-checks:
+      - unnamedResult
+      - hugeParam
+      - rangeValCopy
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gosec
+        - errcheck
+
+    # Exclude generated files
+    - path: \.pb\.go$
+      linters:
+        - all
+    - path: \.graphql\.go$
+      linters:
+        - all

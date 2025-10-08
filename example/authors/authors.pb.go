@@ -262,7 +262,7 @@ var File_authors_proto protoreflect.FileDescriptor
 
 const file_authors_proto_rawDesc = "" +
 	"\n" +
-	"\rauthors.proto\x12\aauthors\x1aCgithub.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto\"*\n" +
+	"\rauthors.proto\x12\aauthors\x1a\rgraphql.proto\"*\n" +
 	"\x11GetAuthorsRequest\x12\x15\n" +
 	"\x03ids\x18\x01 \x03(\tB\x03\xc0D\x01R\x03ids\"o\n" +
 	"\x12GetAuthorsResponse\x12)\n" +

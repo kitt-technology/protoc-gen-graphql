@@ -1,3 +1,23 @@
+// Package main implements the protoc-gen-graphql plugin.
+//
+// protoc-gen-graphql is a protoc plugin that generates GraphQL server code
+// from Protocol Buffer definitions. It creates GraphQL schemas, types, and
+// resolvers that integrate with gRPC services, enabling you to expose your
+// gRPC services through a unified GraphQL API.
+//
+// The plugin supports:
+//   - Automatic GraphQL schema generation
+//   - DataLoader integration for N+1 query prevention
+//   - Batch loading with the batch_loader option
+//   - Proto annotations for customizing GraphQL output
+//
+// Usage with protoc:
+//
+//	protoc --graphql_out="lang=go:." your.proto
+//
+// Usage with buf:
+//
+//	buf generate
 package main
 
 import (
@@ -8,12 +28,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/pluginpb"
 	_ "google.golang.org/protobuf/types/pluginpb"
-	"io/ioutil"
+	"io"
 	"os"
 )
 
 func main() {
-	bytes, _ := ioutil.ReadAll(os.Stdin)
+	bytes, _ := io.ReadAll(os.Stdin)
 
 	SupportedFeatures := uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 
@@ -47,6 +67,9 @@ func main() {
 	}
 }
 
+// shouldProcess determines whether a proto file should have GraphQL code generated.
+// It filters out well-known Google proto files and files marked with the
+// (graphql.disabled) option.
 func shouldProcess(file *protogen.File) bool {
 	ignoredFiles := []string{
 		"google/protobuf/descriptor.proto",
