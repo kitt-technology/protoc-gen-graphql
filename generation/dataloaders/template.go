@@ -121,14 +121,14 @@ func {{ .Descriptor.Name }}WithLoaders(ctx context.Context) context.Context {
 			var resp *{{ $loader.ResponseType }}
 			var err error
 			if {{ $.Descriptor.Name }}ServiceInstance != nil {
-				resp, err = {{ $.Descriptor.Name }}ServiceInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
+				resp, err = {{ $.Descriptor.Name }}ServiceInstance.{{ $loader.Method }}(ctx, &{{ $loader.RequestType }}{
 					{{ $loader.KeysField }}: keys.Keys(),
 				})
 			} else {
 				if {{ $.Descriptor.Name }}ClientInstance == nil {
 					{{ $.Descriptor.Name }}ClientInstance = get{{ $.Descriptor.Name }}Client()
 				}
-				resp, err = {{ $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &pg.BatchRequest{
+				resp, err = {{ $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &{{ $loader.RequestType }}{
 					{{ $loader.KeysField }}: keys.Keys(),
 				})
 			}
@@ -171,7 +171,7 @@ func (key *{{ $loader.KeysType }}Key) Raw() interface{} {
 }
 
 {{ end }}
-func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }} key *{{ $loader.KeysType }} {{ else }} key string {{ end }}) (func() (interface{}, error), error) {
+func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }}key *{{ $loader.KeysType }}{{ else }}key string{{ end }}) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("{{ $loader.Method }}Loader").(type) {
 	case *dataloader.Loader:
@@ -180,7 +180,7 @@ func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }} key *{{ $
 		panic("Please call {{ $.Package }}.WithLoaders with the current context first")
 	}
 
-	thunk := loader.Load(p.Context,  {{ if $loader.Custom }} &{{ $loader.KeysType }}Key{key} {{ else }} dataloader.StringKey(key) {{ end }})
+	thunk := loader.Load(p.Context, {{ if $loader.Custom }}&{{ $loader.KeysType }}Key{key}{{ else }}dataloader.StringKey(key){{ end }})
 	return func() (interface{}, error) {
 				res, err := thunk()
 				if err != nil {
@@ -190,7 +190,7 @@ func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }} key *{{ $
 	}, nil
 }
 
-func {{ $loader.Method }}Many(p gql.ResolveParams, {{ if $loader.Custom }} keys []*{{ $loader.KeysType }} {{ else }} keys []string{{ end }}) (func() (interface{}, error), error) {
+func {{ $loader.Method }}Many(p gql.ResolveParams, {{ if $loader.Custom }}keys []*{{ $loader.KeysType }}{{ else }}keys []string{{ end }}) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("{{ $loader.Method }}Loader").(type) {
 	case *dataloader.Loader:
@@ -204,18 +204,20 @@ func {{ $loader.Method }}Many(p gql.ResolveParams, {{ if $loader.Custom }} keys 
 	for ix := range keys {
 		loaderKeys[ix] = &{{ $loader.KeysType }}Key{keys[ix]}
 	}
-	{{ end }}
 
-	thunk := loader.LoadMany(p.Context, {{ if $loader.Custom }} loaderKeys{{ else }} dataloader.NewKeysFromStrings(keys) {{ end }})
+	thunk := loader.LoadMany(p.Context, loaderKeys)
+	{{ else }}
+	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
+	{{ end }}
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
-		
+
 		for _, err := range errSlice {
 			if err != nil {
 				return nil, err
 			}
 		}
-		
+
 		var results []{{ $loader.ResultsType }}
 		for _, res := range resSlice {
 			results = append(results, res.({{ $loader.ResultsType }}))

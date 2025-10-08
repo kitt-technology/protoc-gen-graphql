@@ -14,8 +14,12 @@ service Books {
   "localhost:50051";
 
   rpc getBooks(GetBooksRequest) returns (GetBooksResponse) {}
-  rpc getBooksByAuthor(graphql.BatchRequest) returns (GetBooksByAuthorResponse) {}
-  rpc getBooksBatch(GetBooksBatchRequest) returns (GetBooksBatchResponse) {option (graphql.batch_loader) = true;}
+  rpc getBooksByAuthor(GetBooksByAuthorRequest) returns (GetBooksByAuthorResponse) {
+    option (graphql.batch_loader) = true;
+  }
+  rpc getBooksBatch(GetBooksBatchRequest) returns (GetBooksBatchResponse) {
+    option (graphql.batch_loader) = true;
+  }
 }
 
 message DoNothing {}
@@ -31,6 +35,10 @@ message GetBooksRequest {
 
 message GetBooksResponse {
   repeated Book books = 1;
+}
+
+message GetBooksByAuthorRequest {
+  repeated string keys = 1;
 }
 
 message GetBooksByAuthorResponse {

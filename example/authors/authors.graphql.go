@@ -138,6 +138,64 @@ func (msg *GetAuthorsResponse) XXX_Package() string {
 	return "authors"
 }
 
+var LoadAuthorsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
+	Name: "LoadAuthorsRequest",
+	Fields: gql.Fields{
+		"keys": &gql.Field{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+		},
+	},
+})
+
+var LoadAuthorsRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
+	Name: "LoadAuthorsRequestInput",
+	Fields: gql.InputObjectConfigFieldMap{
+		"keys": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+		},
+	},
+})
+
+var LoadAuthorsRequestGraphqlArgs = gql.FieldConfigArgument{
+	"keys": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+	},
+}
+
+func LoadAuthorsRequestFromArgs(args map[string]interface{}) *LoadAuthorsRequest {
+	return LoadAuthorsRequestInstanceFromArgs(&LoadAuthorsRequest{}, args)
+}
+
+func LoadAuthorsRequestInstanceFromArgs(objectFromArgs *LoadAuthorsRequest, args map[string]interface{}) *LoadAuthorsRequest {
+	if args["keys"] != nil {
+		keysInterfaceList := args["keys"].([]interface{})
+		keys := make([]string, 0)
+
+		for _, val := range keysInterfaceList {
+			itemResolved := string(val.(string))
+			keys = append(keys, itemResolved)
+		}
+		objectFromArgs.Keys = keys
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *LoadAuthorsRequest) FromArgs(args map[string]interface{}) {
+	LoadAuthorsRequestInstanceFromArgs(objectFromArgs, args)
+}
+
+func (msg *LoadAuthorsRequest) XXX_GraphqlType() *gql.Object {
+	return LoadAuthorsRequestGraphqlType
+}
+
+func (msg *LoadAuthorsRequest) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return LoadAuthorsRequestGraphqlArgs
+}
+
+func (msg *LoadAuthorsRequest) XXX_Package() string {
+	return "authors"
+}
+
 var AuthorsBatchResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "AuthorsBatchResponse",
 	Fields: gql.Fields{
@@ -342,14 +400,14 @@ func AuthorsWithLoaders(ctx context.Context) context.Context {
 			var resp *AuthorsBatchResponse
 			var err error
 			if AuthorsServiceInstance != nil {
-				resp, err = AuthorsServiceInstance.LoadAuthors(ctx, &pg.BatchRequest{
+				resp, err = AuthorsServiceInstance.LoadAuthors(ctx, &LoadAuthorsRequest{
 					Keys: keys.Keys(),
 				})
 			} else {
 				if AuthorsClientInstance == nil {
 					AuthorsClientInstance = getAuthorsClient()
 				}
-				resp, err = AuthorsClientInstance.LoadAuthors(ctx, &pg.BatchRequest{
+				resp, err = AuthorsClientInstance.LoadAuthors(ctx, &LoadAuthorsRequest{
 					Keys: keys.Keys(),
 				})
 			}
@@ -403,6 +461,7 @@ func LoadAuthorsMany(p gql.ResolveParams, keys []string) (func() (interface{}, e
 	}
 
 	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
+
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 

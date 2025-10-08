@@ -10,7 +10,9 @@ service Authors {
   option (graphql.host) =
       "localhost:50052";
   rpc getAuthors(GetAuthorsRequest) returns (GetAuthorsResponse) {}
-  rpc loadAuthors(graphql.BatchRequest) returns (AuthorsBatchResponse) {};
+  rpc loadAuthors(LoadAuthorsRequest) returns (AuthorsBatchResponse) {
+    option (graphql.batch_loader) = true;
+  };
 }
 
 message GetAuthorsRequest {
@@ -20,6 +22,10 @@ message GetAuthorsRequest {
 message GetAuthorsResponse {
   repeated Author authors = 1;
   graphql.PageInfo page_info = 5;
+}
+
+message LoadAuthorsRequest {
+  repeated string keys = 1;
 }
 
 message AuthorsBatchResponse {

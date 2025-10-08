@@ -478,6 +478,64 @@ func (msg *GetBooksBatchResponse) XXX_Package() string {
 	return "books"
 }
 
+var GetBooksByAuthorRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
+	Name: "GetBooksByAuthorRequest",
+	Fields: gql.Fields{
+		"keys": &gql.Field{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+		},
+	},
+})
+
+var GetBooksByAuthorRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
+	Name: "GetBooksByAuthorRequestInput",
+	Fields: gql.InputObjectConfigFieldMap{
+		"keys": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+		},
+	},
+})
+
+var GetBooksByAuthorRequestGraphqlArgs = gql.FieldConfigArgument{
+	"keys": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+	},
+}
+
+func GetBooksByAuthorRequestFromArgs(args map[string]interface{}) *GetBooksByAuthorRequest {
+	return GetBooksByAuthorRequestInstanceFromArgs(&GetBooksByAuthorRequest{}, args)
+}
+
+func GetBooksByAuthorRequestInstanceFromArgs(objectFromArgs *GetBooksByAuthorRequest, args map[string]interface{}) *GetBooksByAuthorRequest {
+	if args["keys"] != nil {
+		keysInterfaceList := args["keys"].([]interface{})
+		keys := make([]string, 0)
+
+		for _, val := range keysInterfaceList {
+			itemResolved := string(val.(string))
+			keys = append(keys, itemResolved)
+		}
+		objectFromArgs.Keys = keys
+	}
+	return objectFromArgs
+}
+
+func (objectFromArgs *GetBooksByAuthorRequest) FromArgs(args map[string]interface{}) {
+	GetBooksByAuthorRequestInstanceFromArgs(objectFromArgs, args)
+}
+
+func (msg *GetBooksByAuthorRequest) XXX_GraphqlType() *gql.Object {
+	return GetBooksByAuthorRequestGraphqlType
+}
+
+func (msg *GetBooksByAuthorRequest) XXX_GraphqlArgs() gql.FieldConfigArgument {
+	return GetBooksByAuthorRequestGraphqlArgs
+}
+
+func (msg *GetBooksByAuthorRequest) XXX_Package() string {
+	return "books"
+}
+
 var GetBooksByAuthorResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "GetBooksByAuthorResponse",
 	Fields: gql.Fields{
@@ -929,14 +987,14 @@ func BooksWithLoaders(ctx context.Context) context.Context {
 			var resp *GetBooksByAuthorResponse
 			var err error
 			if BooksServiceInstance != nil {
-				resp, err = BooksServiceInstance.GetBooksByAuthor(ctx, &pg.BatchRequest{
+				resp, err = BooksServiceInstance.GetBooksByAuthor(ctx, &GetBooksByAuthorRequest{
 					Keys: keys.Keys(),
 				})
 			} else {
 				if BooksClientInstance == nil {
 					BooksClientInstance = getBooksClient()
 				}
-				resp, err = BooksClientInstance.GetBooksByAuthor(ctx, &pg.BatchRequest{
+				resp, err = BooksClientInstance.GetBooksByAuthor(ctx, &GetBooksByAuthorRequest{
 					Keys: keys.Keys(),
 				})
 			}
@@ -1030,6 +1088,7 @@ func GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface
 	}
 
 	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
+
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 
@@ -1094,6 +1153,7 @@ func GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (in
 	}
 
 	thunk := loader.LoadMany(p.Context, loaderKeys)
+
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 
