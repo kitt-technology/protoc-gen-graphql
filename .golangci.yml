@@ -1,9 +1,6 @@
 run:
   timeout: 5m
   tests: true
-  skip-dirs:
-    - tests/out
-    - example
 
 linters:
   disable-all: true
@@ -62,6 +59,12 @@ linters-settings:
       - rangeValCopy
 
 issues:
+  exclude-dirs:
+    - tests/out
+    - example
+  exclude-files:
+    - '.*\.graphql\.go$'
+    - '.*\.pb\.go$'
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0

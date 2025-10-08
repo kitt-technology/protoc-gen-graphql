@@ -10,7 +10,10 @@ var WrappedString = gql.NewScalar(gql.ScalarConfig{
 	Name:        "WrappedString",
 	Description: "protobuf string wrapper",
 	Serialize: func(value interface{}) interface{} {
-		return value.(*wrapperspb.StringValue).GetValue()
+		if v, ok := value.(*wrapperspb.StringValue); ok {
+			return v.GetValue()
+		}
+		return nil
 	},
 	ParseValue: func(value interface{}) interface{} {
 		// value is of type string... expected.

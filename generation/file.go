@@ -66,9 +66,10 @@ func New(file *protogen.File) (f File) {
 	}
 
 	for _, msg := range file.Proto.MessageType {
-		if proto.HasExtension(msg.Options, graphql.E_SkipMessage) &&
-			proto.GetExtension(msg.Options, graphql.E_SkipMessage).(bool) {
-			continue
+		if proto.HasExtension(msg.Options, graphql.E_SkipMessage) {
+			if skip, ok := proto.GetExtension(msg.Options, graphql.E_SkipMessage).(bool); ok && skip {
+				continue
+			}
 		}
 		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto, GraphqlImportMap))
 

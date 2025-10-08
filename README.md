@@ -1,6 +1,5 @@
 # protoc-gen-graphql (PGG)
 
-[![CircleCI](https://circleci.com/gh/kitt-technology/protoc-gen-graphql.svg?style=svg)](https://circleci.com/gh/kitt-technology/protoc-gen-graphql)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kitt-technology/protoc-gen-graphql)](https://goreportcard.com/report/github.com/kitt-technology/protoc-gen-graphql)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
