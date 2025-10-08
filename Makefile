@@ -1,6 +1,6 @@
 PACKAGE := github.com/kitt-technology/protoc-gen-graphql
 
-.PHONE: all
+.PHONY: all
 all: test
 
 .PHONY: deps
@@ -21,6 +21,8 @@ build-examples:
 	protoc \
 		--proto_path ./example/authors/ \
 		-I . \
+		-I ./graphql \
+		-I ./example \
 		-I ${GOPATH}/src \
 		./example/authors/authors.proto \
 		--go_out=. \
@@ -29,6 +31,8 @@ build-examples:
 	protoc \
 		--proto_path ./example/books \
 		-I . \
+		-I ./graphql \
+		-I ./example \
 		-I ${GOPATH}/src \
 		./example/books/books.proto \
 		--go_out=. \
@@ -37,6 +41,7 @@ build-examples:
 	protoc \
 		--proto_path ./example/common-example \
 		-I . \
+		-I ./graphql \
 		-I ${GOPATH}/src \
 		./example/common-example/common-example.proto \
 		--go_out=. \
@@ -75,7 +80,8 @@ test:
 	protoc \
 		--proto_path . \
 		-I=. \
-		-I=./example/common-example \
+		-I=./graphql \
+		-I=./example \
 		-I ${GOPATH}/src \
 		--go_out="module=${PACKAGE}:./tests/out" \
 		--go-grpc_out="module=${PACKAGE}:./tests/out" \

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package common_example;
 
-import "github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto";
+import "graphql.proto";
 
 option go_package = "github.com/kitt-technology/protoc-gen-graphql/example/common-example;common_example";
 option (graphql.package) = "github.com/kitt-technology/protoc-gen-graphql/example/common-example;common_example";

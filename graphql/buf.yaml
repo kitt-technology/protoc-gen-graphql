@@ -1,0 +1,6 @@
+version: v2
+name: buf.build/kitt-technology/graphql
+lint:
+  except:
+    - PACKAGE_DIRECTORY_MATCH
+    - PACKAGE_VERSION_SUFFIX

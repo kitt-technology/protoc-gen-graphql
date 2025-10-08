@@ -603,7 +603,7 @@ var File_books_proto protoreflect.FileDescriptor
 
 const file_books_proto_rawDesc = "" +
 	"\n" +
-	"\vbooks.proto\x12\x05books\x1aCgithub.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto\x1aYgithub.com/kitt-technology/protoc-gen-graphql/example/common-example/common-example.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\v\n" +
+	"\vbooks.proto\x12\x05books\x1a\rgraphql.proto\x1a#common-example/common-example.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\v\n" +
 	"\tDoNothing\"\x85\x02\n" +
 	"\x0fGetBooksRequest\x12\x15\n" +
 	"\x03ids\x18\x01 \x03(\tB\x03\xc0D\x01R\x03ids\x12?\n" +
