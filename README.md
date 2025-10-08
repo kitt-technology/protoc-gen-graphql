@@ -98,12 +98,21 @@ package main
 
 import (
   "context"
+  "encoding/json"
+  "fmt"
+  "log"
   "net/http"
 
   "github.com/graphql-go/graphql"
   "github.com/yourproject/books"
   "google.golang.org/grpc"
 )
+
+type postData struct {
+  Query     string                 `json:"query"`
+  Operation string                 `json:"operation"`
+  Variables map[string]interface{} `json:"variables"`
+}
 
 func main() {
   opts := []grpc.DialOption{grpc.WithInsecure()}
@@ -112,16 +121,41 @@ func main() {
   ctx, fields := books.Init(context.Background(), books.WithDialOptions(opts...))
 
   // Create GraphQL schema
-  schema, _ := graphql.NewSchema(graphql.SchemaConfig{
+  fieldMap := graphql.Fields{}
+  for _, f := range fields {
+    fieldMap[f.Name] = f
+  }
+
+  schema, err := graphql.NewSchema(graphql.SchemaConfig{
     Query: graphql.NewObject(graphql.ObjectConfig{
-      Name:   "Query",
-      Fields: fieldsToMap(fields),
+      Name:   "RootQuery",
+      Fields: fieldMap,
     }),
   })
+  if err != nil {
+    log.Fatalf("failed to create schema: %v", err)
+  }
 
   // Serve GraphQL endpoint
-  http.HandleFunc("/graphql", graphqlHandler(ctx, schema))
-  http.ListenAndServe(":8080", nil)
+  http.HandleFunc("/graphql", func(w http.ResponseWriter, req *http.Request) {
+    var p postData
+    if err := json.NewDecoder(req.Body).Decode(&p); err != nil {
+      w.WriteHeader(400)
+      return
+    }
+
+    result := graphql.Do(graphql.Params{
+      Context:        ctx,
+      Schema:         schema,
+      RequestString:  p.Query,
+      VariableValues: p.Variables,
+      OperationName:  p.Operation,
+    })
+    json.NewEncoder(w).Encode(result)
+  })
+
+  fmt.Println("GraphQL server running at http://localhost:8080/graphql")
+  log.Fatal(http.ListenAndServe(":8080", nil))
 }
 ```
 
