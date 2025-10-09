@@ -53,6 +53,11 @@ func main() {
 	}
 
 	for _, file := range plugin.Files {
+		// Only generate code for files that are part of this generation request,
+		// not for imported dependencies
+		if !file.Generate {
+			continue
+		}
 		if shouldProcess(file) {
 			parsedFile := generation.New(file)
 			generateFile := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".graphql.go", ".")
