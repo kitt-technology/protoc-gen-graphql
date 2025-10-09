@@ -104,7 +104,9 @@ import (
 
   "github.com/graphql-go/graphql"
   "github.com/yourproject/books"
+  pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
   "google.golang.org/grpc"
+  "google.golang.org/grpc/credentials/insecure"
 )
 
 type postData struct {
@@ -114,21 +116,31 @@ type postData struct {
 }
 
 func main() {
-  opts := []grpc.DialOption{grpc.WithInsecure()}
+  // Create gRPC connection
+  conn, err := grpc.NewClient("localhost:50051",
+    grpc.WithTransportCredentials(insecure.NewCredentials()))
+  if err != nil {
+    log.Fatalf("failed to connect: %v", err)
+  }
+  defer conn.Close()
 
-  // Initialize service and get GraphQL fields
-  ctx, fields := books.Init(context.Background(), books.WithDialOptions(opts...))
+  // Create module with gRPC client
+  booksClient := books.NewBooksClient(conn)
+  booksModule := books.NewBooksModule(
+    books.WithModuleBooksClient(booksClient),
+  )
+
+  // Get GraphQL fields from module
+  fields := booksModule.Fields()
+
+  // Initialize context with dataloaders
+  ctx := booksModule.WithLoaders(context.Background())
 
   // Create GraphQL schema
-  fieldMap := graphql.Fields{}
-  for _, f := range fields {
-    fieldMap[f.Name] = f
-  }
-
   schema, err := graphql.NewSchema(graphql.SchemaConfig{
     Query: graphql.NewObject(graphql.ObjectConfig{
       Name:   "RootQuery",
-      Fields: fieldMap,
+      Fields: fields,
     }),
   })
   if err != nil {
@@ -389,17 +401,36 @@ message GetUserRequest {
 
 ### Cross-Service Relationships
 
-Stitch together multiple services:
+Stitch together multiple services using modules:
 
 ```go
+// Create modules for both services
+productsModule := products.NewProductsModule(
+  products.WithModuleProductsClient(productsClient),
+)
+usersModule := users.NewUsersModule(
+  users.WithModuleUsersClient(usersClient),
+)
+
 // Add custom fields to link services
-books.BookGraphqlType.AddFieldConfig("author", &graphql.Field{
-  Type: authors.AuthorGraphqlType,
+productsModule.AddFieldToProduct("seller", &graphql.Field{
+  Type: usersModule.UserType(),
   Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-    book := p.Source.(*books.Book)
-    return authors.LoadAuthors(p, book.AuthorId)
+    product := p.Source.(*products.Product)
+    // Use dataloader for efficient batching
+    thunk, err := usersModule.UsersLoadUsers(p, product.SellerId)
+    if err != nil {
+      return nil, err
+    }
+    return thunk()
   },
 })
+
+// Combine fields from both modules
+fields := pg.CombineModuleFields(productsModule, usersModule)
+
+// Initialize context with all dataloaders
+ctx := pg.WithAllLoaders(context.Background(), productsModule, usersModule)
 ```
 
 ## 🏗️ Architecture
@@ -459,7 +490,7 @@ Once running, you'll see detailed test instructions in the console. Here are som
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
-  -d '{"query": "{ users_getUsers { users { id email firstName lastName type } pageInfo { totalCount hasNextPage } } }"}'
+  -d '{"query": "{ users_GetUsers { users { id email firstName lastName type } pageInfo { totalCount hasNextPage } } }"}'
 ```
 
 #### 2. Get Products with Inventory (Demonstrates Complex Types)
@@ -467,7 +498,7 @@ curl -X POST http://localhost:8080/graphql \
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
-  -d '{"query": "{ products_getProducts { products { id name description category price { currencyCode units nanos } inventory { quantity reserved warehouseLocation } variants { name sku stockQuantity attributes } rating reviewCount } pageInfo { totalCount } } }"}'
+  -d '{"query": "{ products_GetProducts { products { id name description category inventory { quantity reserved warehouseLocation } variants { name sku stockQuantity } rating reviewCount } pageInfo { totalCount } } }"}'
 ```
 
 #### 3. Search Products (Demonstrates Filtering & Pagination)
@@ -475,7 +506,7 @@ curl -X POST http://localhost:8080/graphql \
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
-  -d '{"query": "{ products_searchProducts(query: \"wireless\", limit: 5) { products { id name price { units currencyCode } featured } pageInfo { hasNextPage endCursor } } }"}'
+  -d '{"query": "{ products_SearchProducts(query: \"wireless\", limit: 5) { products { id name featured } pageInfo { hasNextPage endCursor } } }"}'
 ```
 
 #### 4. Get User Profile (Demonstrates Nested Data)
@@ -483,7 +514,7 @@ curl -X POST http://localhost:8080/graphql \
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
-  -d '{"query": "{ users_getUserProfile(userId: \"1\") { userId addresses { line1 city stateProvince postalCode country type isDefault } preferences { marketingEmails preferredLanguage preferredCurrency } loyalty { tier points discountPercentage } totalOrders memberSince } }"}'
+  -d '{"query": "{ users_GetUserProfile(userId: \"1\") { userId addresses { line1 city stateProvince postalCode country type isDefault } preferences { marketingEmails preferredLanguage preferredCurrency } loyalty { tier points discountPercentage } totalOrders memberSince } }"}'
 ```
 
 #### 5. Products with Sellers (Demonstrates Cross-Service DataLoader)
@@ -491,7 +522,7 @@ curl -X POST http://localhost:8080/graphql \
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
-  -d '{"query": "{ products_getProducts { products { id name price { units currencyCode } seller { id email firstName lastName type } } } }"}'
+  -d '{"query": "{ products_GetProducts { products { id name seller { id email firstName lastName type } } } }"}'
 ```
 
 To stop the services:
@@ -514,16 +545,11 @@ make run-examples
 ```graphql
 # Get products by category
 query {
-  products_getProducts(categories: [ELECTRONICS, SPORTS]) {
+  products_GetProducts(categories: [ELECTRONICS, SPORTS]) {
     products {
       id
       name
       category
-      price {
-        currencyCode
-        units
-        nanos
-      }
       inventory {
         quantity
         warehouseLocation
@@ -543,7 +569,7 @@ query {
 
 # Get user with full profile
 query {
-  users_getUserProfile(userId: "1") {
+  users_GetUserProfile(userId: "1") {
     userId
     addresses {
       line1
