@@ -44,9 +44,10 @@ type Message struct {
 	Import           map[string]string
 	ObjectName       string
 	PackageImportMap map[string]GraphqlImport
+	SkippedMessages  map[string]bool
 }
 
-func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, graphqlImportMap map[string]GraphqlImport) (m Message) {
+func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorProto, graphqlImportMap map[string]GraphqlImport, skippedMessages map[string]bool) (m Message) {
 	pkg := file.Package
 
 	var actualPkg string
@@ -63,6 +64,7 @@ func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorPro
 		Package:          actualPkg,
 		OneOfFields:      make(map[string]map[string]Field, 0),
 		PackageImportMap: graphqlImportMap,
+		SkippedMessages:  skippedMessages,
 	}
 }
 
@@ -123,13 +125,13 @@ func (m Message) Generate() string {
 			}
 		}
 
-		goType, gqlType, typeOfType, ok := Types(field, m.Root, m.PackageImportMap)
+		goType, gqlType, typeOfType, ok := Types(field, m.Root, m.PackageImportMap, m.SkippedMessages)
 		if !ok {
 			// Skip fields with unknown types
 			continue
 		}
 		if isList {
-			goType, gqlType, typeOfType, ok = Types(field, m.Root, m.PackageImportMap)
+			goType, gqlType, typeOfType, ok = Types(field, m.Root, m.PackageImportMap, m.SkippedMessages)
 			if !ok {
 				continue
 			}
@@ -147,7 +149,7 @@ func (m Message) Generate() string {
 
 			for key, importPath := range m.PackageImportMap {
 				typeNameWithProtoImport := field.GetTypeName()[1:]
-				if strings.HasPrefix(typeNameWithProtoImport, key) {
+				if strings.HasPrefix(typeNameWithProtoImport, key+".") {
 					m.Import[importPath.ImportPath] = importPath.ImportPath
 				}
 			}
@@ -275,7 +277,7 @@ const (
 	Common    FieldType = "Common"
 )
 
-func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport) (GoType, GqlType, FieldType, bool) {
+func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport, skippedMessages map[string]bool) (GoType, GqlType, FieldType, bool) {
 	if field.GetTypeName() != "" {
 		switch field.GetTypeName() {
 		case ".google.protobuf.StringValue":
@@ -310,11 +312,20 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 		return "[]byte", "gql.String", Primitive, true
 	}
 
+	// Check if this is a skipped message (e.g., common.DateTime)
+	if field.GetTypeName() != "" {
+		typeNameWithProtoImport := field.GetTypeName()[1:]
+		if skippedMessages[typeNameWithProtoImport] {
+			// Skip fields that reference skipped messages
+			return "", "", "", false
+		}
+	}
+
 	for pkg, graphqlType := range packageImportMap {
 		typeNameWithProtoImport := field.GetTypeName()[1:]
-		if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg) {
-			typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg)
-			typeNameWithGoImport := graphqlType.GoPackage + typeName
+		if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg+".") {
+			typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg+".")
+			typeNameWithGoImport := graphqlType.GoPackage + "." + typeName
 			return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common, true
 		}
 	}

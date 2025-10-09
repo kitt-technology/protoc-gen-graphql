@@ -70,7 +70,7 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 							resultType = "*" + resultType
 						}
 					} else {
-						rt, _, _, _ := types.Types(nestedType.Field[1], root, map[string]types.GraphqlImport{})
+						rt, _, _, _ := types.Types(nestedType.Field[1], root, map[string]types.GraphqlImport{}, map[string]bool{})
 						resultType = string(rt)
 					}
 				}
@@ -93,7 +93,7 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 					keysType = util.Last(*input.Field[0].TypeName)
 				} else {
 					// Scalar type (string, int, etc.)
-					goType, _, _, _ := types.Types(input.Field[0], root, map[string]types.GraphqlImport{})
+					goType, _, _, _ := types.Types(input.Field[0], root, map[string]types.GraphqlImport{}, map[string]bool{})
 					keysType = string(goType)
 				}
 

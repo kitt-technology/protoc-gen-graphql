@@ -27,6 +27,7 @@ import (
 `
 
 var GraphqlImportMap = make(map[string]types.GraphqlImport, 0)
+var SkippedMessages = make(map[string]bool, 0) // Tracks skipped messages by fully qualified name (e.g., "common.DateTime")
 
 type Message interface {
 	Generate() string
@@ -68,10 +69,15 @@ func New(file *protogen.File) (f File) {
 	for _, msg := range file.Proto.MessageType {
 		if proto.HasExtension(msg.Options, graphql.E_SkipMessage) {
 			if skip, ok := proto.GetExtension(msg.Options, graphql.E_SkipMessage).(bool); ok && skip {
+				// Track skipped messages so other packages can skip fields referencing them
+				if file.Proto.Package != nil {
+					fullyQualifiedName := *file.Proto.Package + "." + *msg.Name
+					SkippedMessages[fullyQualifiedName] = true
+				}
 				continue
 			}
 		}
-		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto, GraphqlImportMap))
+		f.TypeDefs = append(f.TypeDefs, types.New(msg, file.Proto, GraphqlImportMap, SkippedMessages))
 
 	}
 	return f

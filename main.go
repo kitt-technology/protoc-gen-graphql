@@ -52,11 +52,9 @@ func main() {
 		panic(err)
 	}
 
-	// First pass: Populate GraphqlImportMap from all files
+	// First pass: Populate GraphqlImportMap from ALL files (including dependencies)
 	for _, file := range plugin.Files {
-		if !file.Generate {
-			continue
-		}
+		// Process ALL files to populate GraphqlImportMap, not just files being generated
 		if shouldProcess(file) {
 			// Just call New() to populate the GraphqlImportMap, don't generate yet
 			_ = generation.New(file)
