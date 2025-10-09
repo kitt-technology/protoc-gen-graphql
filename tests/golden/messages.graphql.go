@@ -1246,3 +1246,39 @@ func (m *CasesModule) BooksGetBooksBatch(p gql.ResolveParams, key *GetBooksReque
 func (m *CasesModule) BooksGetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
 	return BooksGetBooksBatchMany(p, keys)
 }
+
+// Service instance accessors
+
+// BooksInstance is a unified interface for calling Books methods
+// It works with both gRPC clients and direct service implementations
+type BooksInstance interface {
+	GetBooks(ctx context.Context, req *GetBooksRequest) (*GetBooksResponse, error)
+}
+
+type booksServerAdapter struct {
+	server BooksServer
+}
+
+func (a *booksServerAdapter) GetBooks(ctx context.Context, req *GetBooksRequest) (*GetBooksResponse, error) {
+	return a.server.GetBooks(ctx, req)
+}
+
+type booksClientAdapter struct {
+	client BooksClient
+}
+
+func (a *booksClientAdapter) GetBooks(ctx context.Context, req *GetBooksRequest) (*GetBooksResponse, error) {
+	return a.client.GetBooks(ctx, req)
+}
+
+// GetBooks returns a unified BooksInstance that works with both clients and services
+// Returns nil if neither client nor service is configured
+func (m *CasesModule) GetBooks() BooksInstance {
+	if m.booksClient != nil {
+		return &booksClientAdapter{client: m.booksClient}
+	}
+	if m.booksService != nil {
+		return &booksServerAdapter{server: m.booksService}
+	}
+	return nil
+}

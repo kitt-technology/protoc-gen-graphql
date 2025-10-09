@@ -1433,3 +1433,48 @@ func (m *ProductsModule) ProductsGetProductsBatch(p gql.ResolveParams, key *GetP
 func (m *ProductsModule) ProductsGetProductsBatchMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error) {
 	return ProductsGetProductsBatchMany(p, keys)
 }
+
+// Service instance accessors
+
+// ProductsInstance is a unified interface for calling Products methods
+// It works with both gRPC clients and direct service implementations
+type ProductsInstance interface {
+	GetProducts(ctx context.Context, req *GetProductsRequest) (*GetProductsResponse, error)
+	SearchProducts(ctx context.Context, req *SearchProductsRequest) (*SearchProductsResponse, error)
+}
+
+type productsServerAdapter struct {
+	server ProductsServer
+}
+
+func (a *productsServerAdapter) GetProducts(ctx context.Context, req *GetProductsRequest) (*GetProductsResponse, error) {
+	return a.server.GetProducts(ctx, req)
+}
+
+func (a *productsServerAdapter) SearchProducts(ctx context.Context, req *SearchProductsRequest) (*SearchProductsResponse, error) {
+	return a.server.SearchProducts(ctx, req)
+}
+
+type productsClientAdapter struct {
+	client ProductsClient
+}
+
+func (a *productsClientAdapter) GetProducts(ctx context.Context, req *GetProductsRequest) (*GetProductsResponse, error) {
+	return a.client.GetProducts(ctx, req)
+}
+
+func (a *productsClientAdapter) SearchProducts(ctx context.Context, req *SearchProductsRequest) (*SearchProductsResponse, error) {
+	return a.client.SearchProducts(ctx, req)
+}
+
+// GetProducts returns a unified ProductsInstance that works with both clients and services
+// Returns nil if neither client nor service is configured
+func (m *ProductsModule) GetProducts() ProductsInstance {
+	if m.productsClient != nil {
+		return &productsClientAdapter{client: m.productsClient}
+	}
+	if m.productsService != nil {
+		return &productsServerAdapter{server: m.productsService}
+	}
+	return nil
+}

@@ -1232,3 +1232,48 @@ func (m *UsersModule) UsersLoadUsers(p gql.ResolveParams, key string) (func() (i
 func (m *UsersModule) UsersLoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	return UsersLoadUsersMany(p, keys)
 }
+
+// Service instance accessors
+
+// UsersInstance is a unified interface for calling Users methods
+// It works with both gRPC clients and direct service implementations
+type UsersInstance interface {
+	GetUsers(ctx context.Context, req *GetUsersRequest) (*GetUsersResponse, error)
+	GetUserProfile(ctx context.Context, req *GetUserProfileRequest) (*UserProfile, error)
+}
+
+type usersServerAdapter struct {
+	server UsersServer
+}
+
+func (a *usersServerAdapter) GetUsers(ctx context.Context, req *GetUsersRequest) (*GetUsersResponse, error) {
+	return a.server.GetUsers(ctx, req)
+}
+
+func (a *usersServerAdapter) GetUserProfile(ctx context.Context, req *GetUserProfileRequest) (*UserProfile, error) {
+	return a.server.GetUserProfile(ctx, req)
+}
+
+type usersClientAdapter struct {
+	client UsersClient
+}
+
+func (a *usersClientAdapter) GetUsers(ctx context.Context, req *GetUsersRequest) (*GetUsersResponse, error) {
+	return a.client.GetUsers(ctx, req)
+}
+
+func (a *usersClientAdapter) GetUserProfile(ctx context.Context, req *GetUserProfileRequest) (*UserProfile, error) {
+	return a.client.GetUserProfile(ctx, req)
+}
+
+// GetUsers returns a unified UsersInstance that works with both clients and services
+// Returns nil if neither client nor service is configured
+func (m *UsersModule) GetUsers() UsersInstance {
+	if m.usersClient != nil {
+		return &usersClientAdapter{client: m.usersClient}
+	}
+	if m.usersService != nil {
+		return &usersServerAdapter{server: m.usersService}
+	}
+	return nil
+}

@@ -181,6 +181,9 @@ func (f File) generateServiceModule(services []templates.Message) string {
 	// 8. Generate Messages() and PackageName() methods
 	out += f.generateBasicMethods(moduleName, pkgName, services)
 
+	// 9. Generate service instance accessor methods
+	out += f.generateServiceAccessors(moduleName, services)
+
 	return out
 }
 
@@ -462,4 +465,82 @@ func (f File) generateLoaderAccessors(moduleName string, services []templates.Me
 	}
 
 	return buf.String()
+}
+
+// generateServiceAccessors generates methods to access the underlying client and service instances
+func (f File) generateServiceAccessors(moduleName string, services []templates.Message) string {
+	var out string
+
+	out += "\n// Service instance accessors\n"
+
+	for _, svc := range services {
+		serviceName := svc.Descriptor.GetName()
+		lowerServiceName := strcase.ToLowerCamel(serviceName)
+
+		// Generate a unified interface that wraps both client and server
+		out += fmt.Sprintf("\n// %sInstance is a unified interface for calling %s methods\n", serviceName, serviceName)
+		out += "// It works with both gRPC clients and direct service implementations\n"
+		out += fmt.Sprintf("type %sInstance interface {\n", serviceName)
+
+		// Add methods from the service
+		for _, method := range svc.Methods {
+			inputType := method.Input
+			if inputType == "BatchRequest" {
+				inputType = "pg.BatchRequest"
+			}
+			out += fmt.Sprintf("\t%s(ctx context.Context, req *%s) (*%s, error)\n",
+				method.Name, inputType, method.Output)
+		}
+
+		out += "}\n"
+
+		// Generate adapter for server to match the interface
+		out += fmt.Sprintf("\ntype %sServerAdapter struct {\n", lowerServiceName)
+		out += fmt.Sprintf("\tserver %sServer\n", serviceName)
+		out += "}\n"
+
+		// Implement interface methods for the adapter
+		for _, method := range svc.Methods {
+			inputType := method.Input
+			if inputType == "BatchRequest" {
+				inputType = "pg.BatchRequest"
+			}
+			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %s(ctx context.Context, req *%s) (*%s, error) {\n",
+				lowerServiceName, method.Name, inputType, method.Output)
+			out += fmt.Sprintf("\treturn a.server.%s(ctx, req)\n", method.Name)
+			out += "}\n"
+		}
+
+		// Generate adapter for client to match the interface
+		out += fmt.Sprintf("\ntype %sClientAdapter struct {\n", lowerServiceName)
+		out += fmt.Sprintf("\tclient %sClient\n", serviceName)
+		out += "}\n"
+
+		// Implement interface methods for the client adapter
+		for _, method := range svc.Methods {
+			inputType := method.Input
+			if inputType == "BatchRequest" {
+				inputType = "pg.BatchRequest"
+			}
+			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %s(ctx context.Context, req *%s) (*%s, error) {\n",
+				lowerServiceName, method.Name, inputType, method.Output)
+			out += fmt.Sprintf("\treturn a.client.%s(ctx, req)\n", method.Name)
+			out += "}\n"
+		}
+
+		// Generate the getter that returns the unified interface
+		out += fmt.Sprintf("\n// Get%s returns a unified %sInstance that works with both clients and services\n", serviceName, serviceName)
+		out += "// Returns nil if neither client nor service is configured\n"
+		out += fmt.Sprintf("func (m *%s) Get%s() %sInstance {\n", moduleName, serviceName, serviceName)
+		out += fmt.Sprintf("\tif m.%sClient != nil {\n", lowerServiceName)
+		out += fmt.Sprintf("\t\treturn &%sClientAdapter{client: m.%sClient}\n", lowerServiceName, lowerServiceName)
+		out += "\t}\n"
+		out += fmt.Sprintf("\tif m.%sService != nil {\n", lowerServiceName)
+		out += fmt.Sprintf("\t\treturn &%sServerAdapter{server: m.%sService}\n", lowerServiceName, lowerServiceName)
+		out += "\t}\n"
+		out += "\treturn nil\n"
+		out += "}\n"
+	}
+
+	return out
 }
