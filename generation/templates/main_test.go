@@ -84,6 +84,108 @@ func TestNew_SkipsEmptyOutput(t *testing.T) {
 	}
 }
 
+func TestNew_DetectsBatchRequestAsLoader(t *testing.T) {
+	// Test that using graphql.BatchRequest as input auto-detects a batch loader
+	// even without explicit (graphql.batch_loader) option
+	root := &descriptorpb.FileDescriptorProto{
+		Package: proto.String("example.service"),
+		MessageType: []*descriptorpb.DescriptorProto{
+			{
+				Name: proto.String("LoadItemsResponse"),
+				Field: []*descriptorpb.FieldDescriptorProto{
+					{
+						Name:     proto.String("results"),
+						Number:   proto.Int32(1),
+						Label:    descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(),
+						Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+						TypeName: proto.String(".example.service.LoadItemsResponse.ResultsEntry"),
+					},
+				},
+				NestedType: []*descriptorpb.DescriptorProto{
+					{
+						Name: proto.String("ResultsEntry"),
+						Field: []*descriptorpb.FieldDescriptorProto{
+							{
+								Name:   proto.String("key"),
+								Number: proto.Int32(1),
+								Type:   descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
+							},
+							{
+								Name:     proto.String("value"),
+								Number:   proto.Int32(2),
+								Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+								TypeName: proto.String(".example.service.Item"),
+							},
+						},
+					},
+				},
+			},
+			{Name: proto.String("Item")},
+		},
+	}
+
+	service := &descriptorpb.ServiceDescriptorProto{
+		Name: proto.String("ItemService"),
+		Method: []*descriptorpb.MethodDescriptorProto{
+			{
+				Name:       proto.String("loadItems"),
+				InputType:  proto.String(".graphql.BatchRequest"),
+				OutputType: proto.String(".example.service.LoadItemsResponse"),
+			},
+		},
+	}
+
+	m := New(service, root)
+
+	// Method should NOT be in Methods array (it's a loader)
+	if len(m.Methods) != 0 {
+		t.Errorf("New() should not include batch loader in Methods, got %d methods", len(m.Methods))
+	}
+
+	// Should be detected as a loader
+	if len(m.Loaders) != 1 {
+		t.Fatalf("New() should detect BatchRequest as batch loader, got %d loaders", len(m.Loaders))
+	}
+
+	loader := m.Loaders[0]
+
+	// Verify loader properties
+	if loader.Method != "LoadItems" {
+		t.Errorf("Loader Method = %q, want %q", loader.Method, "LoadItems")
+	}
+
+	if loader.RequestType != "BatchRequest" {
+		t.Errorf("Loader RequestType = %q, want %q", loader.RequestType, "BatchRequest")
+	}
+
+	if loader.ResponseType != "LoadItemsResponse" {
+		t.Errorf("Loader ResponseType = %q, want %q", loader.ResponseType, "LoadItemsResponse")
+	}
+
+	// BatchRequest uses "Keys" field by default
+	if loader.KeysField != "Keys" {
+		t.Errorf("Loader KeysField = %q, want %q", loader.KeysField, "Keys")
+	}
+
+	// BatchRequest always uses string keys
+	if loader.KeysType != "string" {
+		t.Errorf("Loader KeysType = %q, want %q", loader.KeysType, "string")
+	}
+
+	if loader.ResultsField != "Results" {
+		t.Errorf("Loader ResultsField = %q, want %q", loader.ResultsField, "Results")
+	}
+
+	if loader.ResultsType != "*Item" {
+		t.Errorf("Loader ResultsType = %q, want %q", loader.ResultsType, "*Item")
+	}
+
+	// String keys should not require custom key type
+	if loader.Custom != false {
+		t.Errorf("Loader Custom = %v, want false for string keys", loader.Custom)
+	}
+}
+
 func TestNew_PackageNameParsing(t *testing.T) {
 	tests := []struct {
 		name            string
