@@ -944,28 +944,28 @@ type UsersConfig struct {
 	dialOpts []grpc.DialOption
 }
 
-// WithService sets the service implementation for direct calls (no gRPC)
-func WithService(service UsersServer) UsersOption {
+// WithUsersService sets the service implementation for direct calls (no gRPC)
+func WithUsersService(service UsersServer) UsersOption {
 	return func(cfg *UsersConfig) {
 		cfg.service = service
 	}
 }
 
-// WithClient sets the gRPC client for remote calls
-func WithClient(client UsersClient) UsersOption {
+// WithUsersClient sets the gRPC client for remote calls
+func WithUsersClient(client UsersClient) UsersOption {
 	return func(cfg *UsersConfig) {
 		cfg.client = client
 	}
 }
 
-// WithDialOptions sets the dial options for the gRPC client
-func WithDialOptions(opts ...grpc.DialOption) UsersOption {
+// WithUsersDialOptions sets the dial options for the gRPC client
+func WithUsersDialOptions(opts ...grpc.DialOption) UsersOption {
 	return func(cfg *UsersConfig) {
 		cfg.dialOpts = opts
 	}
 }
 
-func Init(ctx context.Context, opts ...UsersOption) (context.Context, []*gql.Field) {
+func UsersInit(ctx context.Context, opts ...UsersOption) (context.Context, []*gql.Field) {
 	cfg := &UsersConfig{}
 	for _, opt := range opts {
 		opt(cfg)
@@ -1070,7 +1070,7 @@ func UsersWithLoaders(ctx context.Context) context.Context {
 	return ctx
 }
 
-func LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+func UsersLoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadUsersLoader").(type) {
 	case *dataloader.Loader:
@@ -1089,7 +1089,7 @@ func LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), er
 	}, nil
 }
 
-func LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func UsersLoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadUsersLoader").(type) {
 	case *dataloader.Loader:
@@ -1116,4 +1116,21 @@ func LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, err
 
 		return results, nil
 	}, nil
+}
+
+// WithLoaders adds all batch loaders from all services to the context
+func WithLoaders(ctx context.Context) context.Context {
+	ctx = UsersWithLoaders(ctx)
+	return ctx
+}
+
+// Fields returns all GraphQL fields from all services
+func Fields(ctx context.Context) []*gql.Field {
+	var fields []*gql.Field
+	var serviceFields []*gql.Field
+
+	ctx, serviceFields = UsersInit(ctx)
+	fields = append(fields, serviceFields...)
+
+	return fields
 }

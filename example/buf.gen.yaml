@@ -17,3 +17,4 @@ plugins:
     out: .
     opt:
       - lang=go
+      - paths=source_relative

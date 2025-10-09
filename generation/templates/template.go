@@ -238,14 +238,3 @@ func init() {
 		panic(err)
 	}
 }
-
-type LoaderVars struct {
-	Method       string
-	RequestType  string
-	ResponseType string
-	KeysField    string
-	KeysType     string
-	ResultsField string
-	ResultsType  string
-	Custom       bool
-}

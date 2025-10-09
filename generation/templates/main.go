@@ -159,3 +159,60 @@ type Method struct {
 	Output string
 	Name   string
 }
+
+type LoaderVars struct {
+	Method       string
+	RequestType  string
+	ResponseType string
+	KeysField    string
+	KeysType     string
+	ResultsField string
+	ResultsType  string
+	Custom       bool
+}
+
+// GenerateUnified generates the unified WithLoaders and Fields functions
+func GenerateUnified(services []Message) string {
+	if len(services) == 0 {
+		return ""
+	}
+
+	var out string
+
+	// Generate unified WithLoaders function
+	hasLoaders := false
+	for _, svc := range services {
+		if len(svc.Loaders) > 0 {
+			hasLoaders = true
+			break
+		}
+	}
+
+	if hasLoaders {
+		out += "\n// WithLoaders adds all batch loaders from all services to the context\n"
+		out += "func WithLoaders(ctx context.Context) context.Context {\n"
+		for _, svc := range services {
+			if len(svc.Loaders) > 0 {
+				out += "\tctx = " + *svc.Descriptor.Name + "WithLoaders(ctx)\n"
+			}
+		}
+		out += "\treturn ctx\n"
+		out += "}\n"
+	}
+
+	// Generate unified Fields function
+	out += "\n// Fields returns all GraphQL fields from all services\n"
+	out += "func Fields(ctx context.Context) []*gql.Field {\n"
+	out += "\tvar fields []*gql.Field\n"
+	out += "\tvar serviceFields []*gql.Field\n\n"
+
+	for _, svc := range services {
+		out += "\tctx, serviceFields = " + *svc.Descriptor.Name + "Init(ctx)\n"
+		out += "\tfields = append(fields, serviceFields...)\n\n"
+	}
+
+	out += "\treturn fields\n"
+	out += "}\n"
+
+	return out
+}

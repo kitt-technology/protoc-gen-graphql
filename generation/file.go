@@ -128,5 +128,25 @@ func (f File) ToString() string {
 	for _, msg := range f.Message {
 		out += msg.Generate()
 	}
+
+	// Generate unified WithLoaders and Fields functions
+	out += f.GenerateUnifiedFunctions()
+
 	return out
+}
+
+func (f File) GenerateUnifiedFunctions() string {
+	// Collect all services
+	var services []templates.Message
+	for _, msg := range f.Message {
+		if svc, ok := msg.(templates.Message); ok {
+			services = append(services, svc)
+		}
+	}
+
+	if len(services) == 0 {
+		return ""
+	}
+
+	return templates.GenerateUnified(services)
 }

@@ -243,7 +243,7 @@ func TestMessage_Imports_WithoutLoaders(t *testing.T) {
 
 	imports := m.Imports()
 
-	expectedImports := []string{"os", "google.golang.org/grpc"}
+	expectedImports := []string{"context", "os", "google.golang.org/grpc"}
 	if len(imports) != len(expectedImports) {
 		t.Fatalf("Imports() should return %d imports, got %d", len(expectedImports), len(imports))
 	}
@@ -304,7 +304,7 @@ func TestMessage_Generate(t *testing.T) {
 			wantContains: []string{
 				"var UserServiceClientInstance UserServiceClient",
 				"var UserServiceServiceInstance UserServiceServer",
-				"func Init(ctx context.Context, opts ...UserServiceOption)",
+				"func UserServiceInit(ctx context.Context, opts ...UserServiceOption)",
 				"Name: \"test_GetUser\"",
 				"Type: GetUserResponseGraphqlType",
 				"Args: GetUserRequestGraphqlArgs",
@@ -335,8 +335,8 @@ func TestMessage_Generate(t *testing.T) {
 			wantContains: []string{
 				"func ProductServiceWithLoaders(ctx context.Context)",
 				"dataloader.NewBatchedLoader",
-				"LoadProduct(p gql.ResolveParams, key string)",
-				"LoadProductMany(p gql.ResolveParams, keys []string)",
+				"ProductServiceLoadProduct(p gql.ResolveParams, key string)",
+				"ProductServiceLoadProductMany(p gql.ResolveParams, keys []string)",
 			},
 		},
 		{
@@ -364,8 +364,8 @@ func TestMessage_Generate(t *testing.T) {
 			wantContains: []string{
 				"type OrderIdKey struct",
 				"func (key *OrderIdKey) String() string",
-				"LoadOrder(p gql.ResolveParams, key *OrderId)",
-				"LoadOrderMany(p gql.ResolveParams, keys []*OrderId)",
+				"OrderServiceLoadOrder(p gql.ResolveParams, key *OrderId)",
+				"OrderServiceLoadOrderMany(p gql.ResolveParams, keys []*OrderId)",
 			},
 		},
 	}
@@ -419,9 +419,9 @@ func TestMessage_Generate_OptionsPattern(t *testing.T) {
 	expectedPatterns := []string{
 		"type TestServiceOption func(*TestServiceConfig)",
 		"type TestServiceConfig struct",
-		"func WithService(service TestServiceServer) TestServiceOption",
-		"func WithClient(client TestServiceClient) TestServiceOption",
-		"func WithDialOptions(opts ...grpc.DialOption) TestServiceOption",
+		"func WithTestServiceService(service TestServiceServer) TestServiceOption",
+		"func WithTestServiceClient(client TestServiceClient) TestServiceOption",
+		"func WithTestServiceDialOptions(opts ...grpc.DialOption) TestServiceOption",
 	}
 
 	for _, pattern := range expectedPatterns {

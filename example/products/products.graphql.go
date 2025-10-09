@@ -5,7 +5,6 @@ import (
 	"context"
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql/language/ast"
-	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"os"
@@ -605,9 +604,6 @@ var ProductGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"category": &gql.Field{
 			Type: CategoryGraphqlEnum,
 		},
-		"price": &gql.Field{
-			Type: common_example.MoneyGraphqlType,
-		},
 		"inventory": &gql.Field{
 			Type: InventoryGraphqlType,
 		},
@@ -659,9 +655,6 @@ var ProductGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"category": &gql.InputObjectFieldConfig{
 			Type: CategoryGraphqlEnum,
 		},
-		"price": &gql.InputObjectFieldConfig{
-			Type: common_example.MoneyGraphqlInputType,
-		},
 		"inventory": &gql.InputObjectFieldConfig{
 			Type: InventoryGraphqlInputType,
 		},
@@ -704,9 +697,6 @@ var ProductGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"category": &gql.ArgumentConfig{
 		Type: CategoryGraphqlEnum,
-	},
-	"price": &gql.ArgumentConfig{
-		Type: common_example.MoneyGraphqlInputType,
 	},
 	"inventory": &gql.ArgumentConfig{
 		Type: InventoryGraphqlInputType,
@@ -757,10 +747,6 @@ func ProductInstanceFromArgs(objectFromArgs *Product, args map[string]interface{
 	if args["category"] != nil {
 		val := args["category"]
 		objectFromArgs.Category = val.(Category)
-	}
-	if args["price"] != nil {
-		val := args["price"]
-		objectFromArgs.Price = common_example.MoneyFromArgs(val.(map[string]interface{}))
 	}
 	if args["inventory"] != nil {
 		val := args["inventory"]
@@ -843,9 +829,6 @@ var ProductVariantGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"sku": &gql.Field{
 			Type: gql.NewNonNull(gql.String),
 		},
-		"price": &gql.Field{
-			Type: common_example.MoneyGraphqlType,
-		},
 		"stockQuantity": &gql.Field{
 			Type: gql.NewNonNull(gql.Int),
 		},
@@ -864,9 +847,6 @@ var ProductVariantGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"sku": &gql.InputObjectFieldConfig{
 			Type: gql.NewNonNull(gql.String),
 		},
-		"price": &gql.InputObjectFieldConfig{
-			Type: common_example.MoneyGraphqlInputType,
-		},
 		"stockQuantity": &gql.InputObjectFieldConfig{
 			Type: gql.NewNonNull(gql.Int),
 		},
@@ -882,9 +862,6 @@ var ProductVariantGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"sku": &gql.ArgumentConfig{
 		Type: gql.NewNonNull(gql.String),
-	},
-	"price": &gql.ArgumentConfig{
-		Type: common_example.MoneyGraphqlInputType,
 	},
 	"stockQuantity": &gql.ArgumentConfig{
 		Type: gql.NewNonNull(gql.Int),
@@ -907,10 +884,6 @@ func ProductVariantInstanceFromArgs(objectFromArgs *ProductVariant, args map[str
 	if args["sku"] != nil {
 		val := args["sku"]
 		objectFromArgs.Sku = string(val.(string))
-	}
-	if args["price"] != nil {
-		val := args["price"]
-		objectFromArgs.Price = common_example.MoneyFromArgs(val.(map[string]interface{}))
 	}
 	if args["stockQuantity"] != nil {
 		val := args["stockQuantity"]
@@ -1038,28 +1011,28 @@ type ProductsConfig struct {
 	dialOpts []grpc.DialOption
 }
 
-// WithService sets the service implementation for direct calls (no gRPC)
-func WithService(service ProductsServer) ProductsOption {
+// WithProductsService sets the service implementation for direct calls (no gRPC)
+func WithProductsService(service ProductsServer) ProductsOption {
 	return func(cfg *ProductsConfig) {
 		cfg.service = service
 	}
 }
 
-// WithClient sets the gRPC client for remote calls
-func WithClient(client ProductsClient) ProductsOption {
+// WithProductsClient sets the gRPC client for remote calls
+func WithProductsClient(client ProductsClient) ProductsOption {
 	return func(cfg *ProductsConfig) {
 		cfg.client = client
 	}
 }
 
-// WithDialOptions sets the dial options for the gRPC client
-func WithDialOptions(opts ...grpc.DialOption) ProductsOption {
+// WithProductsDialOptions sets the dial options for the gRPC client
+func WithProductsDialOptions(opts ...grpc.DialOption) ProductsOption {
 	return func(cfg *ProductsConfig) {
 		cfg.dialOpts = opts
 	}
 }
 
-func Init(ctx context.Context, opts ...ProductsOption) (context.Context, []*gql.Field) {
+func ProductsInit(ctx context.Context, opts ...ProductsOption) (context.Context, []*gql.Field) {
 	cfg := &ProductsConfig{}
 	for _, opt := range opts {
 		opt(cfg)
@@ -1204,7 +1177,7 @@ func ProductsWithLoaders(ctx context.Context) context.Context {
 	return ctx
 }
 
-func GetProductsByCategory(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+func ProductsGetProductsByCategory(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetProductsByCategoryLoader").(type) {
 	case *dataloader.Loader:
@@ -1223,7 +1196,7 @@ func GetProductsByCategory(p gql.ResolveParams, key string) (func() (interface{}
 	}, nil
 }
 
-func GetProductsByCategoryMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func ProductsGetProductsByCategoryMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetProductsByCategoryLoader").(type) {
 	case *dataloader.Loader:
@@ -1264,7 +1237,7 @@ func (key *GetProductsRequestKey) Raw() interface{} {
 	return key
 }
 
-func GetProductsBatch(p gql.ResolveParams, key *GetProductsRequest) (func() (interface{}, error), error) {
+func ProductsGetProductsBatch(p gql.ResolveParams, key *GetProductsRequest) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetProductsBatchLoader").(type) {
 	case *dataloader.Loader:
@@ -1283,7 +1256,7 @@ func GetProductsBatch(p gql.ResolveParams, key *GetProductsRequest) (func() (int
 	}, nil
 }
 
-func GetProductsBatchMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error) {
+func ProductsGetProductsBatchMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetProductsBatchLoader").(type) {
 	case *dataloader.Loader:
@@ -1315,4 +1288,21 @@ func GetProductsBatchMany(p gql.ResolveParams, keys []*GetProductsRequest) (func
 
 		return results, nil
 	}, nil
+}
+
+// WithLoaders adds all batch loaders from all services to the context
+func WithLoaders(ctx context.Context) context.Context {
+	ctx = ProductsWithLoaders(ctx)
+	return ctx
+}
+
+// Fields returns all GraphQL fields from all services
+func Fields(ctx context.Context) []*gql.Field {
+	var fields []*gql.Field
+	var serviceFields []*gql.Field
+
+	ctx, serviceFields = ProductsInit(ctx)
+	fields = append(fields, serviceFields...)
+
+	return fields
 }
