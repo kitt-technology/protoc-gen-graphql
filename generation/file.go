@@ -83,6 +83,10 @@ func New(file *protogen.File) (f File) {
 	return f
 }
 
+func (f File) Messages() []Message {
+	return f.Message
+}
+
 func (f File) ToString() string {
 	var extraImportMap = map[string]string{}
 	var extraImports = []string{}

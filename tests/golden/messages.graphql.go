@@ -1112,3 +1112,20 @@ func BooksGetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func(
 		return results, nil
 	}, nil
 }
+
+// WithLoaders adds all batch loaders from all services to the context
+func WithLoaders(ctx context.Context) context.Context {
+	ctx = BooksWithLoaders(ctx)
+	return ctx
+}
+
+// Fields returns all GraphQL fields from all services
+func Fields(ctx context.Context) []*gql.Field {
+	var fields []*gql.Field
+	var serviceFields []*gql.Field
+
+	ctx, serviceFields = BooksInit(ctx)
+	fields = append(fields, serviceFields...)
+
+	return fields
+}

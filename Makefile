@@ -1,13 +1,17 @@
 PACKAGE := github.com/kitt-technology/protoc-gen-graphql
 
+# Versions must match .github/workflows/ci.yml
+PROTOC_GEN_GO_VERSION := v1.26
+PROTOC_GEN_GO_GRPC_VERSION := v1.5
+
 .PHONY: all
 all: test
 
 .PHONY: deps
 deps:
 	GO111MODULE=off go get github.com/kitt-technology/protoc-gen-graphql
-	@go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.26
-	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.11
+	@go install google.golang.org/protobuf/cmd/protoc-gen-go@$(PROTOC_GEN_GO_VERSION)
+	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$(PROTOC_GEN_GO_GRPC_VERSION)
 
 .PHONY: build
 build:
