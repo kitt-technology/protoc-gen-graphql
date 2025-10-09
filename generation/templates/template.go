@@ -16,28 +16,28 @@ type {{ .Descriptor.Name }}Config struct {
 	dialOpts []grpc.DialOption
 }
 
-// WithService sets the service implementation for direct calls (no gRPC)
-func WithService(service {{ .Descriptor.Name }}Server) {{ .Descriptor.Name }}Option {
+// With{{ .Descriptor.Name }}Service sets the service implementation for direct calls (no gRPC)
+func With{{ .Descriptor.Name }}Service(service {{ .Descriptor.Name }}Server) {{ .Descriptor.Name }}Option {
 	return func(cfg *{{ .Descriptor.Name }}Config) {
 		cfg.service = service
 	}
 }
 
-// WithClient sets the gRPC client for remote calls
-func WithClient(client {{ .Descriptor.Name }}Client) {{ .Descriptor.Name }}Option {
+// With{{ .Descriptor.Name }}Client sets the gRPC client for remote calls
+func With{{ .Descriptor.Name }}Client(client {{ .Descriptor.Name }}Client) {{ .Descriptor.Name }}Option {
 	return func(cfg *{{ .Descriptor.Name }}Config) {
 		cfg.client = client
 	}
 }
 
-// WithDialOptions sets the dial options for the gRPC client
-func WithDialOptions(opts ...grpc.DialOption) {{ .Descriptor.Name }}Option {
+// With{{ .Descriptor.Name }}DialOptions sets the dial options for the gRPC client
+func With{{ .Descriptor.Name }}DialOptions(opts ...grpc.DialOption) {{ .Descriptor.Name }}Option {
 	return func(cfg *{{ .Descriptor.Name }}Config) {
 		cfg.dialOpts = opts
 	}
 }
 
-func Init(ctx context.Context, opts ...{{ .Descriptor.Name }}Option) (context.Context, []*gql.Field) {
+func {{ .Descriptor.Name }}Init(ctx context.Context, opts ...{{ .Descriptor.Name }}Option) (context.Context, []*gql.Field) {
 	cfg := &{{ .Descriptor.Name }}Config{}
 	for _, opt := range opts {
 		opt(cfg)
@@ -52,15 +52,15 @@ func Init(ctx context.Context, opts ...{{ .Descriptor.Name }}Option) (context.Co
 	fields = append(fields, &gql.Field{
 		Name: "{{ $.ServiceName }}_{{ $method.Name }}",
 		Type: {{ $method.Output }}GraphqlType,
-		Args: {{ $method.Input }}GraphqlArgs,
+		Args: {{ if eq $method.Input "BatchRequest" }}pg.{{ end }}{{ $method.Input }}GraphqlArgs,
 		Resolve: func(p gql.ResolveParams) (interface{}, error) {
 			if {{ $.Descriptor.Name }}ServiceInstance != nil {
-				return {{ $.Descriptor.Name }}ServiceInstance.{{ $method.Name }}(p.Context, {{ $method.Input }}FromArgs(p.Args))
+				return {{ $.Descriptor.Name }}ServiceInstance.{{ $method.Name }}(p.Context, {{ if eq $method.Input "BatchRequest" }}pg.{{ end }}{{ $method.Input }}FromArgs(p.Args))
 			}
 			if {{ $.Descriptor.Name }}ClientInstance == nil {
 				{{ $.Descriptor.Name }}ClientInstance = get{{ $.Descriptor.Name }}Client()
 			}
-			return {{ $.Descriptor.Name }}ClientInstance.{{ $method.Name }}(p.Context, {{ $method.Input }}FromArgs(p.Args))
+			return {{ $.Descriptor.Name }}ClientInstance.{{ $method.Name }}(p.Context, {{ if eq $method.Input "BatchRequest" }}pg.{{ end }}{{ $method.Input }}FromArgs(p.Args))
 		},
 	})
 	{{ end }}

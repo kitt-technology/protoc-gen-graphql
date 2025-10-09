@@ -13,41 +13,23 @@ deps:
 build:
 	@go install .
 
-.PHONY: examples
-build-examples:
-	@go install .
+.PHONY: regenerate-examples
+regenerate-examples: build
+	@echo "🔄 Regenerating examples with buf..."
+	@buf generate --path example/
+	@echo "✅ Examples regenerated successfully!"
 
-
-	protoc \
-		--proto_path ./example/users/ \
-		-I . \
-		-I ./graphql \
-		-I ./example \
-		-I ${GOPATH}/src \
-		./example/users/users.proto \
-		--go_out=. \
-		--go-grpc_out=. \
-		--graphql_out="lang=go:."
-	protoc \
-		--proto_path ./example/products \
-		-I . \
-		-I ./graphql \
-		-I ./example \
-		-I ${GOPATH}/src \
-		./example/products/products.proto \
-		--go_out=. \
-		--go-grpc_out=. \
-		--graphql_out="lang=go:."
-	protoc \
-		--proto_path ./example/common-example \
-		-I . \
-		-I ./graphql \
-		-I ${GOPATH}/src \
-		./example/common-example/common-example.proto \
-		--go_out=. \
-		--go-grpc_out=. \
-		--graphql_out="lang=go:."
-	rm -rf ./github.com
+.PHONY: check-examples
+check-examples: build
+	@echo "🔍 Checking if examples are up-to-date..."
+	@buf generate --path example/
+	@if git diff --quiet example/; then \
+		echo "✅ Examples are up-to-date!"; \
+	else \
+		echo "❌ Examples are out of date. Run 'make regenerate-examples' to update them."; \
+		git diff example/; \
+		exit 1; \
+	fi
 
 .PHONY: docker
 docker:

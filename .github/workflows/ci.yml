@@ -87,3 +87,34 @@ jobs:
         tags: kittoffices/protoc-gen-graphql:test
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+  check-examples:
+    name: Verify Examples Are Up-to-Date
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: Install buf
+      run: |
+        BUF_VERSION=1.28.1
+        curl -sSL "https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/buf-$(uname -s)-$(uname -m)" -o /usr/local/bin/buf
+        chmod +x /usr/local/bin/buf
+
+    - name: Install protoc-gen tools
+      run: |
+        go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.26
+        go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5
+
+    - name: Download buf dependencies
+      run: buf dep update
+
+    - name: Check if examples are up-to-date
+      run: make check-examples

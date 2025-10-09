@@ -578,9 +578,29 @@ make test
 # Run linter
 golangci-lint run
 
-# Build examples
-make build-examples
+# Regenerate examples (uses buf)
+make regenerate-examples
+
+# Check if examples are up-to-date (useful in CI)
+make check-examples
 ```
+
+### Regenerating Example Code
+
+After making changes to the code generator or templates, you need to regenerate the example code:
+
+**Using Make (Recommended)**
+```bash
+make regenerate-examples
+```
+
+**Using Buf Directly**
+```bash
+go install .
+buf generate --path example/
+```
+
+The CI pipeline automatically validates that examples are up-to-date. If you see a CI failure on the `check-examples` job, run `make regenerate-examples` and commit the changes.
 
 ## 🔒 Security
 
