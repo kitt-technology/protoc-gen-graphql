@@ -123,9 +123,16 @@ func (m Message) Generate() string {
 			}
 		}
 
-		goType, gqlType, typeOfType := Types(field, m.Root, m.PackageImportMap)
+		goType, gqlType, typeOfType, ok := Types(field, m.Root, m.PackageImportMap)
+		if !ok {
+			// Skip fields with unknown types
+			continue
+		}
 		if isList {
-			goType, gqlType, typeOfType = Types(field, m.Root, m.PackageImportMap)
+			goType, gqlType, typeOfType, ok = Types(field, m.Root, m.PackageImportMap)
+			if !ok {
+				continue
+			}
 		}
 
 		switch {
@@ -268,39 +275,39 @@ const (
 	Common    FieldType = "Common"
 )
 
-func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport) (GoType, GqlType, FieldType) {
+func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDescriptorProto, packageImportMap map[string]GraphqlImport) (GoType, GqlType, FieldType, bool) {
 	if field.GetTypeName() != "" {
 		switch field.GetTypeName() {
 		case ".google.protobuf.StringValue":
-			return "wrapperspb.String", "gql.String", Wrapper
+			return "wrapperspb.String", "gql.String", Wrapper, true
 		case ".google.protobuf.BoolValue":
-			return "wrapperspb.Bool", "gql.Boolean", Wrapper
+			return "wrapperspb.Bool", "gql.Boolean", Wrapper, true
 		case ".google.protobuf.FloatValue":
-			return "wrapperspb.Float", "gql.Float", Wrapper
+			return "wrapperspb.Float", "gql.Float", Wrapper, true
 		case ".google.protobuf.Timestamp":
-			return "timestamppb.Timestamp", "pg.Timestamp", Timestamp
+			return "timestamppb.Timestamp", "pg.Timestamp", Timestamp, true
 		case ".google.protobuf.Int32Value":
-			return "wrapperspb.Int32", "gql.Int", Wrapper
+			return "wrapperspb.Int32", "gql.Int", Wrapper, true
 		case ".google.protobuf.Int64Value":
-			return "wrapperspb.Int64", "gql.Int", Wrapper
+			return "wrapperspb.Int64", "gql.Int", Wrapper, true
 		}
 	}
 
 	switch field.GetType() {
 	case descriptorpb.FieldDescriptorProto_TYPE_STRING:
-		return "string", "gql.String", Primitive
+		return "string", "gql.String", Primitive, true
 	case descriptorpb.FieldDescriptorProto_TYPE_INT32:
-		return "int32", "gql.Int", Primitive
+		return "int32", "gql.Int", Primitive, true
 	case descriptorpb.FieldDescriptorProto_TYPE_INT64:
-		return "int64", "gql.Int", Primitive
+		return "int64", "gql.Int", Primitive, true
 	case descriptorpb.FieldDescriptorProto_TYPE_FLOAT:
-		return "float32", "gql.Float", Primitive
+		return "float32", "gql.Float", Primitive, true
 	case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
-		return "bool", "gql.Boolean", Primitive
+		return "bool", "gql.Boolean", Primitive, true
 	case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE:
-		return "float64", "gql.Float", Primitive
+		return "float64", "gql.Float", Primitive, true
 	case descriptorpb.FieldDescriptorProto_TYPE_BYTES:
-		return "[]byte", "gql.String", Primitive
+		return "[]byte", "gql.String", Primitive, true
 	}
 
 	for pkg, graphqlType := range packageImportMap {
@@ -308,29 +315,30 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 		if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg) {
 			typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg)
 			typeNameWithGoImport := graphqlType.GoPackage + typeName
-			return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common
+			return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common, true
 		}
 	}
 
 	// Search through message descriptors
 	for _, messageType := range root.MessageType {
 		if *messageType.Name == util.Last(field.GetTypeName()) {
-			return GoType(util.Last(field.GetTypeName())), GqlType(*messageType.Name), Object
+			return GoType(util.Last(field.GetTypeName())), GqlType(*messageType.Name), Object, true
 		}
 	}
 
 	// Search through enums
 	for _, enumType := range root.EnumType {
 		if *enumType.Name == util.Last(field.GetTypeName()) {
-			return GoType(util.Last(field.GetTypeName())), GqlType(*enumType.Name), Enum
+			return GoType(util.Last(field.GetTypeName())), GqlType(*enumType.Name), Enum, true
 		}
 	}
 
 	if field.GetTypeName() == ".graphql.PageInfo" {
-		return "pg.PageInfo", "pg.PageInfo", Object
+		return "pg.PageInfo", "pg.PageInfo", Object, true
 	}
 
-	panic(field)
+	// Unknown type - return false to indicate it should be skipped
+	return "", "", "", false
 }
 
 func goKey(field *descriptorpb.FieldDescriptorProto) string {
