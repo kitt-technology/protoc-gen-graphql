@@ -1130,55 +1130,46 @@ func (m *UsersModule) PackageName() string {
 // Type-safe field customization methods
 
 // AddFieldToGetUsersRequest adds a custom field to the GetUsersRequest GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *UsersModule) AddFieldToGetUsersRequest(fieldName string, field *gql.Field) {
 	GetUsersRequestGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToGetUsersResponse adds a custom field to the GetUsersResponse GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *UsersModule) AddFieldToGetUsersResponse(fieldName string, field *gql.Field) {
 	GetUsersResponseGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToUsersBatchResponse adds a custom field to the UsersBatchResponse GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *UsersModule) AddFieldToUsersBatchResponse(fieldName string, field *gql.Field) {
 	UsersBatchResponseGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToGetUserProfileRequest adds a custom field to the GetUserProfileRequest GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *UsersModule) AddFieldToGetUserProfileRequest(fieldName string, field *gql.Field) {
 	GetUserProfileRequestGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToUser adds a custom field to the User GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *UsersModule) AddFieldToUser(fieldName string, field *gql.Field) {
 	UserGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToUserProfile adds a custom field to the UserProfile GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *UsersModule) AddFieldToUserProfile(fieldName string, field *gql.Field) {
 	UserProfileGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToAddress adds a custom field to the Address GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *UsersModule) AddFieldToAddress(fieldName string, field *gql.Field) {
 	AddressGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToUserPreferences adds a custom field to the UserPreferences GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *UsersModule) AddFieldToUserPreferences(fieldName string, field *gql.Field) {
 	UserPreferencesGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToLoyaltyInfo adds a custom field to the LoyaltyInfo GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *UsersModule) AddFieldToLoyaltyInfo(fieldName string, field *gql.Field) {
 	LoyaltyInfoGraphqlType.AddFieldConfig(fieldName, field)
 }

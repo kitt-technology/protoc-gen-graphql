@@ -45,9 +45,21 @@ type File struct {
 func New(file *protogen.File) (f File) {
 	f.Package = file.GoPackageName
 
+	hasServices := false
 	for _, service := range file.Proto.Service {
 		f.Message = append(f.Message, templates.New(service, file.Proto))
-		f.Imports = append(f.Imports, imports.PggImport)
+		hasServices = true
+	}
+
+	// Add imports needed for all generated files with services or just types
+	// These are always needed because we always generate a module
+	f.Imports = append(f.Imports, imports.PggImport)
+	f.Imports = append(f.Imports, imports.ContextImport)
+
+	// Only add these if we have services (modules with services need them)
+	if hasServices {
+		f.Imports = append(f.Imports, imports.DataloaderImport)
+		f.Imports = append(f.Imports, imports.OsImport)
 	}
 
 	for _, e := range file.Proto.EnumType {

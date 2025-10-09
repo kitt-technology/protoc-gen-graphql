@@ -1301,67 +1301,56 @@ func (m *ProductsModule) PackageName() string {
 // Type-safe field customization methods
 
 // AddFieldToGetProductsRequest adds a custom field to the GetProductsRequest GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *ProductsModule) AddFieldToGetProductsRequest(fieldName string, field *gql.Field) {
 	GetProductsRequestGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToGetProductsResponse adds a custom field to the GetProductsResponse GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *ProductsModule) AddFieldToGetProductsResponse(fieldName string, field *gql.Field) {
 	GetProductsResponseGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToGetProductsByCategoryResponse adds a custom field to the GetProductsByCategoryResponse GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *ProductsModule) AddFieldToGetProductsByCategoryResponse(fieldName string, field *gql.Field) {
 	GetProductsByCategoryResponseGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToGetProductsBatchRequest adds a custom field to the GetProductsBatchRequest GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *ProductsModule) AddFieldToGetProductsBatchRequest(fieldName string, field *gql.Field) {
 	GetProductsBatchRequestGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToGetProductsBatchResponse adds a custom field to the GetProductsBatchResponse GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *ProductsModule) AddFieldToGetProductsBatchResponse(fieldName string, field *gql.Field) {
 	GetProductsBatchResponseGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToSearchProductsRequest adds a custom field to the SearchProductsRequest GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *ProductsModule) AddFieldToSearchProductsRequest(fieldName string, field *gql.Field) {
 	SearchProductsRequestGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToSearchProductsResponse adds a custom field to the SearchProductsResponse GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *ProductsModule) AddFieldToSearchProductsResponse(fieldName string, field *gql.Field) {
 	SearchProductsResponseGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToProductsByCategory adds a custom field to the ProductsByCategory GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *ProductsModule) AddFieldToProductsByCategory(fieldName string, field *gql.Field) {
 	ProductsByCategoryGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToProduct adds a custom field to the Product GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *ProductsModule) AddFieldToProduct(fieldName string, field *gql.Field) {
 	ProductGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToProductVariant adds a custom field to the ProductVariant GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *ProductsModule) AddFieldToProductVariant(fieldName string, field *gql.Field) {
 	ProductVariantGraphqlType.AddFieldConfig(fieldName, field)
 }
 
 // AddFieldToInventory adds a custom field to the Inventory GraphQL type
-// This provides a type-safe way to extend types with cross-service relationships
 func (m *ProductsModule) AddFieldToInventory(fieldName string, field *gql.Field) {
 	InventoryGraphqlType.AddFieldConfig(fieldName, field)
 }
