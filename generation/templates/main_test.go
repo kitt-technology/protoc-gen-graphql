@@ -301,14 +301,9 @@ func TestMessage_Generate(t *testing.T) {
 				},
 				Loaders: []LoaderVars{},
 			},
-			wantContains: []string{
-				"var UserServiceClientInstance UserServiceClient",
-				"var UserServiceServiceInstance UserServiceServer",
-				"func UserServiceInit(ctx context.Context, opts ...UserServiceOption)",
-				"Name: \"test_GetUser\"",
-				"Type: GetUserResponseGraphqlType",
-				"Args: GetUserRequestGraphqlArgs",
-			},
+			// Note: Generate() now only generates loader helper functions
+			// The Module pattern is generated at the file level
+			wantContains: []string{},
 		},
 		{
 			name: "service with loaders",
@@ -333,8 +328,6 @@ func TestMessage_Generate(t *testing.T) {
 				},
 			},
 			wantContains: []string{
-				"func ProductServiceWithLoaders(ctx context.Context)",
-				"dataloader.NewBatchedLoader",
 				"ProductServiceLoadProduct(p gql.ResolveParams, key string)",
 				"ProductServiceLoadProductMany(p gql.ResolveParams, keys []string)",
 			},
@@ -383,76 +376,9 @@ func TestMessage_Generate(t *testing.T) {
 	}
 }
 
-func TestMessage_Generate_WithDNS(t *testing.T) {
-	m := Message{
-		Package:     "test",
-		ServiceName: "test",
-		Descriptor: &descriptorpb.ServiceDescriptorProto{
-			Name: proto.String("MyService"),
-		},
-		Methods: []Method{},
-		Dns:     "localhost:8080",
-		Loaders: []LoaderVars{},
-	}
-
-	output := m.Generate()
-
-	if !strings.Contains(output, `host := "localhost:8080"`) {
-		t.Error("Generate() should include DNS host configuration")
-	}
-}
-
-func TestMessage_Generate_OptionsPattern(t *testing.T) {
-	m := Message{
-		Package:     "test",
-		ServiceName: "test",
-		Descriptor: &descriptorpb.ServiceDescriptorProto{
-			Name: proto.String("TestService"),
-		},
-		Methods: []Method{},
-		Loaders: []LoaderVars{},
-	}
-
-	output := m.Generate()
-
-	// Verify functional options pattern
-	expectedPatterns := []string{
-		"type TestServiceOption func(*TestServiceConfig)",
-		"type TestServiceConfig struct",
-		"func WithTestServiceService(service TestServiceServer) TestServiceOption",
-		"func WithTestServiceClient(client TestServiceClient) TestServiceOption",
-		"func WithTestServiceDialOptions(opts ...grpc.DialOption) TestServiceOption",
-	}
-
-	for _, pattern := range expectedPatterns {
-		if !strings.Contains(output, pattern) {
-			t.Errorf("Generate() should contain options pattern: %q", pattern)
-		}
-	}
-}
-
-func TestMessage_Generate_SetterFunctions(t *testing.T) {
-	m := Message{
-		Package:     "test",
-		ServiceName: "test",
-		Descriptor: &descriptorpb.ServiceDescriptorProto{
-			Name: proto.String("MyService"),
-		},
-		Methods: []Method{},
-		Loaders: []LoaderVars{},
-	}
-
-	output := m.Generate()
-
-	// Verify setter functions exist for backwards compatibility
-	if !strings.Contains(output, "func SetMyServiceService(service MyServiceServer)") {
-		t.Error("Generate() should contain SetService function")
-	}
-
-	if !strings.Contains(output, "func SetMyServiceClient(client MyServiceClient)") {
-		t.Error("Generate() should contain SetClient function")
-	}
-}
+// Note: DNS configuration, options pattern, and setter functions are now generated
+// at the file/module level (in generation/module_gen.go), not per-service.
+// These tests have been removed as they no longer apply to Message.Generate().
 
 func TestMethod(t *testing.T) {
 	// Test the Method struct

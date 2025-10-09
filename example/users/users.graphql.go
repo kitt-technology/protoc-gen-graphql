@@ -931,145 +931,6 @@ func (msg *LoyaltyInfo) XXX_GraphqlArgs() gql.FieldConfigArgument {
 func (msg *LoyaltyInfo) XXX_Package() string {
 	return "users"
 }
-
-var UsersClientInstance UsersClient
-var UsersServiceInstance UsersServer
-var UsersDialOpts []grpc.DialOption
-
-type UsersOption func(*UsersConfig)
-
-type UsersConfig struct {
-	service  UsersServer
-	client   UsersClient
-	dialOpts []grpc.DialOption
-}
-
-// WithUsersService sets the service implementation for direct calls (no gRPC)
-func WithUsersService(service UsersServer) UsersOption {
-	return func(cfg *UsersConfig) {
-		cfg.service = service
-	}
-}
-
-// WithUsersClient sets the gRPC client for remote calls
-func WithUsersClient(client UsersClient) UsersOption {
-	return func(cfg *UsersConfig) {
-		cfg.client = client
-	}
-}
-
-// WithUsersDialOptions sets the dial options for the gRPC client
-func WithUsersDialOptions(opts ...grpc.DialOption) UsersOption {
-	return func(cfg *UsersConfig) {
-		cfg.dialOpts = opts
-	}
-}
-
-func UsersInit(ctx context.Context, opts ...UsersOption) (context.Context, []*gql.Field) {
-	cfg := &UsersConfig{}
-	for _, opt := range opts {
-		opt(cfg)
-	}
-
-	UsersServiceInstance = cfg.service
-	UsersClientInstance = cfg.client
-	UsersDialOpts = cfg.dialOpts
-
-	var fields []*gql.Field
-	fields = append(fields, &gql.Field{
-		Name: "users_GetUsers",
-		Type: GetUsersResponseGraphqlType,
-		Args: GetUsersRequestGraphqlArgs,
-		Resolve: func(p gql.ResolveParams) (interface{}, error) {
-			if UsersServiceInstance != nil {
-				return UsersServiceInstance.GetUsers(p.Context, GetUsersRequestFromArgs(p.Args))
-			}
-			if UsersClientInstance == nil {
-				UsersClientInstance = getUsersClient()
-			}
-			return UsersClientInstance.GetUsers(p.Context, GetUsersRequestFromArgs(p.Args))
-		},
-	})
-
-	fields = append(fields, &gql.Field{
-		Name: "users_GetUserProfile",
-		Type: UserProfileGraphqlType,
-		Args: GetUserProfileRequestGraphqlArgs,
-		Resolve: func(p gql.ResolveParams) (interface{}, error) {
-			if UsersServiceInstance != nil {
-				return UsersServiceInstance.GetUserProfile(p.Context, GetUserProfileRequestFromArgs(p.Args))
-			}
-			if UsersClientInstance == nil {
-				UsersClientInstance = getUsersClient()
-			}
-			return UsersClientInstance.GetUserProfile(p.Context, GetUserProfileRequestFromArgs(p.Args))
-		},
-	})
-
-	ctx = UsersWithLoaders(ctx)
-
-	return ctx, fields
-}
-
-func getUsersClient() UsersClient {
-	host := "localhost:50052"
-	envHost := os.Getenv("SERVICE_HOST")
-	if envHost != "" {
-		host = envHost
-	}
-	return NewUsersClient(pg.GrpcConnection(host, UsersDialOpts...))
-}
-
-// SetUsersService sets the service implementation for direct calls (no gRPC)
-func SetUsersService(service UsersServer) {
-	UsersServiceInstance = service
-}
-
-// SetUsersClient sets the gRPC client for remote calls
-func SetUsersClient(client UsersClient) {
-	UsersClientInstance = client
-}
-
-func UsersWithLoaders(ctx context.Context) context.Context {
-	ctx = context.WithValue(ctx, "LoadUsersLoader", dataloader.NewBatchedLoader(
-		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-			var results []*dataloader.Result
-
-			var resp *UsersBatchResponse
-			var err error
-			if UsersServiceInstance != nil {
-				resp, err = UsersServiceInstance.LoadUsers(ctx, &pg.BatchRequest{
-					Keys: keys.Keys(),
-				})
-			} else {
-				if UsersClientInstance == nil {
-					UsersClientInstance = getUsersClient()
-				}
-				resp, err = UsersClientInstance.LoadUsers(ctx, &pg.BatchRequest{
-					Keys: keys.Keys(),
-				})
-			}
-
-			if err != nil {
-				return results
-			}
-
-			for _, key := range keys.Keys() {
-				if val, ok := resp.Results[key]; ok {
-					results = append(results, &dataloader.Result{Data: val})
-				} else {
-					var empty *User
-					results = append(results, &dataloader.Result{Data: empty})
-				}
-			}
-
-			return results
-		},
-	))
-
-	return ctx
-}
-
 func UsersLoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadUsersLoader").(type) {
@@ -1099,7 +960,6 @@ func UsersLoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}
 	}
 
 	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
-
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 
@@ -1118,19 +978,266 @@ func UsersLoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}
 	}, nil
 }
 
-// WithLoaders adds all batch loaders from all services to the context
-func WithLoaders(ctx context.Context) context.Context {
-	ctx = UsersWithLoaders(ctx)
+// allMessages contains all message types from this proto package
+var allMessages = []pg.GraphqlMessage{
+	&GetUsersRequest{},
+	&GetUsersResponse{},
+	&UsersBatchResponse{},
+	&GetUserProfileRequest{},
+	&User{},
+	&UserProfile{},
+	&Address{},
+	&UserPreferences{},
+	&LoyaltyInfo{},
+}
+
+// UsersModule implements the Module interface for the users package
+type UsersModule struct {
+	usersClient   UsersClient
+	usersService  UsersServer
+	usersDialOpts []grpc.DialOption
+}
+
+// UsersModuleOption configures the UsersModule
+type UsersModuleOption func(*UsersModule)
+
+// WithModuleUsersClient sets the gRPC client for the Users service
+func WithModuleUsersClient(client UsersClient) UsersModuleOption {
+	return func(m *UsersModule) {
+		m.usersClient = client
+	}
+}
+
+// WithModuleUsersService sets the direct service implementation for the Users service
+func WithModuleUsersService(service UsersServer) UsersModuleOption {
+	return func(m *UsersModule) {
+		m.usersService = service
+	}
+}
+
+// WithModuleUsersDialOptions sets dial options for lazy client creation for the Users service
+func WithModuleUsersDialOptions(opts ...grpc.DialOption) UsersModuleOption {
+	return func(m *UsersModule) {
+		m.usersDialOpts = opts
+	}
+}
+
+// NewUsersModule creates a new module with optional service configurations
+func NewUsersModule(opts ...UsersModuleOption) *UsersModule {
+	m := &UsersModule{}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// getUsersClient returns the client, creating it lazily if needed
+func (m *UsersModule) getUsersClient() UsersClient {
+	if m.usersClient == nil {
+		host := os.Getenv("USERS_SERVICE_HOST")
+		if host == "" {
+			host = "localhost:50052"
+		}
+		m.usersClient = NewUsersClient(pg.GrpcConnection(host, m.usersDialOpts...))
+	}
+	return m.usersClient
+}
+
+// Fields returns all GraphQL query/mutation fields from all services in this module
+func (m *UsersModule) Fields() gql.Fields {
+	fields := gql.Fields{}
+
+	// Users service: GetUsers method
+	fields["users_GetUsers"] = &gql.Field{
+		Name: "users_GetUsers",
+		Type: GetUsersResponseGraphqlType,
+		Args: GetUsersRequestGraphqlArgs,
+		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			req := GetUsersRequestFromArgs(p.Args)
+			if m.usersService != nil {
+				return m.usersService.GetUsers(p.Context, req)
+			}
+			return m.getUsersClient().GetUsers(p.Context, req)
+		},
+	}
+
+	// Users service: GetUserProfile method
+	fields["users_GetUserProfile"] = &gql.Field{
+		Name: "users_GetUserProfile",
+		Type: UserProfileGraphqlType,
+		Args: GetUserProfileRequestGraphqlArgs,
+		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			req := GetUserProfileRequestFromArgs(p.Args)
+			if m.usersService != nil {
+				return m.usersService.GetUserProfile(p.Context, req)
+			}
+			return m.getUsersClient().GetUserProfile(p.Context, req)
+		},
+	}
+
+	return fields
+}
+
+// WithLoaders registers all dataloaders from all services into the context
+func (m *UsersModule) WithLoaders(ctx context.Context) context.Context {
+	// Users service: LoadUsers loader
+	ctx = context.WithValue(ctx, "LoadUsersLoader", dataloader.NewBatchedLoader(
+		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+			var results []*dataloader.Result
+
+			var resp *UsersBatchResponse
+			var err error
+
+			req := &pg.BatchRequest{
+				Keys: keys.Keys(),
+			}
+			if m.usersService != nil {
+				resp, err = m.usersService.LoadUsers(ctx, req)
+			} else {
+				resp, err = m.getUsersClient().LoadUsers(ctx, req)
+			}
+
+			if err != nil {
+				return results
+			}
+
+			for _, key := range keys.Keys() {
+				if val, ok := resp.Results[key]; ok {
+					results = append(results, &dataloader.Result{Data: val})
+				} else {
+					var empty *User
+					results = append(results, &dataloader.Result{Data: empty})
+				}
+			}
+
+			return results
+		},
+	))
+
 	return ctx
 }
 
-// Fields returns all GraphQL fields from all services
-func Fields(ctx context.Context) []*gql.Field {
-	var fields []*gql.Field
-	var serviceFields []*gql.Field
+// Messages returns all message types from this package
+func (m *UsersModule) Messages() []pg.GraphqlMessage {
+	return allMessages
+}
 
-	ctx, serviceFields = UsersInit(ctx)
-	fields = append(fields, serviceFields...)
+// PackageName returns the proto package name
+func (m *UsersModule) PackageName() string {
+	return "users"
+}
 
-	return fields
+// Type-safe field customization methods
+
+// AddFieldToGetUsersRequest adds a custom field to the GetUsersRequest GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *UsersModule) AddFieldToGetUsersRequest(fieldName string, field *gql.Field) {
+	GetUsersRequestGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToGetUsersResponse adds a custom field to the GetUsersResponse GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *UsersModule) AddFieldToGetUsersResponse(fieldName string, field *gql.Field) {
+	GetUsersResponseGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToUsersBatchResponse adds a custom field to the UsersBatchResponse GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *UsersModule) AddFieldToUsersBatchResponse(fieldName string, field *gql.Field) {
+	UsersBatchResponseGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToGetUserProfileRequest adds a custom field to the GetUserProfileRequest GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *UsersModule) AddFieldToGetUserProfileRequest(fieldName string, field *gql.Field) {
+	GetUserProfileRequestGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToUser adds a custom field to the User GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *UsersModule) AddFieldToUser(fieldName string, field *gql.Field) {
+	UserGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToUserProfile adds a custom field to the UserProfile GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *UsersModule) AddFieldToUserProfile(fieldName string, field *gql.Field) {
+	UserProfileGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToAddress adds a custom field to the Address GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *UsersModule) AddFieldToAddress(fieldName string, field *gql.Field) {
+	AddressGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToUserPreferences adds a custom field to the UserPreferences GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *UsersModule) AddFieldToUserPreferences(fieldName string, field *gql.Field) {
+	UserPreferencesGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToLoyaltyInfo adds a custom field to the LoyaltyInfo GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *UsersModule) AddFieldToLoyaltyInfo(fieldName string, field *gql.Field) {
+	LoyaltyInfoGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// GraphQL type accessors
+
+// GetUsersRequestType returns the GraphQL type for GetUsersRequest
+func (m *UsersModule) GetUsersRequestType() *gql.Object {
+	return GetUsersRequestGraphqlType
+}
+
+// GetUsersResponseType returns the GraphQL type for GetUsersResponse
+func (m *UsersModule) GetUsersResponseType() *gql.Object {
+	return GetUsersResponseGraphqlType
+}
+
+// UsersBatchResponseType returns the GraphQL type for UsersBatchResponse
+func (m *UsersModule) UsersBatchResponseType() *gql.Object {
+	return UsersBatchResponseGraphqlType
+}
+
+// GetUserProfileRequestType returns the GraphQL type for GetUserProfileRequest
+func (m *UsersModule) GetUserProfileRequestType() *gql.Object {
+	return GetUserProfileRequestGraphqlType
+}
+
+// UserType returns the GraphQL type for User
+func (m *UsersModule) UserType() *gql.Object {
+	return UserGraphqlType
+}
+
+// UserProfileType returns the GraphQL type for UserProfile
+func (m *UsersModule) UserProfileType() *gql.Object {
+	return UserProfileGraphqlType
+}
+
+// AddressType returns the GraphQL type for Address
+func (m *UsersModule) AddressType() *gql.Object {
+	return AddressGraphqlType
+}
+
+// UserPreferencesType returns the GraphQL type for UserPreferences
+func (m *UsersModule) UserPreferencesType() *gql.Object {
+	return UserPreferencesGraphqlType
+}
+
+// LoyaltyInfoType returns the GraphQL type for LoyaltyInfo
+func (m *UsersModule) LoyaltyInfoType() *gql.Object {
+	return LoyaltyInfoGraphqlType
+}
+
+// DataLoader accessor methods
+
+// UsersLoadUsers loads a single *User using the users service dataloader
+func (m *UsersModule) UsersLoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+	return UsersLoadUsers(p, key)
+}
+
+// UsersLoadUsersMany loads multiple *User using the users service dataloader
+func (m *UsersModule) UsersLoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	return UsersLoadUsersMany(p, keys)
 }

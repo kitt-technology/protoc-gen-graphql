@@ -1,7 +1,6 @@
 package templates
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 
@@ -147,11 +146,112 @@ func (m Message) Imports() []string {
 }
 
 func (m Message) Generate() string {
-	var buf bytes.Buffer
-	if err := tpl.Execute(&buf, m); err != nil {
-		panic(err)
+	// Don't generate old Init() functions - only the module pattern is generated now
+	// The loader helper functions are still generated for backward compatibility
+	var out string
+
+	// Only generate the loader helper functions (LoadProducts, LoadProductsMany, etc.)
+	for _, loader := range m.Loaders {
+		out += m.generateLoaderHelpers(loader)
 	}
-	return buf.String()
+
+	return out
+}
+
+func (m Message) generateLoaderHelpers(loader LoaderVars) string {
+	serviceName := *m.Descriptor.Name
+	var out string
+
+	// Generate custom key type if needed
+	if loader.Custom {
+		out += fmt.Sprintf("\ntype %sKey struct {\n", loader.KeysType)
+		out += fmt.Sprintf("\t*%s\n", loader.KeysType)
+		out += "}\n\n"
+
+		out += fmt.Sprintf("func (key *%sKey) String() string {\n", loader.KeysType)
+		out += "\treturn pg.ProtoKey(key)\n"
+		out += "}\n\n"
+
+		out += fmt.Sprintf("func (key *%sKey) Raw() interface{} {\n", loader.KeysType)
+		out += "\treturn key\n"
+		out += "}\n\n"
+	}
+
+	// Generate Load helper function
+	out += fmt.Sprintf("func %s%s(p gql.ResolveParams, ", serviceName, loader.Method)
+	if loader.Custom {
+		out += fmt.Sprintf("key *%s", loader.KeysType)
+	} else {
+		out += "key string"
+	}
+	out += ") (func() (interface{}, error), error) {\n"
+	out += "\tvar loader *dataloader.Loader\n"
+	out += fmt.Sprintf("\tswitch p.Context.Value(%q).(type) {\n", loader.Method+"Loader")
+	out += "\tcase *dataloader.Loader:\n"
+	out += fmt.Sprintf("\t\tloader = p.Context.Value(%q).(*dataloader.Loader)\n", loader.Method+"Loader")
+	out += "\tdefault:\n"
+	out += fmt.Sprintf("\t\tpanic(%q)\n", "Please call "+m.Package+".WithLoaders with the current context first")
+	out += "\t}\n\n"
+
+	out += "\tthunk := loader.Load(p.Context, "
+	if loader.Custom {
+		out += fmt.Sprintf("&%sKey{key}", loader.KeysType)
+	} else {
+		out += "dataloader.StringKey(key)"
+	}
+	out += ")\n"
+
+	out += "\treturn func() (interface{}, error) {\n"
+	out += "\t\tres, err := thunk()\n"
+	out += "\t\tif err != nil {\n"
+	out += "\t\t\treturn nil, err\n"
+	out += "\t\t}\n"
+	out += fmt.Sprintf("\t\treturn res.(%s), nil\n", loader.ResultsType)
+	out += "\t}, nil\n"
+	out += "}\n\n"
+
+	// Generate LoadMany helper function
+	out += fmt.Sprintf("func %s%sMany(p gql.ResolveParams, ", serviceName, loader.Method)
+	if loader.Custom {
+		out += fmt.Sprintf("keys []*%s", loader.KeysType)
+	} else {
+		out += "keys []string"
+	}
+	out += ") (func() (interface{}, error), error) {\n"
+	out += "\tvar loader *dataloader.Loader\n"
+	out += fmt.Sprintf("\tswitch p.Context.Value(%q).(type) {\n", loader.Method+"Loader")
+	out += "\tcase *dataloader.Loader:\n"
+	out += fmt.Sprintf("\t\tloader = p.Context.Value(%q).(*dataloader.Loader)\n", loader.Method+"Loader")
+	out += "\tdefault:\n"
+	out += fmt.Sprintf("\t\tpanic(%q)\n", "Please call "+m.Package+".WithLoaders with the current context first")
+	out += "\t}\n\n"
+
+	if loader.Custom {
+		out += "\tloaderKeys := make(dataloader.Keys, len(keys))\n"
+		out += "\tfor ix := range keys {\n"
+		out += fmt.Sprintf("\t\tloaderKeys[ix] = &%sKey{keys[ix]}\n", loader.KeysType)
+		out += "\t}\n\n"
+		out += "\tthunk := loader.LoadMany(p.Context, loaderKeys)\n"
+	} else {
+		out += "\tthunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))\n"
+	}
+
+	out += "\treturn func() (interface{}, error) {\n"
+	out += "\t\tresSlice, errSlice := thunk()\n\n"
+	out += "\t\tfor _, err := range errSlice {\n"
+	out += "\t\t\tif err != nil {\n"
+	out += "\t\t\t\treturn nil, err\n"
+	out += "\t\t\t}\n"
+	out += "\t\t}\n\n"
+	out += fmt.Sprintf("\t\tvar results []%s\n", loader.ResultsType)
+	out += "\t\tfor _, res := range resSlice {\n"
+	out += fmt.Sprintf("\t\t\tresults = append(results, res.(%s))\n", loader.ResultsType)
+	out += "\t\t}\n\n"
+	out += "\t\treturn results, nil\n"
+	out += "\t}, nil\n"
+	out += "}\n\n"
+
+	return out
 }
 
 type Method struct {

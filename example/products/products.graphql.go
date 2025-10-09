@@ -998,185 +998,6 @@ func (msg *Inventory) XXX_GraphqlArgs() gql.FieldConfigArgument {
 func (msg *Inventory) XXX_Package() string {
 	return "products"
 }
-
-var ProductsClientInstance ProductsClient
-var ProductsServiceInstance ProductsServer
-var ProductsDialOpts []grpc.DialOption
-
-type ProductsOption func(*ProductsConfig)
-
-type ProductsConfig struct {
-	service  ProductsServer
-	client   ProductsClient
-	dialOpts []grpc.DialOption
-}
-
-// WithProductsService sets the service implementation for direct calls (no gRPC)
-func WithProductsService(service ProductsServer) ProductsOption {
-	return func(cfg *ProductsConfig) {
-		cfg.service = service
-	}
-}
-
-// WithProductsClient sets the gRPC client for remote calls
-func WithProductsClient(client ProductsClient) ProductsOption {
-	return func(cfg *ProductsConfig) {
-		cfg.client = client
-	}
-}
-
-// WithProductsDialOptions sets the dial options for the gRPC client
-func WithProductsDialOptions(opts ...grpc.DialOption) ProductsOption {
-	return func(cfg *ProductsConfig) {
-		cfg.dialOpts = opts
-	}
-}
-
-func ProductsInit(ctx context.Context, opts ...ProductsOption) (context.Context, []*gql.Field) {
-	cfg := &ProductsConfig{}
-	for _, opt := range opts {
-		opt(cfg)
-	}
-
-	ProductsServiceInstance = cfg.service
-	ProductsClientInstance = cfg.client
-	ProductsDialOpts = cfg.dialOpts
-
-	var fields []*gql.Field
-	fields = append(fields, &gql.Field{
-		Name: "products_GetProducts",
-		Type: GetProductsResponseGraphqlType,
-		Args: GetProductsRequestGraphqlArgs,
-		Resolve: func(p gql.ResolveParams) (interface{}, error) {
-			if ProductsServiceInstance != nil {
-				return ProductsServiceInstance.GetProducts(p.Context, GetProductsRequestFromArgs(p.Args))
-			}
-			if ProductsClientInstance == nil {
-				ProductsClientInstance = getProductsClient()
-			}
-			return ProductsClientInstance.GetProducts(p.Context, GetProductsRequestFromArgs(p.Args))
-		},
-	})
-
-	fields = append(fields, &gql.Field{
-		Name: "products_SearchProducts",
-		Type: SearchProductsResponseGraphqlType,
-		Args: SearchProductsRequestGraphqlArgs,
-		Resolve: func(p gql.ResolveParams) (interface{}, error) {
-			if ProductsServiceInstance != nil {
-				return ProductsServiceInstance.SearchProducts(p.Context, SearchProductsRequestFromArgs(p.Args))
-			}
-			if ProductsClientInstance == nil {
-				ProductsClientInstance = getProductsClient()
-			}
-			return ProductsClientInstance.SearchProducts(p.Context, SearchProductsRequestFromArgs(p.Args))
-		},
-	})
-
-	ctx = ProductsWithLoaders(ctx)
-
-	return ctx, fields
-}
-
-func getProductsClient() ProductsClient {
-	host := "localhost:50051"
-	envHost := os.Getenv("SERVICE_HOST")
-	if envHost != "" {
-		host = envHost
-	}
-	return NewProductsClient(pg.GrpcConnection(host, ProductsDialOpts...))
-}
-
-// SetProductsService sets the service implementation for direct calls (no gRPC)
-func SetProductsService(service ProductsServer) {
-	ProductsServiceInstance = service
-}
-
-// SetProductsClient sets the gRPC client for remote calls
-func SetProductsClient(client ProductsClient) {
-	ProductsClientInstance = client
-}
-
-func ProductsWithLoaders(ctx context.Context) context.Context {
-	ctx = context.WithValue(ctx, "GetProductsByCategoryLoader", dataloader.NewBatchedLoader(
-		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-			var results []*dataloader.Result
-
-			var resp *GetProductsByCategoryResponse
-			var err error
-			if ProductsServiceInstance != nil {
-				resp, err = ProductsServiceInstance.GetProductsByCategory(ctx, &pg.BatchRequest{
-					Keys: keys.Keys(),
-				})
-			} else {
-				if ProductsClientInstance == nil {
-					ProductsClientInstance = getProductsClient()
-				}
-				resp, err = ProductsClientInstance.GetProductsByCategory(ctx, &pg.BatchRequest{
-					Keys: keys.Keys(),
-				})
-			}
-
-			if err != nil {
-				return results
-			}
-
-			for _, key := range keys.Keys() {
-				if val, ok := resp.Results[key]; ok {
-					results = append(results, &dataloader.Result{Data: val})
-				} else {
-					var empty *ProductsByCategory
-					results = append(results, &dataloader.Result{Data: empty})
-				}
-			}
-
-			return results
-		},
-	))
-
-	ctx = context.WithValue(ctx, "GetProductsBatchLoader", dataloader.NewBatchedLoader(
-		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-			var results []*dataloader.Result
-
-			var requests []*GetProductsRequest
-			for _, key := range keys {
-				requests = append(requests, key.(*GetProductsRequestKey).GetProductsRequest)
-			}
-			var resp *GetProductsBatchResponse
-			var err error
-			if ProductsServiceInstance != nil {
-				resp, err = ProductsServiceInstance.GetProductsBatch(ctx, &GetProductsBatchRequest{
-					Reqs: requests,
-				})
-			} else {
-				if ProductsClientInstance == nil {
-					ProductsClientInstance = getProductsClient()
-				}
-				resp, err = ProductsClientInstance.GetProductsBatch(ctx, &GetProductsBatchRequest{
-					Reqs: requests,
-				})
-			}
-
-			if err != nil {
-				return results
-			}
-
-			for _, key := range keys.Keys() {
-				if val, ok := resp.Results[key]; ok {
-					results = append(results, &dataloader.Result{Data: val})
-				} else {
-					var empty *GetProductsResponse
-					results = append(results, &dataloader.Result{Data: empty})
-				}
-			}
-
-			return results
-		},
-	))
-
-	return ctx
-}
-
 func ProductsGetProductsByCategory(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetProductsByCategoryLoader").(type) {
@@ -1206,7 +1027,6 @@ func ProductsGetProductsByCategoryMany(p gql.ResolveParams, keys []string) (func
 	}
 
 	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
-
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 
@@ -1271,7 +1091,6 @@ func ProductsGetProductsBatchMany(p gql.ResolveParams, keys []*GetProductsReques
 	}
 
 	thunk := loader.LoadMany(p.Context, loaderKeys)
-
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 
@@ -1290,19 +1109,338 @@ func ProductsGetProductsBatchMany(p gql.ResolveParams, keys []*GetProductsReques
 	}, nil
 }
 
-// WithLoaders adds all batch loaders from all services to the context
-func WithLoaders(ctx context.Context) context.Context {
-	ctx = ProductsWithLoaders(ctx)
+// allMessages contains all message types from this proto package
+var allMessages = []pg.GraphqlMessage{
+	&GetProductsRequest{},
+	&GetProductsResponse{},
+	&GetProductsByCategoryResponse{},
+	&GetProductsBatchRequest{},
+	&GetProductsBatchResponse{},
+	&SearchProductsRequest{},
+	&SearchProductsResponse{},
+	&ProductsByCategory{},
+	&Product{},
+	&ProductVariant{},
+	&Inventory{},
+}
+
+// ProductsModule implements the Module interface for the products package
+type ProductsModule struct {
+	productsClient   ProductsClient
+	productsService  ProductsServer
+	productsDialOpts []grpc.DialOption
+}
+
+// ProductsModuleOption configures the ProductsModule
+type ProductsModuleOption func(*ProductsModule)
+
+// WithModuleProductsClient sets the gRPC client for the Products service
+func WithModuleProductsClient(client ProductsClient) ProductsModuleOption {
+	return func(m *ProductsModule) {
+		m.productsClient = client
+	}
+}
+
+// WithModuleProductsService sets the direct service implementation for the Products service
+func WithModuleProductsService(service ProductsServer) ProductsModuleOption {
+	return func(m *ProductsModule) {
+		m.productsService = service
+	}
+}
+
+// WithModuleProductsDialOptions sets dial options for lazy client creation for the Products service
+func WithModuleProductsDialOptions(opts ...grpc.DialOption) ProductsModuleOption {
+	return func(m *ProductsModule) {
+		m.productsDialOpts = opts
+	}
+}
+
+// NewProductsModule creates a new module with optional service configurations
+func NewProductsModule(opts ...ProductsModuleOption) *ProductsModule {
+	m := &ProductsModule{}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// getProductsClient returns the client, creating it lazily if needed
+func (m *ProductsModule) getProductsClient() ProductsClient {
+	if m.productsClient == nil {
+		host := os.Getenv("PRODUCTS_SERVICE_HOST")
+		if host == "" {
+			host = "localhost:50051"
+		}
+		m.productsClient = NewProductsClient(pg.GrpcConnection(host, m.productsDialOpts...))
+	}
+	return m.productsClient
+}
+
+// Fields returns all GraphQL query/mutation fields from all services in this module
+func (m *ProductsModule) Fields() gql.Fields {
+	fields := gql.Fields{}
+
+	// Products service: GetProducts method
+	fields["products_GetProducts"] = &gql.Field{
+		Name: "products_GetProducts",
+		Type: GetProductsResponseGraphqlType,
+		Args: GetProductsRequestGraphqlArgs,
+		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			req := GetProductsRequestFromArgs(p.Args)
+			if m.productsService != nil {
+				return m.productsService.GetProducts(p.Context, req)
+			}
+			return m.getProductsClient().GetProducts(p.Context, req)
+		},
+	}
+
+	// Products service: SearchProducts method
+	fields["products_SearchProducts"] = &gql.Field{
+		Name: "products_SearchProducts",
+		Type: SearchProductsResponseGraphqlType,
+		Args: SearchProductsRequestGraphqlArgs,
+		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			req := SearchProductsRequestFromArgs(p.Args)
+			if m.productsService != nil {
+				return m.productsService.SearchProducts(p.Context, req)
+			}
+			return m.getProductsClient().SearchProducts(p.Context, req)
+		},
+	}
+
+	return fields
+}
+
+// WithLoaders registers all dataloaders from all services into the context
+func (m *ProductsModule) WithLoaders(ctx context.Context) context.Context {
+	// Products service: GetProductsByCategory loader
+	ctx = context.WithValue(ctx, "GetProductsByCategoryLoader", dataloader.NewBatchedLoader(
+		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+			var results []*dataloader.Result
+
+			var resp *GetProductsByCategoryResponse
+			var err error
+
+			req := &pg.BatchRequest{
+				Keys: keys.Keys(),
+			}
+			if m.productsService != nil {
+				resp, err = m.productsService.GetProductsByCategory(ctx, req)
+			} else {
+				resp, err = m.getProductsClient().GetProductsByCategory(ctx, req)
+			}
+
+			if err != nil {
+				return results
+			}
+
+			for _, key := range keys.Keys() {
+				if val, ok := resp.Results[key]; ok {
+					results = append(results, &dataloader.Result{Data: val})
+				} else {
+					var empty *ProductsByCategory
+					results = append(results, &dataloader.Result{Data: empty})
+				}
+			}
+
+			return results
+		},
+	))
+
+	// Products service: GetProductsBatch loader
+	ctx = context.WithValue(ctx, "GetProductsBatchLoader", dataloader.NewBatchedLoader(
+		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+			var results []*dataloader.Result
+
+			var requests []*GetProductsRequest
+			for _, key := range keys {
+				requests = append(requests, key.(*GetProductsRequestKey).GetProductsRequest)
+			}
+			var resp *GetProductsBatchResponse
+			var err error
+
+			req := &GetProductsBatchRequest{
+				Reqs: requests,
+			}
+			if m.productsService != nil {
+				resp, err = m.productsService.GetProductsBatch(ctx, req)
+			} else {
+				resp, err = m.getProductsClient().GetProductsBatch(ctx, req)
+			}
+
+			if err != nil {
+				return results
+			}
+
+			for _, key := range keys.Keys() {
+				if val, ok := resp.Results[key]; ok {
+					results = append(results, &dataloader.Result{Data: val})
+				} else {
+					var empty *GetProductsResponse
+					results = append(results, &dataloader.Result{Data: empty})
+				}
+			}
+
+			return results
+		},
+	))
+
 	return ctx
 }
 
-// Fields returns all GraphQL fields from all services
-func Fields(ctx context.Context) []*gql.Field {
-	var fields []*gql.Field
-	var serviceFields []*gql.Field
+// Messages returns all message types from this package
+func (m *ProductsModule) Messages() []pg.GraphqlMessage {
+	return allMessages
+}
 
-	ctx, serviceFields = ProductsInit(ctx)
-	fields = append(fields, serviceFields...)
+// PackageName returns the proto package name
+func (m *ProductsModule) PackageName() string {
+	return "products"
+}
 
-	return fields
+// Type-safe field customization methods
+
+// AddFieldToGetProductsRequest adds a custom field to the GetProductsRequest GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *ProductsModule) AddFieldToGetProductsRequest(fieldName string, field *gql.Field) {
+	GetProductsRequestGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToGetProductsResponse adds a custom field to the GetProductsResponse GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *ProductsModule) AddFieldToGetProductsResponse(fieldName string, field *gql.Field) {
+	GetProductsResponseGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToGetProductsByCategoryResponse adds a custom field to the GetProductsByCategoryResponse GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *ProductsModule) AddFieldToGetProductsByCategoryResponse(fieldName string, field *gql.Field) {
+	GetProductsByCategoryResponseGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToGetProductsBatchRequest adds a custom field to the GetProductsBatchRequest GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *ProductsModule) AddFieldToGetProductsBatchRequest(fieldName string, field *gql.Field) {
+	GetProductsBatchRequestGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToGetProductsBatchResponse adds a custom field to the GetProductsBatchResponse GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *ProductsModule) AddFieldToGetProductsBatchResponse(fieldName string, field *gql.Field) {
+	GetProductsBatchResponseGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToSearchProductsRequest adds a custom field to the SearchProductsRequest GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *ProductsModule) AddFieldToSearchProductsRequest(fieldName string, field *gql.Field) {
+	SearchProductsRequestGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToSearchProductsResponse adds a custom field to the SearchProductsResponse GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *ProductsModule) AddFieldToSearchProductsResponse(fieldName string, field *gql.Field) {
+	SearchProductsResponseGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToProductsByCategory adds a custom field to the ProductsByCategory GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *ProductsModule) AddFieldToProductsByCategory(fieldName string, field *gql.Field) {
+	ProductsByCategoryGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToProduct adds a custom field to the Product GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *ProductsModule) AddFieldToProduct(fieldName string, field *gql.Field) {
+	ProductGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToProductVariant adds a custom field to the ProductVariant GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *ProductsModule) AddFieldToProductVariant(fieldName string, field *gql.Field) {
+	ProductVariantGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToInventory adds a custom field to the Inventory GraphQL type
+// This provides a type-safe way to extend types with cross-service relationships
+func (m *ProductsModule) AddFieldToInventory(fieldName string, field *gql.Field) {
+	InventoryGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// GraphQL type accessors
+
+// GetProductsRequestType returns the GraphQL type for GetProductsRequest
+func (m *ProductsModule) GetProductsRequestType() *gql.Object {
+	return GetProductsRequestGraphqlType
+}
+
+// GetProductsResponseType returns the GraphQL type for GetProductsResponse
+func (m *ProductsModule) GetProductsResponseType() *gql.Object {
+	return GetProductsResponseGraphqlType
+}
+
+// GetProductsByCategoryResponseType returns the GraphQL type for GetProductsByCategoryResponse
+func (m *ProductsModule) GetProductsByCategoryResponseType() *gql.Object {
+	return GetProductsByCategoryResponseGraphqlType
+}
+
+// GetProductsBatchRequestType returns the GraphQL type for GetProductsBatchRequest
+func (m *ProductsModule) GetProductsBatchRequestType() *gql.Object {
+	return GetProductsBatchRequestGraphqlType
+}
+
+// GetProductsBatchResponseType returns the GraphQL type for GetProductsBatchResponse
+func (m *ProductsModule) GetProductsBatchResponseType() *gql.Object {
+	return GetProductsBatchResponseGraphqlType
+}
+
+// SearchProductsRequestType returns the GraphQL type for SearchProductsRequest
+func (m *ProductsModule) SearchProductsRequestType() *gql.Object {
+	return SearchProductsRequestGraphqlType
+}
+
+// SearchProductsResponseType returns the GraphQL type for SearchProductsResponse
+func (m *ProductsModule) SearchProductsResponseType() *gql.Object {
+	return SearchProductsResponseGraphqlType
+}
+
+// ProductsByCategoryType returns the GraphQL type for ProductsByCategory
+func (m *ProductsModule) ProductsByCategoryType() *gql.Object {
+	return ProductsByCategoryGraphqlType
+}
+
+// ProductType returns the GraphQL type for Product
+func (m *ProductsModule) ProductType() *gql.Object {
+	return ProductGraphqlType
+}
+
+// ProductVariantType returns the GraphQL type for ProductVariant
+func (m *ProductsModule) ProductVariantType() *gql.Object {
+	return ProductVariantGraphqlType
+}
+
+// InventoryType returns the GraphQL type for Inventory
+func (m *ProductsModule) InventoryType() *gql.Object {
+	return InventoryGraphqlType
+}
+
+// DataLoader accessor methods
+
+// ProductsGetProductsByCategory loads a single *ProductsByCategory using the products service dataloader
+func (m *ProductsModule) ProductsGetProductsByCategory(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+	return ProductsGetProductsByCategory(p, key)
+}
+
+// ProductsGetProductsByCategoryMany loads multiple *ProductsByCategory using the products service dataloader
+func (m *ProductsModule) ProductsGetProductsByCategoryMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	return ProductsGetProductsByCategoryMany(p, keys)
+}
+
+// ProductsGetProductsBatch loads a single *GetProductsResponse using the products service dataloader
+func (m *ProductsModule) ProductsGetProductsBatch(p gql.ResolveParams, key *GetProductsRequest) (func() (interface{}, error), error) {
+	return ProductsGetProductsBatch(p, key)
+}
+
+// ProductsGetProductsBatchMany loads multiple *GetProductsResponse using the products service dataloader
+func (m *ProductsModule) ProductsGetProductsBatchMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error) {
+	return ProductsGetProductsBatchMany(p, keys)
 }
