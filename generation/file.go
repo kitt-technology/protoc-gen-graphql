@@ -140,6 +140,42 @@ func (f File) ToString() string {
 }
 
 func (f File) GenerateUnifiedFunctions() string {
+	var out string
+
+	// 1. Generate allMessages slice - all messages from this proto file
+	out += f.generateAllMessages()
+
+	// 2. Generate the Module implementation
+	out += f.generateModule()
+
+	return out
+}
+
+func (f File) generateAllMessages() string {
+	var out string
+
+	out += "\n// allMessages contains all message types from this proto package\n"
+	out += "var allMessages = []pg.GraphqlMessage{\n"
+
+	for _, typedef := range f.TypeDefs {
+		// Add each message type to the slice
+		// TypeDefs includes all messages and enums
+		// We check if it's a types.Message by looking at the concrete type
+		if msg, ok := typedef.(types.Message); ok {
+			// This is a message type - get its name from the descriptor
+			out += "\t&" + msg.Descriptor.GetName() + "{},\n"
+		}
+		// Skip enums and other types
+	}
+
+	out += "}\n\n"
+
+	return out
+}
+
+func (f File) generateModule() string {
+	var out string
+
 	// Collect all services
 	var services []templates.Message
 	for _, msg := range f.Message {
@@ -148,9 +184,14 @@ func (f File) GenerateUnifiedFunctions() string {
 		}
 	}
 
+	// Generate module based on whether there are services or not
 	if len(services) == 0 {
-		return ""
+		// Type-only module (no services)
+		out += f.generateTypeOnlyModule()
+	} else {
+		// Module with services
+		out += f.generateServiceModule(services)
 	}
 
-	return templates.GenerateUnified(services)
+	return out
 }

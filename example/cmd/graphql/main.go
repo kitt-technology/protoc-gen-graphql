@@ -11,6 +11,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/kitt-technology/protoc-gen-graphql/example/products"
 	"github.com/kitt-technology/protoc-gen-graphql/example/users"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -36,30 +37,47 @@ func main() {
 	}
 
 	// Create gRPC connections
-	productsConn, err := grpc.Dial(productsAddr, opts...)
+	productsConn, err := grpc.NewClient(productsAddr, opts...)
 	if err != nil {
 		log.Fatalf("failed to connect to products service at %s: %v", productsAddr, err)
 	}
 	defer productsConn.Close()
 
-	usersConn, err := grpc.Dial(usersAddr, opts...)
+	usersConn, err := grpc.NewClient(usersAddr, opts...)
 	if err != nil {
 		log.Fatalf("failed to connect to users service at %s: %v", usersAddr, err)
 	}
 	defer usersConn.Close()
 
-	// Initialize services and get fields
+	// Create modules with gRPC clients
 	productsClient := products.NewProductsClient(productsConn)
 	usersClient := users.NewUsersClient(usersConn)
 
-	ctx, usersFields := users.Init(context.Background(), users.WithClient(usersClient), users.WithDialOptions(opts...))
-	ctx, productsFields := products.Init(ctx, products.WithClient(productsClient), products.WithDialOptions(opts...))
+	productsModule := products.NewProductsModule(
+		products.WithModuleProductsClient(productsClient),
+	)
+	usersModule := users.NewUsersModule(
+		users.WithModuleUsersClient(usersClient),
+	)
 
-	fields := append(usersFields, productsFields...)
-	field := graphql.Fields{}
-	for _, f := range fields {
-		field[f.Name] = f
-	}
+	// Setup cross-service relationships (e.g., add seller field to products)
+	productsModule.AddFieldToProduct("seller", &graphql.Field{
+		Type: usersModule.UserType(),
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			product := p.Source.(*products.Product)
+			thunk, err := usersModule.UsersLoadUsers(p, product.SellerId)
+			if err != nil {
+				return nil, err
+			}
+			return thunk()
+		},
+	})
+
+	// Combine fields from all modules using helper function
+	field := pg.CombineModuleFields(productsModule, usersModule)
+
+	// Initialize context with dataloaders from all modules
+	ctx := pg.WithAllLoaders(context.Background(), productsModule, usersModule)
 
 	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: field}
 	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
@@ -115,6 +133,10 @@ func main() {
 	fmt.Println(`  curl -X POST http://localhost:8080/graphql \`)
 	fmt.Println(`    -H "Content-Type: application/json" \`)
 	fmt.Println(`    -d '{"query": "{ users_GetUserProfile(userId: \"1\") { userId addresses { city stateProvince } loyalty { tier points } } }"}'`)
+	fmt.Println("\n5. Get products with seller info (demonstrates cross-service relationships):")
+	fmt.Println(`  curl -X POST http://localhost:8080/graphql \`)
+	fmt.Println(`    -H "Content-Type: application/json" \`)
+	fmt.Println(`    -d '{"query": "{ products_GetProducts { products { id name seller { id email firstName lastName } } } }"}'`)
 	fmt.Println("========================================")
 
 	err = http.ListenAndServe(":"+port, nil)
@@ -122,15 +144,4 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func init() {
-	// Cross-service relationships: Add seller info to products
-	products.ProductGraphqlType.AddFieldConfig("seller", &graphql.Field{
-		Type: users.UserGraphqlType,
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			product := p.Source.(*products.Product)
-			return users.LoadUsers(p, product.SellerId)
-		},
-	})
 }
