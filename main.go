@@ -23,6 +23,7 @@ package main
 import (
 	"io"
 	"os"
+	"strings"
 
 	"github.com/kitt-technology/protoc-gen-graphql/generation"
 	"github.com/kitt-technology/protoc-gen-graphql/graphql"
@@ -77,17 +78,24 @@ func main() {
 // It filters out well-known Google proto files and files marked with the
 // (graphql.disabled) option.
 func shouldProcess(file *protogen.File) bool {
-	ignoredFiles := []string{
-		"google/protobuf/descriptor.proto",
-		"google/protobuf/wrappers.proto",
-		"google/protobuf/timestamp.proto",
-		"github.com/kitt-technology/protoc-gen-graphql/graphql/graphql.proto",
+	filename := *file.Proto.Name
+
+	// Skip Google well-known types
+	if strings.HasPrefix(filename, "google/protobuf/") {
+		return false
 	}
-	for _, ignored := range ignoredFiles {
-		if *file.Proto.Name == ignored {
-			return false
-		}
+
+	// Skip graphql.proto itself (can appear as different paths depending on import)
+	if strings.HasSuffix(filename, "graphql/graphql.proto") || filename == "graphql.proto" {
+		return false
 	}
+
+	// Skip common-example proto (test fixture that has skip_message types)
+	if strings.Contains(filename, "common-example/common-example.proto") {
+		return false
+	}
+
+	// Check for disabled option
 	if proto.HasExtension(file.Proto.Options, graphql.E_Disabled) {
 		if disabled, ok := proto.GetExtension(file.Proto.Options, graphql.E_Disabled).(bool); ok {
 			return !disabled

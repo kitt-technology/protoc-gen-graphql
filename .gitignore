@@ -7,3 +7,5 @@ vendor
 node_modules
 .DS_Store
 github.com
+# Test output directory
+tests/out/

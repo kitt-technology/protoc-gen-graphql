@@ -71,18 +71,10 @@ clone:
 
 .PHONY: test
 test:
-	rm -rf tests/out || true
-	mkdir tests/out/
 	go install .
-	protoc \
-		--proto_path . \
-		-I=. \
-		-I=./graphql \
-		-I=./example \
-		-I ${GOPATH}/src \
-		--go_out="module=${PACKAGE}:./tests/out" \
-		--go-grpc_out="module=${PACKAGE}:./tests/out" \
-		--graphql_out="module=${PACKAGE},lang=go:./tests/out" \
-		./tests/cases/messages.proto
-	go fmt tests/out/cases/messages.graphql.go
-	go run tests/run.go
+	cd tests && go test -v .
+
+.PHONY: update-golden
+update-golden:
+	go install .
+	cd tests && go test -v -update .

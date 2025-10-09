@@ -6,8 +6,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/kitt-technology/protoc-gen-graphql/generation/dataloaders"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/imports"
+	"github.com/kitt-technology/protoc-gen-graphql/generation/templates"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types/enum"
 	"github.com/kitt-technology/protoc-gen-graphql/generation/util"
@@ -45,7 +45,7 @@ func New(file *protogen.File) (f File) {
 	f.Package = file.GoPackageName
 
 	for _, service := range file.Proto.Service {
-		f.Message = append(f.Message, dataloaders.New(service, file.Proto))
+		f.Message = append(f.Message, templates.New(service, file.Proto))
 		f.Imports = append(f.Imports, imports.PggImport)
 	}
 

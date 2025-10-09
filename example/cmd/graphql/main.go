@@ -115,7 +115,7 @@ func main() {
 	fmt.Println(`  curl -X POST http://localhost:8080/graphql \`)
 	fmt.Println(`    -H "Content-Type: application/json" \`)
 	fmt.Println(`    -d '{"query": "{ users_GetUserProfile(userId: \"1\") { userId addresses { city stateProvince } loyalty { tier points } } }"}'`)
-	fmt.Println("========================================\n")
+	fmt.Println("========================================")
 
 	err = http.ListenAndServe(":"+port, nil)
 
