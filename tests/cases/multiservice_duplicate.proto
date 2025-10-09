@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package multiservice_duplicate;
+
+import "graphql.proto";
+
+option go_package = "github.com/kitt-technology/protoc-gen-graphql/cases;cases";
+
+service ServiceA {
+  option (graphql.host) = "localhost:50051";
+
+  rpc getItems(GetItemsARequest) returns (GetItemsAResponse) {}
+
+  // Batch loader for ServiceA - NOTE: same method name as ServiceB
+  rpc loadItems(graphql.BatchRequest) returns (LoadItemsAResponse) {
+    option (graphql.batch_loader) = true;
+  }
+}
+
+service ServiceB {
+  option (graphql.host) = "localhost:50052";
+
+  rpc getItems(GetItemsBRequest) returns (GetItemsBResponse) {}
+
+  // Batch loader for ServiceB - NOTE: same method name as ServiceA
+  rpc loadItems(graphql.BatchRequest) returns (LoadItemsBResponse) {
+    option (graphql.batch_loader) = true;
+  }
+}
+
+message GetItemsARequest {
+  repeated string ids = 1;
+}
+
+message GetItemsAResponse {
+  repeated ItemA items = 1;
+}
+
+message LoadItemsAResponse {
+  map<string, ItemA> results = 1;
+}
+
+message ItemA {
+  string id = 1;
+  string name = 2;
+}
+
+message GetItemsBRequest {
+  repeated string ids = 1;
+}
+
+message GetItemsBResponse {
+  repeated ItemB items = 1;
+}
+
+message LoadItemsBResponse {
+  map<string, ItemB> results = 1;
+}
+
+message ItemB {
+  string id = 1;
+  string value = 2;
+}

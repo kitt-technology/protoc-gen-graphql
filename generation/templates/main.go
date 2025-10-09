@@ -38,7 +38,11 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 		}
 
 		// See if method is a batch loader
-		isBatchLoader := proto.HasExtension(method.Options, graphql.E_BatchLoader)
+		// A method is a batch loader if:
+		// 1. It has the explicit batch_loader option, OR
+		// 2. It uses graphql.BatchRequest as input
+		isBatchLoader := proto.HasExtension(method.Options, graphql.E_BatchLoader) ||
+			strings.HasSuffix(*method.InputType, ".BatchRequest")
 		if isBatchLoader {
 			// Find type of map
 			var resultType string

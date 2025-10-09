@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package auto_batchloader;
+
+import "graphql.proto";
+
+option go_package = "github.com/kitt-technology/protoc-gen-graphql/cases;cases";
+
+service TestService {
+  option (graphql.host) = "localhost:50053";
+
+  rpc getItems(GetItemsRequest) returns (GetItemsResponse) {}
+
+  // Batch loader WITHOUT explicit batch_loader option
+  // Should be auto-detected because it uses graphql.BatchRequest
+  rpc loadItems(graphql.BatchRequest) returns (LoadItemsResponse) {
+    // NOTE: No (graphql.batch_loader) = true here!
+  }
+}
+
+message GetItemsRequest {
+  repeated string ids = 1;
+}
+
+message GetItemsResponse {
+  repeated Item items = 1;
+}
+
+message LoadItemsResponse {
+  map<string, Item> results = 1;
+}
+
+message Item {
+  string id = 1;
+  string name = 2;
+}

@@ -171,7 +171,7 @@ func (key *{{ $loader.KeysType }}Key) Raw() interface{} {
 }
 
 {{ end }}
-func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }}key *{{ $loader.KeysType }}{{ else }}key string{{ end }}) (func() (interface{}, error), error) {
+func {{ $.Descriptor.Name }}{{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }}key *{{ $loader.KeysType }}{{ else }}key string{{ end }}) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("{{ $loader.Method }}Loader").(type) {
 	case *dataloader.Loader:
@@ -190,7 +190,7 @@ func {{ $loader.Method }}(p gql.ResolveParams, {{ if $loader.Custom }}key *{{ $l
 	}, nil
 }
 
-func {{ $loader.Method }}Many(p gql.ResolveParams, {{ if $loader.Custom }}keys []*{{ $loader.KeysType }}{{ else }}keys []string{{ end }}) (func() (interface{}, error), error) {
+func {{ $.Descriptor.Name }}{{ $loader.Method }}Many(p gql.ResolveParams, {{ if $loader.Custom }}keys []*{{ $loader.KeysType }}{{ else }}keys []string{{ end }}) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("{{ $loader.Method }}Loader").(type) {
 	case *dataloader.Loader:

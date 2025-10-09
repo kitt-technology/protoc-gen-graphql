@@ -849,28 +849,28 @@ type BooksConfig struct {
 	dialOpts []grpc.DialOption
 }
 
-// WithService sets the service implementation for direct calls (no gRPC)
-func WithService(service BooksServer) BooksOption {
+// WithBooksService sets the service implementation for direct calls (no gRPC)
+func WithBooksService(service BooksServer) BooksOption {
 	return func(cfg *BooksConfig) {
 		cfg.service = service
 	}
 }
 
-// WithClient sets the gRPC client for remote calls
-func WithClient(client BooksClient) BooksOption {
+// WithBooksClient sets the gRPC client for remote calls
+func WithBooksClient(client BooksClient) BooksOption {
 	return func(cfg *BooksConfig) {
 		cfg.client = client
 	}
 }
 
-// WithDialOptions sets the dial options for the gRPC client
-func WithDialOptions(opts ...grpc.DialOption) BooksOption {
+// WithBooksDialOptions sets the dial options for the gRPC client
+func WithBooksDialOptions(opts ...grpc.DialOption) BooksOption {
 	return func(cfg *BooksConfig) {
 		cfg.dialOpts = opts
 	}
 }
 
-func Init(ctx context.Context, opts ...BooksOption) (context.Context, []*gql.Field) {
+func BooksInit(ctx context.Context, opts ...BooksOption) (context.Context, []*gql.Field) {
 	cfg := &BooksConfig{}
 	for _, opt := range opts {
 		opt(cfg)
@@ -1000,7 +1000,7 @@ func BooksWithLoaders(ctx context.Context) context.Context {
 	return ctx
 }
 
-func GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+func BooksGetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
@@ -1019,7 +1019,7 @@ func GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, err
 	}, nil
 }
 
-func GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func BooksGetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
@@ -1060,7 +1060,7 @@ func (key *GetBooksRequestKey) Raw() interface{} {
 	return key
 }
 
-func GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
+func BooksGetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksBatchLoader").(type) {
 	case *dataloader.Loader:
@@ -1079,7 +1079,7 @@ func GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface
 	}, nil
 }
 
-func GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
+func BooksGetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksBatchLoader").(type) {
 	case *dataloader.Loader:
