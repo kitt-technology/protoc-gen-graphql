@@ -7,12 +7,17 @@ RUN apk add --no-cache git
 # Set working directory
 WORKDIR /build
 
-# Copy go mod files from example directory
+# Copy library code (needed for replace directive)
 COPY go.mod go.sum ./
+COPY graphql ./graphql
+
+# Copy example code
+COPY example/go.mod example/go.sum ./example/
+WORKDIR /build/example
 RUN go mod download
 
-# Copy source code
-COPY . ./
+# Copy example source code
+COPY example ./
 
 # Build the products service
 RUN go build -o /build/products-service ./cmd/products/main.go

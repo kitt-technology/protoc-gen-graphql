@@ -5,7 +5,6 @@ import (
 	"context"
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql/language/ast"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"os"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
@@ -836,170 +835,6 @@ func (msg *Money) XXX_GraphqlArgs() gql.FieldConfigArgument {
 func (msg *Money) XXX_Package() string {
 	return "books"
 }
-
-var BooksClientInstance BooksClient
-var BooksServiceInstance BooksServer
-var BooksDialOpts []grpc.DialOption
-
-type BooksOption func(*BooksConfig)
-
-type BooksConfig struct {
-	service  BooksServer
-	client   BooksClient
-	dialOpts []grpc.DialOption
-}
-
-// WithBooksService sets the service implementation for direct calls (no gRPC)
-func WithBooksService(service BooksServer) BooksOption {
-	return func(cfg *BooksConfig) {
-		cfg.service = service
-	}
-}
-
-// WithBooksClient sets the gRPC client for remote calls
-func WithBooksClient(client BooksClient) BooksOption {
-	return func(cfg *BooksConfig) {
-		cfg.client = client
-	}
-}
-
-// WithBooksDialOptions sets the dial options for the gRPC client
-func WithBooksDialOptions(opts ...grpc.DialOption) BooksOption {
-	return func(cfg *BooksConfig) {
-		cfg.dialOpts = opts
-	}
-}
-
-func BooksInit(ctx context.Context, opts ...BooksOption) (context.Context, []*gql.Field) {
-	cfg := &BooksConfig{}
-	for _, opt := range opts {
-		opt(cfg)
-	}
-
-	BooksServiceInstance = cfg.service
-	BooksClientInstance = cfg.client
-	BooksDialOpts = cfg.dialOpts
-
-	var fields []*gql.Field
-	fields = append(fields, &gql.Field{
-		Name: "books_GetBooks",
-		Type: GetBooksResponseGraphqlType,
-		Args: GetBooksRequestGraphqlArgs,
-		Resolve: func(p gql.ResolveParams) (interface{}, error) {
-			if BooksServiceInstance != nil {
-				return BooksServiceInstance.GetBooks(p.Context, GetBooksRequestFromArgs(p.Args))
-			}
-			if BooksClientInstance == nil {
-				BooksClientInstance = getBooksClient()
-			}
-			return BooksClientInstance.GetBooks(p.Context, GetBooksRequestFromArgs(p.Args))
-		},
-	})
-
-	ctx = BooksWithLoaders(ctx)
-
-	return ctx, fields
-}
-
-func getBooksClient() BooksClient {
-	host := "localhost:50051"
-	envHost := os.Getenv("SERVICE_HOST")
-	if envHost != "" {
-		host = envHost
-	}
-	return NewBooksClient(pg.GrpcConnection(host, BooksDialOpts...))
-}
-
-// SetBooksService sets the service implementation for direct calls (no gRPC)
-func SetBooksService(service BooksServer) {
-	BooksServiceInstance = service
-}
-
-// SetBooksClient sets the gRPC client for remote calls
-func SetBooksClient(client BooksClient) {
-	BooksClientInstance = client
-}
-
-func BooksWithLoaders(ctx context.Context) context.Context {
-	ctx = context.WithValue(ctx, "GetBooksByAuthorLoader", dataloader.NewBatchedLoader(
-		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-			var results []*dataloader.Result
-
-			var resp *GetBooksByAuthorResponse
-			var err error
-			if BooksServiceInstance != nil {
-				resp, err = BooksServiceInstance.GetBooksByAuthor(ctx, &pg.BatchRequest{
-					Keys: keys.Keys(),
-				})
-			} else {
-				if BooksClientInstance == nil {
-					BooksClientInstance = getBooksClient()
-				}
-				resp, err = BooksClientInstance.GetBooksByAuthor(ctx, &pg.BatchRequest{
-					Keys: keys.Keys(),
-				})
-			}
-
-			if err != nil {
-				return results
-			}
-
-			for _, key := range keys.Keys() {
-				if val, ok := resp.Results[key]; ok {
-					results = append(results, &dataloader.Result{Data: val})
-				} else {
-					var empty *BooksByAuthor
-					results = append(results, &dataloader.Result{Data: empty})
-				}
-			}
-
-			return results
-		},
-	))
-
-	ctx = context.WithValue(ctx, "GetBooksBatchLoader", dataloader.NewBatchedLoader(
-		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
-			var results []*dataloader.Result
-
-			var requests []*GetBooksRequest
-			for _, key := range keys {
-				requests = append(requests, key.(*GetBooksRequestKey).GetBooksRequest)
-			}
-			var resp *GetBooksBatchResponse
-			var err error
-			if BooksServiceInstance != nil {
-				resp, err = BooksServiceInstance.GetBooksBatch(ctx, &GetBooksBatchRequest{
-					Reqs: requests,
-				})
-			} else {
-				if BooksClientInstance == nil {
-					BooksClientInstance = getBooksClient()
-				}
-				resp, err = BooksClientInstance.GetBooksBatch(ctx, &GetBooksBatchRequest{
-					Reqs: requests,
-				})
-			}
-
-			if err != nil {
-				return results
-			}
-
-			for _, key := range keys.Keys() {
-				if val, ok := resp.Results[key]; ok {
-					results = append(results, &dataloader.Result{Data: val})
-				} else {
-					var empty *GetBooksResponse
-					results = append(results, &dataloader.Result{Data: empty})
-				}
-			}
-
-			return results
-		},
-	))
-
-	return ctx
-}
-
 func BooksGetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
@@ -1029,7 +864,6 @@ func BooksGetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (inte
 	}
 
 	thunk := loader.LoadMany(p.Context, dataloader.NewKeysFromStrings(keys))
-
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 
@@ -1094,7 +928,6 @@ func BooksGetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func(
 	}
 
 	thunk := loader.LoadMany(p.Context, loaderKeys)
-
 	return func() (interface{}, error) {
 		resSlice, errSlice := thunk()
 
@@ -1113,19 +946,303 @@ func BooksGetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func(
 	}, nil
 }
 
-// WithLoaders adds all batch loaders from all services to the context
-func WithLoaders(ctx context.Context) context.Context {
-	ctx = BooksWithLoaders(ctx)
+// allMessages contains all message types from this proto package
+var allMessages = []pg.GraphqlMessage{
+	&GetBooksRequest{},
+	&PaginationOptions{},
+	&Filter{},
+	&GetBooksResponse{},
+	&GetBooksBatchRequest{},
+	&GetBooksBatchResponse{},
+	&GetBooksByAuthorResponse{},
+	&BooksByAuthor{},
+	&Book{},
+	&Money{},
+}
+
+// CasesModule implements the Module interface for the cases package
+type CasesModule struct {
+	booksClient  BooksClient
+	booksService BooksServer
+
+	dialOpts pg.DialOptions
+}
+
+// CasesModuleOption configures the CasesModule
+type CasesModuleOption func(*CasesModule)
+
+// WithModuleBooksClient sets the gRPC client for the Books service
+func WithModuleBooksClient(client BooksClient) CasesModuleOption {
+	return func(m *CasesModule) {
+		m.booksClient = client
+	}
+}
+
+// WithModuleBooksService sets the direct service implementation for the Books service
+func WithModuleBooksService(service BooksServer) CasesModuleOption {
+	return func(m *CasesModule) {
+		m.booksService = service
+	}
+}
+
+// WithDialOptions sets dial options for lazy client creation
+func WithDialOptions(opts pg.DialOptions) CasesModuleOption {
+	return func(m *CasesModule) {
+		m.dialOpts = opts
+	}
+}
+
+// NewCasesModule creates a new module with optional service configurations
+func NewCasesModule(opts ...CasesModuleOption) *CasesModule {
+	m := &CasesModule{}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// getBooksClient returns the client, creating it lazily if needed
+func (m *CasesModule) getBooksClient() BooksClient {
+	if m.booksClient == nil {
+		host := os.Getenv("BOOKS_SERVICE_HOST")
+		if host == "" {
+			host = "localhost:50051"
+		}
+		m.booksClient = NewBooksClient(pg.GrpcConnection(host, m.dialOpts["Books"]...))
+	}
+	return m.booksClient
+}
+
+// Fields returns all GraphQL query/mutation fields from all services in this module
+func (m *CasesModule) Fields() gql.Fields {
+	fields := gql.Fields{}
+
+	// Books service: GetBooks method
+	fields["books_GetBooks"] = &gql.Field{
+		Name: "books_GetBooks",
+		Type: GetBooksResponseGraphqlType,
+		Args: GetBooksRequestGraphqlArgs,
+		Resolve: func(p gql.ResolveParams) (interface{}, error) {
+			req := GetBooksRequestFromArgs(p.Args)
+			if m.booksService != nil {
+				return m.booksService.GetBooks(p.Context, req)
+			}
+			return m.getBooksClient().GetBooks(p.Context, req)
+		},
+	}
+
+	return fields
+}
+
+// WithLoaders registers all dataloaders from all services into the context
+func (m *CasesModule) WithLoaders(ctx context.Context) context.Context {
+	// Books service: GetBooksByAuthor loader
+	ctx = context.WithValue(ctx, "GetBooksByAuthorLoader", dataloader.NewBatchedLoader(
+		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+			var results []*dataloader.Result
+
+			var resp *GetBooksByAuthorResponse
+			var err error
+
+			req := &pg.BatchRequest{
+				Keys: keys.Keys(),
+			}
+			if m.booksService != nil {
+				resp, err = m.booksService.GetBooksByAuthor(ctx, req)
+			} else {
+				resp, err = m.getBooksClient().GetBooksByAuthor(ctx, req)
+			}
+
+			if err != nil {
+				return results
+			}
+
+			for _, key := range keys.Keys() {
+				if val, ok := resp.Results[key]; ok {
+					results = append(results, &dataloader.Result{Data: val})
+				} else {
+					var empty *BooksByAuthor
+					results = append(results, &dataloader.Result{Data: empty})
+				}
+			}
+
+			return results
+		},
+	))
+
+	// Books service: GetBooksBatch loader
+	ctx = context.WithValue(ctx, "GetBooksBatchLoader", dataloader.NewBatchedLoader(
+		func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+			var results []*dataloader.Result
+
+			var requests []*GetBooksRequest
+			for _, key := range keys {
+				requests = append(requests, key.(*GetBooksRequestKey).GetBooksRequest)
+			}
+			var resp *GetBooksBatchResponse
+			var err error
+
+			req := &GetBooksBatchRequest{
+				Reqs: requests,
+			}
+			if m.booksService != nil {
+				resp, err = m.booksService.GetBooksBatch(ctx, req)
+			} else {
+				resp, err = m.getBooksClient().GetBooksBatch(ctx, req)
+			}
+
+			if err != nil {
+				return results
+			}
+
+			for _, key := range keys.Keys() {
+				if val, ok := resp.Results[key]; ok {
+					results = append(results, &dataloader.Result{Data: val})
+				} else {
+					var empty *GetBooksResponse
+					results = append(results, &dataloader.Result{Data: empty})
+				}
+			}
+
+			return results
+		},
+	))
+
 	return ctx
 }
 
-// Fields returns all GraphQL fields from all services
-func Fields(ctx context.Context) []*gql.Field {
-	var fields []*gql.Field
-	var serviceFields []*gql.Field
+// Messages returns all message types from this package
+func (m *CasesModule) Messages() []pg.GraphqlMessage {
+	return allMessages
+}
 
-	ctx, serviceFields = BooksInit(ctx)
-	fields = append(fields, serviceFields...)
+// PackageName returns the proto package name
+func (m *CasesModule) PackageName() string {
+	return "cases"
+}
 
-	return fields
+// Type-safe field customization methods
+
+// AddFieldToGetBooksRequest adds a custom field to the GetBooksRequest GraphQL type
+func (m *CasesModule) AddFieldToGetBooksRequest(fieldName string, field *gql.Field) {
+	GetBooksRequestGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToPaginationOptions adds a custom field to the PaginationOptions GraphQL type
+func (m *CasesModule) AddFieldToPaginationOptions(fieldName string, field *gql.Field) {
+	PaginationOptionsGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToFilter adds a custom field to the Filter GraphQL type
+func (m *CasesModule) AddFieldToFilter(fieldName string, field *gql.Field) {
+	FilterGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToGetBooksResponse adds a custom field to the GetBooksResponse GraphQL type
+func (m *CasesModule) AddFieldToGetBooksResponse(fieldName string, field *gql.Field) {
+	GetBooksResponseGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToGetBooksBatchRequest adds a custom field to the GetBooksBatchRequest GraphQL type
+func (m *CasesModule) AddFieldToGetBooksBatchRequest(fieldName string, field *gql.Field) {
+	GetBooksBatchRequestGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToGetBooksBatchResponse adds a custom field to the GetBooksBatchResponse GraphQL type
+func (m *CasesModule) AddFieldToGetBooksBatchResponse(fieldName string, field *gql.Field) {
+	GetBooksBatchResponseGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToGetBooksByAuthorResponse adds a custom field to the GetBooksByAuthorResponse GraphQL type
+func (m *CasesModule) AddFieldToGetBooksByAuthorResponse(fieldName string, field *gql.Field) {
+	GetBooksByAuthorResponseGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToBooksByAuthor adds a custom field to the BooksByAuthor GraphQL type
+func (m *CasesModule) AddFieldToBooksByAuthor(fieldName string, field *gql.Field) {
+	BooksByAuthorGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToBook adds a custom field to the Book GraphQL type
+func (m *CasesModule) AddFieldToBook(fieldName string, field *gql.Field) {
+	BookGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// AddFieldToMoney adds a custom field to the Money GraphQL type
+func (m *CasesModule) AddFieldToMoney(fieldName string, field *gql.Field) {
+	MoneyGraphqlType.AddFieldConfig(fieldName, field)
+}
+
+// GraphQL type accessors
+
+// GetBooksRequestType returns the GraphQL type for GetBooksRequest
+func (m *CasesModule) GetBooksRequestType() *gql.Object {
+	return GetBooksRequestGraphqlType
+}
+
+// PaginationOptionsType returns the GraphQL type for PaginationOptions
+func (m *CasesModule) PaginationOptionsType() *gql.Object {
+	return PaginationOptionsGraphqlType
+}
+
+// FilterType returns the GraphQL type for Filter
+func (m *CasesModule) FilterType() *gql.Object {
+	return FilterGraphqlType
+}
+
+// GetBooksResponseType returns the GraphQL type for GetBooksResponse
+func (m *CasesModule) GetBooksResponseType() *gql.Object {
+	return GetBooksResponseGraphqlType
+}
+
+// GetBooksBatchRequestType returns the GraphQL type for GetBooksBatchRequest
+func (m *CasesModule) GetBooksBatchRequestType() *gql.Object {
+	return GetBooksBatchRequestGraphqlType
+}
+
+// GetBooksBatchResponseType returns the GraphQL type for GetBooksBatchResponse
+func (m *CasesModule) GetBooksBatchResponseType() *gql.Object {
+	return GetBooksBatchResponseGraphqlType
+}
+
+// GetBooksByAuthorResponseType returns the GraphQL type for GetBooksByAuthorResponse
+func (m *CasesModule) GetBooksByAuthorResponseType() *gql.Object {
+	return GetBooksByAuthorResponseGraphqlType
+}
+
+// BooksByAuthorType returns the GraphQL type for BooksByAuthor
+func (m *CasesModule) BooksByAuthorType() *gql.Object {
+	return BooksByAuthorGraphqlType
+}
+
+// BookType returns the GraphQL type for Book
+func (m *CasesModule) BookType() *gql.Object {
+	return BookGraphqlType
+}
+
+// MoneyType returns the GraphQL type for Money
+func (m *CasesModule) MoneyType() *gql.Object {
+	return MoneyGraphqlType
+}
+
+// DataLoader accessor methods
+
+// BooksGetBooksByAuthor loads a single *BooksByAuthor using the books service dataloader
+func (m *CasesModule) BooksGetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+	return BooksGetBooksByAuthor(p, key)
+}
+
+// BooksGetBooksByAuthorMany loads multiple *BooksByAuthor using the books service dataloader
+func (m *CasesModule) BooksGetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	return BooksGetBooksByAuthorMany(p, keys)
+}
+
+// BooksGetBooksBatch loads a single *GetBooksResponse using the books service dataloader
+func (m *CasesModule) BooksGetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
+	return BooksGetBooksBatch(p, key)
+}
+
+// BooksGetBooksBatchMany loads multiple *GetBooksResponse using the books service dataloader
+func (m *CasesModule) BooksGetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
+	return BooksGetBooksBatchMany(p, keys)
 }
