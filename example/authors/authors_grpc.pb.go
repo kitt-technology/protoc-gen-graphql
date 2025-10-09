@@ -8,7 +8,7 @@ package authors
 
 import (
 	context "context"
-
+	graphql "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -29,7 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthorsClient interface {
 	GetAuthors(ctx context.Context, in *GetAuthorsRequest, opts ...grpc.CallOption) (*GetAuthorsResponse, error)
-	LoadAuthors(ctx context.Context, in *LoadAuthorsRequest, opts ...grpc.CallOption) (*AuthorsBatchResponse, error)
+	LoadAuthors(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*AuthorsBatchResponse, error)
 }
 
 type authorsClient struct {
@@ -50,7 +50,7 @@ func (c *authorsClient) GetAuthors(ctx context.Context, in *GetAuthorsRequest, o
 	return out, nil
 }
 
-func (c *authorsClient) LoadAuthors(ctx context.Context, in *LoadAuthorsRequest, opts ...grpc.CallOption) (*AuthorsBatchResponse, error) {
+func (c *authorsClient) LoadAuthors(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*AuthorsBatchResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AuthorsBatchResponse)
 	err := c.cc.Invoke(ctx, Authors_LoadAuthors_FullMethodName, in, out, cOpts...)
@@ -65,7 +65,7 @@ func (c *authorsClient) LoadAuthors(ctx context.Context, in *LoadAuthorsRequest,
 // for forward compatibility.
 type AuthorsServer interface {
 	GetAuthors(context.Context, *GetAuthorsRequest) (*GetAuthorsResponse, error)
-	LoadAuthors(context.Context, *LoadAuthorsRequest) (*AuthorsBatchResponse, error)
+	LoadAuthors(context.Context, *graphql.BatchRequest) (*AuthorsBatchResponse, error)
 	mustEmbedUnimplementedAuthorsServer()
 }
 
@@ -79,7 +79,7 @@ type UnimplementedAuthorsServer struct{}
 func (UnimplementedAuthorsServer) GetAuthors(context.Context, *GetAuthorsRequest) (*GetAuthorsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAuthors not implemented")
 }
-func (UnimplementedAuthorsServer) LoadAuthors(context.Context, *LoadAuthorsRequest) (*AuthorsBatchResponse, error) {
+func (UnimplementedAuthorsServer) LoadAuthors(context.Context, *graphql.BatchRequest) (*AuthorsBatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoadAuthors not implemented")
 }
 func (UnimplementedAuthorsServer) mustEmbedUnimplementedAuthorsServer() {}
@@ -122,7 +122,7 @@ func _Authors_GetAuthors_Handler(srv interface{}, ctx context.Context, dec func(
 }
 
 func _Authors_LoadAuthors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LoadAuthorsRequest)
+	in := new(graphql.BatchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func _Authors_LoadAuthors_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: Authors_LoadAuthors_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthorsServer).LoadAuthors(ctx, req.(*LoadAuthorsRequest))
+		return srv.(AuthorsServer).LoadAuthors(ctx, req.(*graphql.BatchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

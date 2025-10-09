@@ -121,14 +121,14 @@ func {{ .Descriptor.Name }}WithLoaders(ctx context.Context) context.Context {
 			var resp *{{ $loader.ResponseType }}
 			var err error
 			if {{ $.Descriptor.Name }}ServiceInstance != nil {
-				resp, err = {{ $.Descriptor.Name }}ServiceInstance.{{ $loader.Method }}(ctx, &{{ $loader.RequestType }}{
+				resp, err = {{ $.Descriptor.Name }}ServiceInstance.{{ $loader.Method }}(ctx, &{{ if eq $loader.RequestType "BatchRequest" }}pg.{{ end }}{{ $loader.RequestType }}{
 					{{ $loader.KeysField }}: keys.Keys(),
 				})
 			} else {
 				if {{ $.Descriptor.Name }}ClientInstance == nil {
 					{{ $.Descriptor.Name }}ClientInstance = get{{ $.Descriptor.Name }}Client()
 				}
-				resp, err = {{ $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &{{ $loader.RequestType }}{
+				resp, err = {{ $.Descriptor.Name }}ClientInstance.{{ $loader.Method }}(ctx, &{{ if eq $loader.RequestType "BatchRequest" }}pg.{{ end }}{{ $loader.RequestType }}{
 					{{ $loader.KeysField }}: keys.Keys(),
 				})
 			}
