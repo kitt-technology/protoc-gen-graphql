@@ -47,8 +47,13 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 				panic(fmt.Sprintf("batch loaders must have one field of the type: map<string, Result> for %s.%s", *msg.Name, *method.Name))
 			}
 
-			if len(input.Field) != 1 || input.Field[0].Label.String() != "LABEL_REPEATED" {
-				panic(fmt.Sprintf("batch loaders must have only one repeated field for %s.%s", *msg.Name, *method.Name))
+			// Check if using graphql.BatchRequest (which may be nil if from external package)
+			isExternalBatchRequest := input == nil && strings.HasSuffix(*method.InputType, ".BatchRequest")
+
+			if !isExternalBatchRequest {
+				if input == nil || len(input.Field) != 1 || input.Field[0].Label.String() != "LABEL_REPEATED" {
+					panic(fmt.Sprintf("batch loaders must have only one repeated field for %s.%s", *msg.Name, *method.Name))
+				}
 			}
 
 			var field = output.Field[0]
@@ -71,21 +76,31 @@ func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescri
 				}
 			}
 
-			keysField := strcase.ToCamel(*input.Field[0].Name)
-
+			var keysField string
 			var keysType string
-			if input.Field[0].TypeName != nil && *input.Field[0].TypeName != "" {
-				// Complex type (message, enum, etc.)
-				keysType = util.Last(*input.Field[0].TypeName)
-			} else {
-				// Scalar type (string, int, etc.)
-				goType, _, _, _ := types.Types(input.Field[0], root, map[string]types.GraphqlImport{})
-				keysType = string(goType)
-			}
+			var isStringKey bool
 
-			// Determine if this is a simple string key (can use dataloader.StringKey)
-			// or a custom type (needs custom Key wrapper)
-			isStringKey := keysType == "string"
+			if isExternalBatchRequest {
+				// graphql.BatchRequest always has: repeated string keys = 1
+				keysField = "Keys"
+				keysType = "string"
+				isStringKey = true
+			} else {
+				keysField = strcase.ToCamel(*input.Field[0].Name)
+
+				if input.Field[0].TypeName != nil && *input.Field[0].TypeName != "" {
+					// Complex type (message, enum, etc.)
+					keysType = util.Last(*input.Field[0].TypeName)
+				} else {
+					// Scalar type (string, int, etc.)
+					goType, _, _, _ := types.Types(input.Field[0], root, map[string]types.GraphqlImport{})
+					keysType = string(goType)
+				}
+
+				// Determine if this is a simple string key (can use dataloader.StringKey)
+				// or a custom type (needs custom Key wrapper)
+				isStringKey = keysType == "string"
+			}
 
 			m.Loaders = append(m.Loaders, LoaderVars{
 				Method:       util.Title(*method.Name),

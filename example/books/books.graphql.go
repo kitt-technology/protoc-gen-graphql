@@ -1,16 +1,15 @@
 package books
 
 import (
-	"context"
-	"os"
-
-	"github.com/graph-gophers/dataloader"
 	gql "github.com/graphql-go/graphql"
+	"context"
+	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql/language/ast"
-	common_example "github.com/kitt-technology/protoc-gen-graphql/example/common-example"
-	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	"os"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
 
 var GenreGraphqlEnum = gql.NewEnum(gql.EnumConfig{
@@ -250,64 +249,6 @@ func (msg *GetBooksResponse) XXX_GraphqlArgs() gql.FieldConfigArgument {
 }
 
 func (msg *GetBooksResponse) XXX_Package() string {
-	return "books"
-}
-
-var GetBooksByAuthorRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
-	Name: "GetBooksByAuthorRequest",
-	Fields: gql.Fields{
-		"keys": &gql.Field{
-			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
-		},
-	},
-})
-
-var GetBooksByAuthorRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
-	Name: "GetBooksByAuthorRequestInput",
-	Fields: gql.InputObjectConfigFieldMap{
-		"keys": &gql.InputObjectFieldConfig{
-			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
-		},
-	},
-})
-
-var GetBooksByAuthorRequestGraphqlArgs = gql.FieldConfigArgument{
-	"keys": &gql.ArgumentConfig{
-		Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
-	},
-}
-
-func GetBooksByAuthorRequestFromArgs(args map[string]interface{}) *GetBooksByAuthorRequest {
-	return GetBooksByAuthorRequestInstanceFromArgs(&GetBooksByAuthorRequest{}, args)
-}
-
-func GetBooksByAuthorRequestInstanceFromArgs(objectFromArgs *GetBooksByAuthorRequest, args map[string]interface{}) *GetBooksByAuthorRequest {
-	if args["keys"] != nil {
-		keysInterfaceList := args["keys"].([]interface{})
-		keys := make([]string, 0)
-
-		for _, val := range keysInterfaceList {
-			itemResolved := string(val.(string))
-			keys = append(keys, itemResolved)
-		}
-		objectFromArgs.Keys = keys
-	}
-	return objectFromArgs
-}
-
-func (objectFromArgs *GetBooksByAuthorRequest) FromArgs(args map[string]interface{}) {
-	GetBooksByAuthorRequestInstanceFromArgs(objectFromArgs, args)
-}
-
-func (msg *GetBooksByAuthorRequest) XXX_GraphqlType() *gql.Object {
-	return GetBooksByAuthorRequestGraphqlType
-}
-
-func (msg *GetBooksByAuthorRequest) XXX_GraphqlArgs() gql.FieldConfigArgument {
-	return GetBooksByAuthorRequestGraphqlArgs
-}
-
-func (msg *GetBooksByAuthorRequest) XXX_Package() string {
 	return "books"
 }
 
@@ -777,14 +718,14 @@ func BooksWithLoaders(ctx context.Context) context.Context {
 			var resp *GetBooksByAuthorResponse
 			var err error
 			if BooksServiceInstance != nil {
-				resp, err = BooksServiceInstance.GetBooksByAuthor(ctx, &GetBooksByAuthorRequest{
+				resp, err = BooksServiceInstance.GetBooksByAuthor(ctx, &pg.BatchRequest{
 					Keys: keys.Keys(),
 				})
 			} else {
 				if BooksClientInstance == nil {
 					BooksClientInstance = getBooksClient()
 				}
-				resp, err = BooksClientInstance.GetBooksByAuthor(ctx, &GetBooksByAuthorRequest{
+				resp, err = BooksClientInstance.GetBooksByAuthor(ctx, &pg.BatchRequest{
 					Keys: keys.Keys(),
 				})
 			}

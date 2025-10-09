@@ -8,7 +8,7 @@ package books
 
 import (
 	context "context"
-
+	graphql "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -30,7 +30,9 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BooksClient interface {
 	GetBooks(ctx context.Context, in *GetBooksRequest, opts ...grpc.CallOption) (*GetBooksResponse, error)
-	GetBooksByAuthor(ctx context.Context, in *GetBooksByAuthorRequest, opts ...grpc.CallOption) (*GetBooksByAuthorResponse, error)
+	// Simple batch loader using graphql.BatchRequest
+	GetBooksByAuthor(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*GetBooksByAuthorResponse, error)
+	// Custom batch loader with complex request type
 	GetBooksBatch(ctx context.Context, in *GetBooksBatchRequest, opts ...grpc.CallOption) (*GetBooksBatchResponse, error)
 }
 
@@ -52,7 +54,7 @@ func (c *booksClient) GetBooks(ctx context.Context, in *GetBooksRequest, opts ..
 	return out, nil
 }
 
-func (c *booksClient) GetBooksByAuthor(ctx context.Context, in *GetBooksByAuthorRequest, opts ...grpc.CallOption) (*GetBooksByAuthorResponse, error) {
+func (c *booksClient) GetBooksByAuthor(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*GetBooksByAuthorResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetBooksByAuthorResponse)
 	err := c.cc.Invoke(ctx, Books_GetBooksByAuthor_FullMethodName, in, out, cOpts...)
@@ -77,7 +79,9 @@ func (c *booksClient) GetBooksBatch(ctx context.Context, in *GetBooksBatchReques
 // for forward compatibility.
 type BooksServer interface {
 	GetBooks(context.Context, *GetBooksRequest) (*GetBooksResponse, error)
-	GetBooksByAuthor(context.Context, *GetBooksByAuthorRequest) (*GetBooksByAuthorResponse, error)
+	// Simple batch loader using graphql.BatchRequest
+	GetBooksByAuthor(context.Context, *graphql.BatchRequest) (*GetBooksByAuthorResponse, error)
+	// Custom batch loader with complex request type
 	GetBooksBatch(context.Context, *GetBooksBatchRequest) (*GetBooksBatchResponse, error)
 	mustEmbedUnimplementedBooksServer()
 }
@@ -92,7 +96,7 @@ type UnimplementedBooksServer struct{}
 func (UnimplementedBooksServer) GetBooks(context.Context, *GetBooksRequest) (*GetBooksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBooks not implemented")
 }
-func (UnimplementedBooksServer) GetBooksByAuthor(context.Context, *GetBooksByAuthorRequest) (*GetBooksByAuthorResponse, error) {
+func (UnimplementedBooksServer) GetBooksByAuthor(context.Context, *graphql.BatchRequest) (*GetBooksByAuthorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBooksByAuthor not implemented")
 }
 func (UnimplementedBooksServer) GetBooksBatch(context.Context, *GetBooksBatchRequest) (*GetBooksBatchResponse, error) {
@@ -138,7 +142,7 @@ func _Books_GetBooks_Handler(srv interface{}, ctx context.Context, dec func(inte
 }
 
 func _Books_GetBooksByAuthor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetBooksByAuthorRequest)
+	in := new(graphql.BatchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -150,7 +154,7 @@ func _Books_GetBooksByAuthor_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: Books_GetBooksByAuthor_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BooksServer).GetBooksByAuthor(ctx, req.(*GetBooksByAuthorRequest))
+		return srv.(BooksServer).GetBooksByAuthor(ctx, req.(*graphql.BatchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

@@ -7,13 +7,12 @@
 package authors
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	graphql "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -119,50 +118,6 @@ func (x *GetAuthorsResponse) GetPageInfo() *graphql.PageInfo {
 	return nil
 }
 
-type LoadAuthorsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Keys          []string               `protobuf:"bytes,1,rep,name=keys,proto3" json:"keys,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *LoadAuthorsRequest) Reset() {
-	*x = LoadAuthorsRequest{}
-	mi := &file_authors_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *LoadAuthorsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*LoadAuthorsRequest) ProtoMessage() {}
-
-func (x *LoadAuthorsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_authors_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use LoadAuthorsRequest.ProtoReflect.Descriptor instead.
-func (*LoadAuthorsRequest) Descriptor() ([]byte, []int) {
-	return file_authors_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *LoadAuthorsRequest) GetKeys() []string {
-	if x != nil {
-		return x.Keys
-	}
-	return nil
-}
-
 type AuthorsBatchResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Results       map[string]*Author     `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -172,7 +127,7 @@ type AuthorsBatchResponse struct {
 
 func (x *AuthorsBatchResponse) Reset() {
 	*x = AuthorsBatchResponse{}
-	mi := &file_authors_proto_msgTypes[3]
+	mi := &file_authors_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -184,7 +139,7 @@ func (x *AuthorsBatchResponse) String() string {
 func (*AuthorsBatchResponse) ProtoMessage() {}
 
 func (x *AuthorsBatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_authors_proto_msgTypes[3]
+	mi := &file_authors_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -197,7 +152,7 @@ func (x *AuthorsBatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorsBatchResponse.ProtoReflect.Descriptor instead.
 func (*AuthorsBatchResponse) Descriptor() ([]byte, []int) {
-	return file_authors_proto_rawDescGZIP(), []int{3}
+	return file_authors_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *AuthorsBatchResponse) GetResults() map[string]*Author {
@@ -217,7 +172,7 @@ type Author struct {
 
 func (x *Author) Reset() {
 	*x = Author{}
-	mi := &file_authors_proto_msgTypes[4]
+	mi := &file_authors_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -229,7 +184,7 @@ func (x *Author) String() string {
 func (*Author) ProtoMessage() {}
 
 func (x *Author) ProtoReflect() protoreflect.Message {
-	mi := &file_authors_proto_msgTypes[4]
+	mi := &file_authors_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -242,7 +197,7 @@ func (x *Author) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Author.ProtoReflect.Descriptor instead.
 func (*Author) Descriptor() ([]byte, []int) {
-	return file_authors_proto_rawDescGZIP(), []int{4}
+	return file_authors_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Author) GetId() string {
@@ -268,9 +223,7 @@ const file_authors_proto_rawDesc = "" +
 	"\x03ids\x18\x01 \x03(\tB\x03\xc0D\x01R\x03ids\"o\n" +
 	"\x12GetAuthorsResponse\x12)\n" +
 	"\aauthors\x18\x01 \x03(\v2\x0f.authors.AuthorR\aauthors\x12.\n" +
-	"\tpage_info\x18\x05 \x01(\v2\x11.graphql.PageInfoR\bpageInfo\"(\n" +
-	"\x12LoadAuthorsRequest\x12\x12\n" +
-	"\x04keys\x18\x01 \x03(\tR\x04keys\"\xa9\x01\n" +
+	"\tpage_info\x18\x05 \x01(\v2\x11.graphql.PageInfoR\bpageInfo\"\xa9\x01\n" +
 	"\x14AuthorsBatchResponse\x12D\n" +
 	"\aresults\x18\x01 \x03(\v2*.authors.AuthorsBatchResponse.ResultsEntryR\aresults\x1aK\n" +
 	"\fResultsEntry\x12\x10\n" +
@@ -278,11 +231,11 @@ const file_authors_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\v2\x0f.authors.AuthorR\x05value:\x028\x01\",\n" +
 	"\x06Author\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name2\xb6\x01\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name2\xb0\x01\n" +
 	"\aAuthors\x12G\n" +
 	"\n" +
-	"getAuthors\x12\x1a.authors.GetAuthorsRequest\x1a\x1b.authors.GetAuthorsResponse\"\x00\x12N\n" +
-	"\vloadAuthors\x12\x1b.authors.LoadAuthorsRequest\x1a\x1d.authors.AuthorsBatchResponse\"\x03\xd0D\x01\x1a\x12\x82D\x0flocalhost:50052B\x19Z\x17example/authors;authorsb\x06proto3"
+	"getAuthors\x12\x1a.authors.GetAuthorsRequest\x1a\x1b.authors.GetAuthorsResponse\"\x00\x12H\n" +
+	"\vloadAuthors\x12\x15.graphql.BatchRequest\x1a\x1d.authors.AuthorsBatchResponse\"\x03\xd0D\x01\x1a\x12\x82D\x0flocalhost:50052B\x19Z\x17example/authors;authorsb\x06proto3"
 
 var (
 	file_authors_proto_rawDescOnce sync.Once
@@ -296,25 +249,25 @@ func file_authors_proto_rawDescGZIP() []byte {
 	return file_authors_proto_rawDescData
 }
 
-var file_authors_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_authors_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_authors_proto_goTypes = []any{
 	(*GetAuthorsRequest)(nil),    // 0: authors.GetAuthorsRequest
 	(*GetAuthorsResponse)(nil),   // 1: authors.GetAuthorsResponse
-	(*LoadAuthorsRequest)(nil),   // 2: authors.LoadAuthorsRequest
-	(*AuthorsBatchResponse)(nil), // 3: authors.AuthorsBatchResponse
-	(*Author)(nil),               // 4: authors.Author
-	nil,                          // 5: authors.AuthorsBatchResponse.ResultsEntry
-	(*graphql.PageInfo)(nil),     // 6: graphql.PageInfo
+	(*AuthorsBatchResponse)(nil), // 2: authors.AuthorsBatchResponse
+	(*Author)(nil),               // 3: authors.Author
+	nil,                          // 4: authors.AuthorsBatchResponse.ResultsEntry
+	(*graphql.PageInfo)(nil),     // 5: graphql.PageInfo
+	(*graphql.BatchRequest)(nil), // 6: graphql.BatchRequest
 }
 var file_authors_proto_depIdxs = []int32{
-	4, // 0: authors.GetAuthorsResponse.authors:type_name -> authors.Author
-	6, // 1: authors.GetAuthorsResponse.page_info:type_name -> graphql.PageInfo
-	5, // 2: authors.AuthorsBatchResponse.results:type_name -> authors.AuthorsBatchResponse.ResultsEntry
-	4, // 3: authors.AuthorsBatchResponse.ResultsEntry.value:type_name -> authors.Author
+	3, // 0: authors.GetAuthorsResponse.authors:type_name -> authors.Author
+	5, // 1: authors.GetAuthorsResponse.page_info:type_name -> graphql.PageInfo
+	4, // 2: authors.AuthorsBatchResponse.results:type_name -> authors.AuthorsBatchResponse.ResultsEntry
+	3, // 3: authors.AuthorsBatchResponse.ResultsEntry.value:type_name -> authors.Author
 	0, // 4: authors.Authors.getAuthors:input_type -> authors.GetAuthorsRequest
-	2, // 5: authors.Authors.loadAuthors:input_type -> authors.LoadAuthorsRequest
+	6, // 5: authors.Authors.loadAuthors:input_type -> graphql.BatchRequest
 	1, // 6: authors.Authors.getAuthors:output_type -> authors.GetAuthorsResponse
-	3, // 7: authors.Authors.loadAuthors:output_type -> authors.AuthorsBatchResponse
+	2, // 7: authors.Authors.loadAuthors:output_type -> authors.AuthorsBatchResponse
 	6, // [6:8] is the sub-list for method output_type
 	4, // [4:6] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -333,7 +286,7 @@ func file_authors_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_authors_proto_rawDesc), len(file_authors_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
