@@ -163,9 +163,9 @@ func TestMessage_Imports_WithLoaders(t *testing.T) {
 
 	// Should include os, grpc, context, and dataloader
 	expectedImports := map[string]bool{
-		"os":                                 true,
-		"google.golang.org/grpc":             true,
-		"context":                            true,
+		"os":                                  true,
+		"google.golang.org/grpc":              true,
+		"context":                             true,
 		"github.com/graph-gophers/dataloader": true,
 	}
 
@@ -386,6 +386,24 @@ func TestLoaderVars(t *testing.T) {
 
 	if l.Method != "LoadUser" {
 		t.Errorf("LoaderVars.Method = %q, want %q", l.Method, "LoadUser")
+	}
+	if l.RequestType != "LoadUserRequest" {
+		t.Errorf("LoaderVars.RequestType = %q, want %q", l.RequestType, "LoadUserRequest")
+	}
+	if l.ResponseType != "LoadUserResponse" {
+		t.Errorf("LoaderVars.ResponseType = %q, want %q", l.ResponseType, "LoadUserResponse")
+	}
+	if l.KeysField != "Ids" {
+		t.Errorf("LoaderVars.KeysField = %q, want %q", l.KeysField, "Ids")
+	}
+	if l.KeysType != "string" {
+		t.Errorf("LoaderVars.KeysType = %q, want %q", l.KeysType, "string")
+	}
+	if l.ResultsField != "Users" {
+		t.Errorf("LoaderVars.ResultsField = %q, want %q", l.ResultsField, "Users")
+	}
+	if l.ResultsType != "*User" {
+		t.Errorf("LoaderVars.ResultsType = %q, want %q", l.ResultsType, "*User")
 	}
 	if l.Custom != false {
 		t.Errorf("LoaderVars.Custom = %v, want false", l.Custom)

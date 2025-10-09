@@ -25,7 +25,7 @@ func TestNew(t *testing.T) {
 		{
 			name: "enum with custom graphql name",
 			descriptor: &descriptorpb.EnumDescriptorProto{
-				Name: proto.String("MyEnum"),
+				Name:    proto.String("MyEnum"),
 				Options: &descriptorpb.EnumOptions{},
 			},
 			wantEnumName: "CustomName",
