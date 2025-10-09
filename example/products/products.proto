@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package products;
+
+import "graphql.proto";
+import "common-example/common-example.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "example/products;products";
+
+service Products {
+  option (graphql.host) = "localhost:50051";
+
+  rpc getProducts(GetProductsRequest) returns (GetProductsResponse) {}
+
+  // Simple batch loader using graphql.BatchRequest to load products by category
+  rpc getProductsByCategory(graphql.BatchRequest) returns (GetProductsByCategoryResponse) {
+    option (graphql.batch_loader) = true;
+  }
+
+  // Custom batch loader with complex request type for advanced filtering
+  rpc getProductsBatch(GetProductsBatchRequest) returns (GetProductsBatchResponse) {
+    option (graphql.batch_loader) = true;
+  }
+
+  rpc searchProducts(SearchProductsRequest) returns (SearchProductsResponse) {}
+}
+
+message GetProductsRequest {
+  option (graphql.object_name) = "ProductsRequest";
+  repeated string ids = 1 [(graphql.optional) = true];
+  repeated Category categories = 2 [(graphql.optional) = true];
+  google.protobuf.BoolValue in_stock_only = 3;
+  google.protobuf.Timestamp available_after = 4;
+  graphql.FieldMask field_mask = 5;
+  string internal_metadata = 6 [(graphql.skip_field) = true];
+}
+
+message GetProductsResponse {
+  repeated Product products = 1;
+  graphql.PageInfo page_info = 2;
+}
+
+message GetProductsByCategoryResponse {
+  map<string, ProductsByCategory> results = 1;
+}
+
+message GetProductsBatchRequest {
+  repeated GetProductsRequest reqs = 1;
+}
+
+message GetProductsBatchResponse {
+  map<string, GetProductsResponse> results = 1;
+}
+
+message SearchProductsRequest {
+  string query = 1;
+  int32 limit = 2 [(graphql.optional) = true];
+  string cursor = 3 [(graphql.optional) = true];
+}
+
+message SearchProductsResponse {
+  repeated Product products = 1;
+  graphql.PageInfo page_info = 2;
+}
+
+message ProductsByCategory {
+  repeated Product results = 1;
+}
+
+message Product {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  Category category = 4;
+  common_example.Money price = 5;
+  Inventory inventory = 6;
+  repeated ProductVariant variants = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  google.protobuf.BoolValue featured = 10;
+  string seller_id = 11;
+  repeated string image_urls = 12;
+  optional float rating = 13;
+  optional int32 review_count = 14;
+}
+
+message ProductVariant {
+  string id = 1;
+  string name = 2;
+  string sku = 3;
+  common_example.Money price = 4;
+  int32 stock_quantity = 5;
+  map<string, string> attributes = 6; // e.g., "color": "blue", "size": "M"
+}
+
+message Inventory {
+  int32 quantity = 1;
+  int32 reserved = 2;
+  string warehouse_location = 3;
+  google.protobuf.Timestamp last_restocked = 4;
+}
+
+enum Category {
+  ELECTRONICS = 0;
+  CLOTHING = 1;
+  BOOKS = 2;
+  HOME_GARDEN = 3;
+  SPORTS = 4;
+  TOYS = 5;
+}
+
+// This message is for internal use only and won't appear in GraphQL schema
+message InternalProductData {
+  option (graphql.skip_message) = true;
+  string supplier_id = 1;
+  float cost = 2;
+}

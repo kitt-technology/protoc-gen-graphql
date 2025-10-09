@@ -19,22 +19,22 @@ build-examples:
 
 
 	protoc \
-		--proto_path ./example/authors/ \
+		--proto_path ./example/users/ \
 		-I . \
 		-I ./graphql \
 		-I ./example \
 		-I ${GOPATH}/src \
-		./example/authors/authors.proto \
+		./example/users/users.proto \
 		--go_out=. \
 		--go-grpc_out=. \
 		--graphql_out="lang=go:."
 	protoc \
-		--proto_path ./example/books \
+		--proto_path ./example/products \
 		-I . \
 		-I ./graphql \
 		-I ./example \
 		-I ${GOPATH}/src \
-		./example/books/books.proto \
+		./example/products/products.proto \
 		--go_out=. \
 		--go-grpc_out=. \
 		--graphql_out="lang=go:."
@@ -48,9 +48,6 @@ build-examples:
 		--go-grpc_out=. \
 		--graphql_out="lang=go:."
 	rm -rf ./github.com
-
-run-examples:
-	cd example; parallel -u ::: 'go run ./cmd/books' 'go run ./cmd/authors' 'go run ./cmd/graphql'; cd -
 
 .PHONY: docker
 docker:

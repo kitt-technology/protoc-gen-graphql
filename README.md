@@ -424,30 +424,140 @@ books.BookGraphqlType.AddFieldConfig("author", &graphql.Field{
 
 ## 📚 Examples
 
-See the [example](./example) directory for a complete working example with:
-- Multiple gRPC services (Authors, Books)
-- Batch loading with DataLoader
-- Cross-service relationships
-- Custom field resolvers
+See the [example](./example) directory for a comprehensive e-commerce example showcasing:
 
-Run the example:
+### Features Demonstrated
+
+- **Multiple gRPC Services**: Products and Users microservices
+- **Batch Loading with DataLoader**: Efficiently load related data without N+1 queries
+- **Cross-Service Relationships**: Products linked to sellers (users)
+- **Pagination Support**: Using `graphql.PageInfo` for paginated results
+- **Field Masks**: Optimize queries with selective field loading
+- **Complex Types**: Money, Inventory, Addresses, Timestamps, Enums
+- **Optional Fields**: Properly handling nullable and optional values
+- **Custom GraphQL Names**: Using `object_name` to rename types
+- **Skipped Fields/Messages**: Internal data excluded from GraphQL schema
+
+### Running with Docker Compose (Recommended)
+
+The easiest way to run the example is using Docker Compose:
+
+```bash
+cd example
+docker-compose up --build
+```
+
+This will start all three services:
+- **Products service** (gRPC on port 50051) - Product catalog with inventory, pricing, and variants
+- **Users service** (gRPC on port 50052) - Customer profiles, addresses, and loyalty info
+- **GraphQL gateway** (HTTP on port 8080) - Unified GraphQL API
+
+Once running, you'll see detailed test instructions in the console. Here are some example queries:
+
+#### 1. Get All Users (Demonstrates Pagination)
+
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ users_getUsers { users { id email firstName lastName type } pageInfo { totalCount hasNextPage } } }"}'
+```
+
+#### 2. Get Products with Inventory (Demonstrates Complex Types)
+
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ products_getProducts { products { id name description category price { currencyCode units nanos } inventory { quantity reserved warehouseLocation } variants { name sku stockQuantity attributes } rating reviewCount } pageInfo { totalCount } } }"}'
+```
+
+#### 3. Search Products (Demonstrates Filtering & Pagination)
+
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ products_searchProducts(query: \"wireless\", limit: 5) { products { id name price { units currencyCode } featured } pageInfo { hasNextPage endCursor } } }"}'
+```
+
+#### 4. Get User Profile (Demonstrates Nested Data)
+
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ users_getUserProfile(userId: \"1\") { userId addresses { line1 city stateProvince postalCode country type isDefault } preferences { marketingEmails preferredLanguage preferredCurrency } loyalty { tier points discountPercentage } totalOrders memberSince } }"}'
+```
+
+#### 5. Products with Sellers (Demonstrates Cross-Service DataLoader)
+
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ products_getProducts { products { id name price { units currencyCode } seller { id email firstName lastName type } } } }"}'
+```
+
+To stop the services:
+
+```bash
+docker-compose down
+```
+
+### Running Locally
+
+Alternatively, run the example locally:
 
 ```bash
 make run-examples
 # Visit http://localhost:8080/graphql
 ```
 
-Example query:
+### Example Queries in GraphQL
 
 ```graphql
+# Get products by category
 query {
-  books(ids: ["1", "2"]) {
-    id
-    name
-    author {
+  products_getProducts(categories: [ELECTRONICS, SPORTS]) {
+    products {
       id
       name
+      category
+      price {
+        currencyCode
+        units
+        nanos
+      }
+      inventory {
+        quantity
+        warehouseLocation
+      }
+      seller {
+        email
+        firstName
+        lastName
+      }
     }
+    pageInfo {
+      totalCount
+      hasNextPage
+    }
+  }
+}
+
+# Get user with full profile
+query {
+  users_getUserProfile(userId: "1") {
+    userId
+    addresses {
+      line1
+      city
+      stateProvince
+      country
+      isDefault
+    }
+    loyalty {
+      tier
+      points
+      discountPercentage
+    }
+    totalOrders
   }
 }
 ```
@@ -496,11 +606,8 @@ Built with:
 ## 🗺️ Roadmap
 
 - [ ] Support for more GraphQL features (subscriptions, unions, interfaces)
-- [ ] TypeScript/JavaScript code generation
-- [ ] Additional language support
-- [ ] GraphQL Federation support
 - [ ] Performance benchmarks and optimizations
 
 ---
 
-Made with ❤️ by [Kitt Technology](https://github.com/kitt-technology)
+Made with ❤️ by [Kitt Technology](hstatttps://github.com/kitt-technology)

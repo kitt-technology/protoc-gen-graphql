@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package users;
+
+import "graphql.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "example/users;users";
+
+service Users {
+  option (graphql.host) = "localhost:50052";
+
+  rpc getUsers(GetUsersRequest) returns (GetUsersResponse) {}
+
+  // Batch loader for efficiently loading users by ID
+  rpc loadUsers(graphql.BatchRequest) returns (UsersBatchResponse) {
+    option (graphql.batch_loader) = true;
+  }
+
+  rpc getUserProfile(GetUserProfileRequest) returns (UserProfile) {}
+}
+
+message GetUsersRequest {
+  repeated string ids = 1 [(graphql.optional) = true];
+  UserType type = 2 [(graphql.optional) = true];
+  graphql.FieldMask field_mask = 3;
+}
+
+message GetUsersResponse {
+  repeated User users = 1;
+  graphql.PageInfo page_info = 2;
+}
+
+message UsersBatchResponse {
+  map<string, User> results = 1;
+}
+
+message GetUserProfileRequest {
+  string user_id = 1;
+}
+
+message User {
+  option (graphql.object_name) = "Customer";
+
+  string id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  UserType type = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp last_login = 7;
+  google.protobuf.BoolValue email_verified = 8;
+  optional string phone = 9;
+}
+
+message UserProfile {
+  string user_id = 1;
+  repeated Address addresses = 2;
+  UserPreferences preferences = 3;
+  LoyaltyInfo loyalty = 4;
+  int32 total_orders = 5;
+  google.protobuf.Timestamp member_since = 6;
+}
+
+message Address {
+  string id = 1;
+  string line1 = 2;
+  string line2 = 3 [(graphql.optional) = true];
+  string city = 4;
+  string state_province = 5;
+  string postal_code = 6;
+  string country = 7;
+  AddressType type = 8;
+  google.protobuf.BoolValue is_default = 9;
+}
+
+message UserPreferences {
+  bool marketing_emails = 1;
+  string preferred_language = 2;
+  string preferred_currency = 3;
+  repeated string favorite_categories = 4;
+}
+
+message LoyaltyInfo {
+  string tier = 1; // Bronze, Silver, Gold, Platinum
+  int32 points = 2;
+  float discount_percentage = 3;
+}
+
+enum UserType {
+  CUSTOMER = 0;
+  SELLER = 1;
+  ADMIN = 2;
+}
+
+enum AddressType {
+  SHIPPING = 0;
+  BILLING = 1;
+  BOTH = 2;
+}

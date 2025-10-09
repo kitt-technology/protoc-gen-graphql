@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  products:
+    build:
+      context: .
+      dockerfile: cmd/products/Dockerfile
+    ports:
+      - "50051:50051"
+    networks:
+      - graphql-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "50051"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  users:
+    build:
+      context: .
+      dockerfile: cmd/users/Dockerfile
+    ports:
+      - "50052:50052"
+    networks:
+      - graphql-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "50052"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  graphql:
+    build:
+      context: .
+      dockerfile: cmd/graphql/Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - graphql-network
+    depends_on:
+      products:
+        condition: service_healthy
+      users:
+        condition: service_healthy
+    environment:
+      - PRODUCTS_SERVICE_ADDR=products:50051
+      - USERS_SERVICE_ADDR=users:50052
+
+networks:
+  graphql-network:
+    driver: bridge
