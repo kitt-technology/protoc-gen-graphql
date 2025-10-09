@@ -272,44 +272,101 @@ option (graphql.package) = "myapp";  // Set GraphQL package name
 
 ### DataLoader / Batch Loading
 
-Prevent N+1 queries by enabling batch loading:
+Prevent N+1 queries by enabling batch loading. PGG supports two patterns:
 
-```protobuf
-rpc LoadUsers(LoadUsersRequest) returns (LoadUsersResponse) {
-  option (graphql.batch_loader) = true;
-}
+#### Simple Batch Loading with `graphql.BatchRequest`
 
-message LoadUsersRequest {
-  repeated string keys = 1;  // Batch keys
-}
-
-message LoadUsersResponse {
-  map<string, User> results = 1;  // Results keyed by request keys
-}
-```
-
-The generated code automatically batches concurrent requests and deduplicates keys.
-
-### Pagination Support
-
-Use the built-in `PageInfo` type:
+For simple cases where you just need to batch by string keys, use the built-in `graphql.BatchRequest`:
 
 ```protobuf
 import "graphql.proto";
 
+rpc LoadAuthors(graphql.BatchRequest) returns (AuthorsBatchResponse) {
+  option (graphql.batch_loader) = true;
+}
+
+message AuthorsBatchResponse {
+  map<string, Author> results = 1;  // Results keyed by request keys
+}
+```
+
+The `graphql.BatchRequest` type contains a single field:
+- `repeated string keys = 1` - The batch keys to load
+
+#### Custom Batch Loading with Complex Request Types
+
+For more complex batching scenarios where you need additional parameters:
+
+```protobuf
+rpc GetBooksBatch(GetBooksBatchRequest) returns (GetBooksBatchResponse) {
+  option (graphql.batch_loader) = true;
+}
+
+message GetBooksBatchRequest {
+  repeated GetBooksRequest reqs = 1;  // Custom request objects
+}
+
+message GetBooksBatchResponse {
+  map<string, GetBooksResponse> results = 1;  // Results keyed by serialized request
+}
+```
+
+The generated code automatically batches concurrent requests and deduplicates keys in both cases.
+
+### Built-in Helper Types
+
+PGG provides several built-in types in `graphql.proto` for common use cases:
+
+#### `graphql.BatchRequest`
+
+Use for simple batch loading by string keys:
+
+```protobuf
+message BatchRequest {
+  repeated string keys = 1;
+}
+```
+
+Example usage:
+```protobuf
+rpc LoadAuthors(graphql.BatchRequest) returns (AuthorsBatchResponse) {
+  option (graphql.batch_loader) = true;
+}
+```
+
+#### `graphql.PageInfo`
+
+For pagination support:
+
+```protobuf
+message PageInfo {
+  int32 total_count = 1;
+  string end_cursor = 2;
+  bool has_next_page = 3;
+}
+```
+
+Example usage:
+```protobuf
 message UsersResponse {
   repeated User users = 1;
   graphql.PageInfo page_info = 2;
 }
 ```
 
-### Field Masking
+#### `graphql.FieldMask`
 
-Optimize queries with field masks:
+For optimizing queries with field selection:
 
 ```protobuf
-import "graphql.proto";
+message FieldMask {
+  repeated string paths = 1;
+  map<string, bool> paths_map = 2;
+}
+```
 
+Example usage:
+```protobuf
 message GetUserRequest {
   string id = 1;
   graphql.FieldMask field_mask = 2;
