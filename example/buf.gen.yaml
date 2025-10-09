@@ -1,0 +1,19 @@
+version: v2
+plugins:
+  # Generate Go protobuf code
+  - local: protoc-gen-go
+    out: .
+    opt:
+      - paths=source_relative
+
+  # Generate Go gRPC code
+  - local: protoc-gen-go-grpc
+    out: .
+    opt:
+      - paths=source_relative
+
+  # Generate GraphQL code
+  - local: protoc-gen-graphql
+    out: .
+    opt:
+      - lang=go

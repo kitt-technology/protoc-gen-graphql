@@ -16,13 +16,13 @@ build:
 .PHONY: regenerate-examples
 regenerate-examples: build
 	@echo "🔄 Regenerating examples with buf..."
-	@buf generate --path example/
+	@cd example && buf generate
 	@echo "✅ Examples regenerated successfully!"
 
 .PHONY: check-examples
 check-examples: build
 	@echo "🔍 Checking if examples are up-to-date..."
-	@buf generate --path example/
+	@cd example && buf generate
 	@if git diff --quiet example/; then \
 		echo "✅ Examples are up-to-date!"; \
 	else \

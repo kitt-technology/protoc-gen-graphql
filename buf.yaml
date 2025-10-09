@@ -1,0 +1,6 @@
+version: v2
+modules:
+  - path: example
+  - path: graphql
+deps:
+  - buf.build/googleapis/googleapis
