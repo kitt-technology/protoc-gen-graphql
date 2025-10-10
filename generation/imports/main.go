@@ -8,4 +8,5 @@ const (
 	ContextImport     = "context"
 	DataloaderImport  = "github.com/graph-gophers/dataloader"
 	OsImport          = "os"
+	StringsImport     = "strings"
 )

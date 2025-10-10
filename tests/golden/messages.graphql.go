@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"os"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"strings"
 )
 
 var GenreGraphqlEnum = gql.NewEnum(gql.EnumConfig{
