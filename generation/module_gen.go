@@ -492,6 +492,16 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 				method.Name, inputType, method.Output)
 		}
 
+		// Add batch loader methods
+		for _, loader := range svc.Loaders {
+			inputType := loader.RequestType
+			if inputType == "BatchRequest" {
+				inputType = "pg.BatchRequest"
+			}
+			out += fmt.Sprintf("\t%s(ctx context.Context, req *%s) (*%s, error)\n",
+				loader.Method, inputType, loader.ResponseType)
+		}
+
 		out += "}\n"
 
 		// Generate adapter for server to match the interface
@@ -511,6 +521,18 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			out += "}\n"
 		}
 
+		// Implement loader methods for the server adapter
+		for _, loader := range svc.Loaders {
+			inputType := loader.RequestType
+			if inputType == "BatchRequest" {
+				inputType = "pg.BatchRequest"
+			}
+			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %s(ctx context.Context, req *%s) (*%s, error) {\n",
+				lowerServiceName, loader.Method, inputType, loader.ResponseType)
+			out += fmt.Sprintf("\treturn a.server.%s(ctx, req)\n", loader.Method)
+			out += "}\n"
+		}
+
 		// Generate adapter for client to match the interface
 		out += fmt.Sprintf("\ntype %sClientAdapter struct {\n", lowerServiceName)
 		out += fmt.Sprintf("\tclient %sClient\n", serviceName)
@@ -525,6 +547,18 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %s(ctx context.Context, req *%s) (*%s, error) {\n",
 				lowerServiceName, method.Name, inputType, method.Output)
 			out += fmt.Sprintf("\treturn a.client.%s(ctx, req)\n", method.Name)
+			out += "}\n"
+		}
+
+		// Implement loader methods for the client adapter
+		for _, loader := range svc.Loaders {
+			inputType := loader.RequestType
+			if inputType == "BatchRequest" {
+				inputType = "pg.BatchRequest"
+			}
+			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %s(ctx context.Context, req *%s) (*%s, error) {\n",
+				lowerServiceName, loader.Method, inputType, loader.ResponseType)
+			out += fmt.Sprintf("\treturn a.client.%s(ctx, req)\n", loader.Method)
 			out += "}\n"
 		}
 

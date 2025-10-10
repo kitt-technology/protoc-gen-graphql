@@ -1240,6 +1240,7 @@ func (m *UsersModule) UsersLoadUsersMany(p gql.ResolveParams, keys []string) (fu
 type UsersInstance interface {
 	GetUsers(ctx context.Context, req *GetUsersRequest) (*GetUsersResponse, error)
 	GetUserProfile(ctx context.Context, req *GetUserProfileRequest) (*UserProfile, error)
+	LoadUsers(ctx context.Context, req *pg.BatchRequest) (*UsersBatchResponse, error)
 }
 
 type usersServerAdapter struct {
@@ -1254,6 +1255,10 @@ func (a *usersServerAdapter) GetUserProfile(ctx context.Context, req *GetUserPro
 	return a.server.GetUserProfile(ctx, req)
 }
 
+func (a *usersServerAdapter) LoadUsers(ctx context.Context, req *pg.BatchRequest) (*UsersBatchResponse, error) {
+	return a.server.LoadUsers(ctx, req)
+}
+
 type usersClientAdapter struct {
 	client UsersClient
 }
@@ -1264,6 +1269,10 @@ func (a *usersClientAdapter) GetUsers(ctx context.Context, req *GetUsersRequest)
 
 func (a *usersClientAdapter) GetUserProfile(ctx context.Context, req *GetUserProfileRequest) (*UserProfile, error) {
 	return a.client.GetUserProfile(ctx, req)
+}
+
+func (a *usersClientAdapter) LoadUsers(ctx context.Context, req *pg.BatchRequest) (*UsersBatchResponse, error) {
+	return a.client.LoadUsers(ctx, req)
 }
 
 // GetUsers returns a unified UsersInstance that works with both clients and services

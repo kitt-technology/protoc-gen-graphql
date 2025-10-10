@@ -1441,6 +1441,8 @@ func (m *ProductsModule) ProductsGetProductsBatchMany(p gql.ResolveParams, keys 
 type ProductsInstance interface {
 	GetProducts(ctx context.Context, req *GetProductsRequest) (*GetProductsResponse, error)
 	SearchProducts(ctx context.Context, req *SearchProductsRequest) (*SearchProductsResponse, error)
+	GetProductsByCategory(ctx context.Context, req *pg.BatchRequest) (*GetProductsByCategoryResponse, error)
+	GetProductsBatch(ctx context.Context, req *GetProductsBatchRequest) (*GetProductsBatchResponse, error)
 }
 
 type productsServerAdapter struct {
@@ -1455,6 +1457,14 @@ func (a *productsServerAdapter) SearchProducts(ctx context.Context, req *SearchP
 	return a.server.SearchProducts(ctx, req)
 }
 
+func (a *productsServerAdapter) GetProductsByCategory(ctx context.Context, req *pg.BatchRequest) (*GetProductsByCategoryResponse, error) {
+	return a.server.GetProductsByCategory(ctx, req)
+}
+
+func (a *productsServerAdapter) GetProductsBatch(ctx context.Context, req *GetProductsBatchRequest) (*GetProductsBatchResponse, error) {
+	return a.server.GetProductsBatch(ctx, req)
+}
+
 type productsClientAdapter struct {
 	client ProductsClient
 }
@@ -1465,6 +1475,14 @@ func (a *productsClientAdapter) GetProducts(ctx context.Context, req *GetProduct
 
 func (a *productsClientAdapter) SearchProducts(ctx context.Context, req *SearchProductsRequest) (*SearchProductsResponse, error) {
 	return a.client.SearchProducts(ctx, req)
+}
+
+func (a *productsClientAdapter) GetProductsByCategory(ctx context.Context, req *pg.BatchRequest) (*GetProductsByCategoryResponse, error) {
+	return a.client.GetProductsByCategory(ctx, req)
+}
+
+func (a *productsClientAdapter) GetProductsBatch(ctx context.Context, req *GetProductsBatchRequest) (*GetProductsBatchResponse, error) {
+	return a.client.GetProductsBatch(ctx, req)
 }
 
 // GetProducts returns a unified ProductsInstance that works with both clients and services
