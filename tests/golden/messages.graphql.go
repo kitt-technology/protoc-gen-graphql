@@ -1326,23 +1326,48 @@ func (m *CasesModule) Books() BooksInstance {
 
 var defaultModule *CasesModule
 
+// BooksClientInstance provides a unified Books client interface
+// Deprecated: Use NewCasesModule().Books() instead
+var BooksClientInstance BooksInstance
+
+// SetDefaultModule allows you to set a custom module instance as the default
+// for use with deprecated package-level functions.
+// This allows you to configure a module once and have all deprecated functions use it.
+// Example:
+//
+//	module := NewCasesModule(WithDialOptions(...))
+//	SetDefaultModule(module)
+//	// Now all deprecated Init(), WithLoaders(), etc. will use your module
+func SetDefaultModule(module *CasesModule) {
+	defaultModule = module
+}
+
+func getDefaultModule() *CasesModule {
+	if defaultModule == nil {
+		defaultModule = NewCasesModule()
+	}
+	return defaultModule
+}
+
 func init() {
-	defaultModule = NewCasesModule()
+	// Initialize BooksClientInstance with lazy-loading adapter
+	BooksClientInstance = &booksClientAdapter{client: nil}
 }
 
 // BooksInit initializes the Books service.
 // Deprecated: Use NewCasesModule() and configure with WithModuleBooksClient() or WithModuleBooksService() instead.
 func BooksInit(ctx context.Context, opts ...CasesModuleOption) (context.Context, []*gql.Field) {
 	// Apply options to default module
+	m := getDefaultModule()
 	for _, opt := range opts {
-		opt(defaultModule)
+		opt(m)
 	}
 
 	// Get fields from the module
-	fields := defaultModule.Fields()
+	fields := m.Fields()
 
 	// Register loaders in context
-	ctx = defaultModule.WithLoaders(ctx)
+	ctx = m.WithLoaders(ctx)
 
 	// Convert fields map to slice for this service only
 	var serviceFields []*gql.Field
@@ -1359,17 +1384,17 @@ func BooksInit(ctx context.Context, opts ...CasesModuleOption) (context.Context,
 // BooksWithLoaders registers dataloaders for the Books service into the context.
 // Deprecated: Use NewCasesModule().WithLoaders(ctx) instead.
 func BooksWithLoaders(ctx context.Context) context.Context {
-	return defaultModule.WithLoaders(ctx)
+	return getDefaultModule().WithLoaders(ctx)
 }
 
 // WithLoaders registers all dataloaders from all services into the context.
 // Deprecated: Use NewCasesModule().WithLoaders(ctx) instead.
 func WithLoaders(ctx context.Context) context.Context {
-	return defaultModule.WithLoaders(ctx)
+	return getDefaultModule().WithLoaders(ctx)
 }
 
 // Fields returns all GraphQL query/mutation fields from all services.
 // Deprecated: Use NewCasesModule().Fields() instead.
 func Fields() gql.Fields {
-	return defaultModule.Fields()
+	return getDefaultModule().Fields()
 }

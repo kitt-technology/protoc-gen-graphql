@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"os"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"strings"
 )
 
 var UserTypeGraphqlEnum = gql.NewEnum(gql.EnumConfig{
@@ -930,7 +931,7 @@ func (msg *LoyaltyInfo) XXX_GraphqlArgs() gql.FieldConfigArgument {
 func (msg *LoyaltyInfo) XXX_Package() string {
 	return "users"
 }
-func UsersLoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+func LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadUsersLoader").(type) {
 	case *dataloader.Loader:
@@ -949,7 +950,7 @@ func UsersLoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error
 	}, nil
 }
 
-func UsersLoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadUsersLoader").(type) {
 	case *dataloader.Loader:
@@ -1225,12 +1226,12 @@ func (m *UsersModule) LoyaltyInfoType() *gql.Object {
 
 // UsersLoadUsers loads a single *User using the users service dataloader
 func (m *UsersModule) UsersLoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return UsersLoadUsers(p, key)
+	return LoadUsers(p, key)
 }
 
 // UsersLoadUsersMany loads multiple *User using the users service dataloader
 func (m *UsersModule) UsersLoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return UsersLoadUsersMany(p, keys)
+	return LoadUsersMany(p, keys)
 }
 
 // Service instance accessors
@@ -1257,11 +1258,11 @@ func (a *usersServerAdapter) GetUserProfile(ctx context.Context, req *GetUserPro
 }
 
 func (a *usersServerAdapter) LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return UsersLoadUsers(p, key)
+	return LoadUsers(p, key)
 }
 
 func (a *usersServerAdapter) LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return UsersLoadUsersMany(p, keys)
+	return LoadUsersMany(p, keys)
 }
 
 type usersClientAdapter struct {
@@ -1277,11 +1278,11 @@ func (a *usersClientAdapter) GetUserProfile(ctx context.Context, req *GetUserPro
 }
 
 func (a *usersClientAdapter) LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return UsersLoadUsers(p, key)
+	return LoadUsers(p, key)
 }
 
 func (a *usersClientAdapter) LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return UsersLoadUsersMany(p, keys)
+	return LoadUsersMany(p, keys)
 }
 
 // Users returns a unified UsersInstance that works with both clients and services
@@ -1302,8 +1303,14 @@ func (m *UsersModule) Users() UsersInstance {
 
 var defaultModule *UsersModule
 
+// UsersClientInstance provides a unified Users client interface
+// Deprecated: Use NewUsersModule().Users() instead
+var UsersClientInstance UsersInstance
+
 func init() {
 	defaultModule = NewUsersModule()
+	// Initialize UsersClientInstance with lazy-loading adapter
+	UsersClientInstance = &usersClientAdapter{client: nil}
 }
 
 // UsersInit initializes the Users service.

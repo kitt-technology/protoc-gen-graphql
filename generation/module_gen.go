@@ -624,8 +624,42 @@ func (f File) generateBackwardCompatLayer(moduleName string, services []template
 
 	out += "var defaultModule *" + moduleName + "\n\n"
 
+	// Generate root-level ClientInstance variables for each service
+	for _, svc := range services {
+		serviceName := svc.Descriptor.GetName()
+		out += fmt.Sprintf("// %sClientInstance provides a unified %s client interface\n", serviceName, serviceName)
+		out += "// Deprecated: Use New" + moduleName + "()." + serviceName + "() instead\n"
+		out += fmt.Sprintf("var %sClientInstance %sInstance\n\n", serviceName, serviceName)
+	}
+
+	// Generate function to set default module
+	out += "// SetDefaultModule allows you to set a custom module instance as the default\n"
+	out += "// for use with deprecated package-level functions.\n"
+	out += "// This allows you to configure a module once and have all deprecated functions use it.\n"
+	out += "// Example:\n"
+	out += "//   module := New" + moduleName + "(WithDialOptions(...))\n"
+	out += "//   SetDefaultModule(module)\n"
+	out += "//   // Now all deprecated Init(), WithLoaders(), etc. will use your module\n"
+	out += fmt.Sprintf("func SetDefaultModule(module *%s) {\n", moduleName)
+	out += "\tdefaultModule = module\n"
+	out += "}\n\n"
+
+	// Generate getter for default module (lazy initialization)
+	out += "func getDefaultModule() *" + moduleName + " {\n"
+	out += "\tif defaultModule == nil {\n"
+	out += "\t\tdefaultModule = New" + moduleName + "()\n"
+	out += "\t}\n"
+	out += "\treturn defaultModule\n"
+	out += "}\n\n"
+
 	out += "func init() {\n"
-	out += "\tdefaultModule = New" + moduleName + "()\n"
+	// Initialize ClientInstance variables
+	for _, svc := range services {
+		serviceName := svc.Descriptor.GetName()
+		lowerServiceName := strcase.ToLowerCamel(serviceName)
+		out += fmt.Sprintf("\t// Initialize %sClientInstance with lazy-loading adapter\n", serviceName)
+		out += fmt.Sprintf("\t%sClientInstance = &%sClientAdapter{client: nil}\n", serviceName, lowerServiceName)
+	}
 	out += "}\n\n"
 
 	// Generate deprecated Init() function for each service
@@ -636,15 +670,16 @@ func (f File) generateBackwardCompatLayer(moduleName string, services []template
 		out += "// Deprecated: Use New" + moduleName + "() and configure with WithModule" + serviceName + "Client() or WithModule" + serviceName + "Service() instead.\n"
 		out += fmt.Sprintf("func %sInit(ctx context.Context, opts ...%sOption) (context.Context, []*gql.Field) {\n", serviceName, moduleName)
 		out += "\t// Apply options to default module\n"
+		out += "\tm := getDefaultModule()\n"
 		out += "\tfor _, opt := range opts {\n"
-		out += "\t\topt(defaultModule)\n"
+		out += "\t\topt(m)\n"
 		out += "\t}\n\n"
 
 		out += "\t// Get fields from the module\n"
-		out += "\tfields := defaultModule.Fields()\n\n"
+		out += "\tfields := m.Fields()\n\n"
 
 		out += "\t// Register loaders in context\n"
-		out += "\tctx = defaultModule.WithLoaders(ctx)\n\n"
+		out += "\tctx = m.WithLoaders(ctx)\n\n"
 
 		out += "\t// Convert fields map to slice for this service only\n"
 		out += "\tvar serviceFields []*gql.Field\n"
@@ -663,7 +698,7 @@ func (f File) generateBackwardCompatLayer(moduleName string, services []template
 			out += fmt.Sprintf("// %sWithLoaders registers dataloaders for the %s service into the context.\n", serviceName, serviceName)
 			out += "// Deprecated: Use New" + moduleName + "().WithLoaders(ctx) instead.\n"
 			out += fmt.Sprintf("func %sWithLoaders(ctx context.Context) context.Context {\n", serviceName)
-			out += "\treturn defaultModule.WithLoaders(ctx)\n"
+			out += "\treturn getDefaultModule().WithLoaders(ctx)\n"
 			out += "}\n\n"
 		}
 	}
@@ -672,14 +707,14 @@ func (f File) generateBackwardCompatLayer(moduleName string, services []template
 	out += "// WithLoaders registers all dataloaders from all services into the context.\n"
 	out += "// Deprecated: Use New" + moduleName + "().WithLoaders(ctx) instead.\n"
 	out += "func WithLoaders(ctx context.Context) context.Context {\n"
-	out += "\treturn defaultModule.WithLoaders(ctx)\n"
+	out += "\treturn getDefaultModule().WithLoaders(ctx)\n"
 	out += "}\n\n"
 
 	// Generate deprecated global Fields() function
 	out += "// Fields returns all GraphQL query/mutation fields from all services.\n"
 	out += "// Deprecated: Use New" + moduleName + "().Fields() instead.\n"
 	out += "func Fields() gql.Fields {\n"
-	out += "\treturn defaultModule.Fields()\n"
+	out += "\treturn getDefaultModule().Fields()\n"
 	out += "}\n\n"
 
 	return out
