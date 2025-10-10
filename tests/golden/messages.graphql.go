@@ -1253,8 +1253,6 @@ func (m *CasesModule) BooksGetBooksBatchMany(p gql.ResolveParams, keys []*GetBoo
 // It works with both gRPC clients and direct service implementations
 type BooksInstance interface {
 	GetBooks(ctx context.Context, req *GetBooksRequest) (*GetBooksResponse, error)
-	GetBooksByAuthor(ctx context.Context, req *pg.BatchRequest) (*GetBooksByAuthorResponse, error)
-	GetBooksBatch(ctx context.Context, req *GetBooksBatchRequest) (*GetBooksBatchResponse, error)
 	GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error)
 	GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error)
 	GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error)
@@ -1267,14 +1265,6 @@ type booksServerAdapter struct {
 
 func (a *booksServerAdapter) GetBooks(ctx context.Context, req *GetBooksRequest) (*GetBooksResponse, error) {
 	return a.server.GetBooks(ctx, req)
-}
-
-func (a *booksServerAdapter) GetBooksByAuthor(ctx context.Context, req *pg.BatchRequest) (*GetBooksByAuthorResponse, error) {
-	return a.server.GetBooksByAuthor(ctx, req)
-}
-
-func (a *booksServerAdapter) GetBooksBatch(ctx context.Context, req *GetBooksBatchRequest) (*GetBooksBatchResponse, error) {
-	return a.server.GetBooksBatch(ctx, req)
 }
 
 func (a *booksServerAdapter) GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
@@ -1299,14 +1289,6 @@ type booksClientAdapter struct {
 
 func (a *booksClientAdapter) GetBooks(ctx context.Context, req *GetBooksRequest) (*GetBooksResponse, error) {
 	return a.client.GetBooks(ctx, req)
-}
-
-func (a *booksClientAdapter) GetBooksByAuthor(ctx context.Context, req *pg.BatchRequest) (*GetBooksByAuthorResponse, error) {
-	return a.client.GetBooksByAuthor(ctx, req)
-}
-
-func (a *booksClientAdapter) GetBooksBatch(ctx context.Context, req *GetBooksBatchRequest) (*GetBooksBatchResponse, error) {
-	return a.client.GetBooksBatch(ctx, req)
 }
 
 func (a *booksClientAdapter) GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
