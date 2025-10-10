@@ -176,8 +176,8 @@ func (m Message) generateLoaderHelpers(loader LoaderVars) string {
 		out += "}\n\n"
 	}
 
-	// Generate Load helper function (without service name prefix for backward compatibility)
-	out += fmt.Sprintf("func %s(p gql.ResolveParams, ", loader.Method)
+	// Generate Load helper function with Batch suffix for GraphQL signatures
+	out += fmt.Sprintf("func %sBatch(p gql.ResolveParams, ", loader.Method)
 	if loader.Custom {
 		out += fmt.Sprintf("key *%s", loader.KeysType)
 	} else {
@@ -209,8 +209,8 @@ func (m Message) generateLoaderHelpers(loader LoaderVars) string {
 	out += "\t}, nil\n"
 	out += "}\n\n"
 
-	// Generate LoadMany helper function (without service name prefix for backward compatibility)
-	out += fmt.Sprintf("func %sMany(p gql.ResolveParams, ", loader.Method)
+	// Generate LoadMany helper function with BatchMany suffix for GraphQL signatures
+	out += fmt.Sprintf("func %sBatchMany(p gql.ResolveParams, ", loader.Method)
 	if loader.Custom {
 		out += fmt.Sprintf("keys []*%s", loader.KeysType)
 	} else {

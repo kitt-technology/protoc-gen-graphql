@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Products_GetProducts_FullMethodName           = "/products.Products/getProducts"
 	Products_GetProductsByCategory_FullMethodName = "/products.Products/getProductsByCategory"
-	Products_GetProductsBatch_FullMethodName      = "/products.Products/getProductsBatch"
+	Products_LoadProducts_FullMethodName          = "/products.Products/loadProducts"
 	Products_SearchProducts_FullMethodName        = "/products.Products/searchProducts"
 )
 
@@ -34,7 +34,7 @@ type ProductsClient interface {
 	// Simple batch loader using graphql.BatchRequest to load products by category
 	GetProductsByCategory(ctx context.Context, in *graphql.BatchRequest, opts ...grpc.CallOption) (*GetProductsByCategoryResponse, error)
 	// Custom batch loader with complex request type for advanced filtering
-	GetProductsBatch(ctx context.Context, in *GetProductsBatchRequest, opts ...grpc.CallOption) (*GetProductsBatchResponse, error)
+	LoadProducts(ctx context.Context, in *LoadProductsRequest, opts ...grpc.CallOption) (*LoadProductsResponse, error)
 	SearchProducts(ctx context.Context, in *SearchProductsRequest, opts ...grpc.CallOption) (*SearchProductsResponse, error)
 }
 
@@ -66,10 +66,10 @@ func (c *productsClient) GetProductsByCategory(ctx context.Context, in *graphql.
 	return out, nil
 }
 
-func (c *productsClient) GetProductsBatch(ctx context.Context, in *GetProductsBatchRequest, opts ...grpc.CallOption) (*GetProductsBatchResponse, error) {
+func (c *productsClient) LoadProducts(ctx context.Context, in *LoadProductsRequest, opts ...grpc.CallOption) (*LoadProductsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetProductsBatchResponse)
-	err := c.cc.Invoke(ctx, Products_GetProductsBatch_FullMethodName, in, out, cOpts...)
+	out := new(LoadProductsResponse)
+	err := c.cc.Invoke(ctx, Products_LoadProducts_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ type ProductsServer interface {
 	// Simple batch loader using graphql.BatchRequest to load products by category
 	GetProductsByCategory(context.Context, *graphql.BatchRequest) (*GetProductsByCategoryResponse, error)
 	// Custom batch loader with complex request type for advanced filtering
-	GetProductsBatch(context.Context, *GetProductsBatchRequest) (*GetProductsBatchResponse, error)
+	LoadProducts(context.Context, *LoadProductsRequest) (*LoadProductsResponse, error)
 	SearchProducts(context.Context, *SearchProductsRequest) (*SearchProductsResponse, error)
 	mustEmbedUnimplementedProductsServer()
 }
@@ -112,8 +112,8 @@ func (UnimplementedProductsServer) GetProducts(context.Context, *GetProductsRequ
 func (UnimplementedProductsServer) GetProductsByCategory(context.Context, *graphql.BatchRequest) (*GetProductsByCategoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductsByCategory not implemented")
 }
-func (UnimplementedProductsServer) GetProductsBatch(context.Context, *GetProductsBatchRequest) (*GetProductsBatchResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProductsBatch not implemented")
+func (UnimplementedProductsServer) LoadProducts(context.Context, *LoadProductsRequest) (*LoadProductsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoadProducts not implemented")
 }
 func (UnimplementedProductsServer) SearchProducts(context.Context, *SearchProductsRequest) (*SearchProductsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchProducts not implemented")
@@ -175,20 +175,20 @@ func _Products_GetProductsByCategory_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Products_GetProductsBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetProductsBatchRequest)
+func _Products_LoadProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoadProductsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProductsServer).GetProductsBatch(ctx, in)
+		return srv.(ProductsServer).LoadProducts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Products_GetProductsBatch_FullMethodName,
+		FullMethod: Products_LoadProducts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductsServer).GetProductsBatch(ctx, req.(*GetProductsBatchRequest))
+		return srv.(ProductsServer).LoadProducts(ctx, req.(*LoadProductsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -227,8 +227,8 @@ var Products_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Products_GetProductsByCategory_Handler,
 		},
 		{
-			MethodName: "getProductsBatch",
-			Handler:    _Products_GetProductsBatch_Handler,
+			MethodName: "loadProducts",
+			Handler:    _Products_LoadProducts_Handler,
 		},
 		{
 			MethodName: "searchProducts",

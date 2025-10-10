@@ -931,7 +931,7 @@ func (msg *LoyaltyInfo) XXX_GraphqlArgs() gql.FieldConfigArgument {
 func (msg *LoyaltyInfo) XXX_Package() string {
 	return "users"
 }
-func LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+func LoadUsersBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadUsersLoader").(type) {
 	case *dataloader.Loader:
@@ -950,7 +950,7 @@ func LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), er
 	}, nil
 }
 
-func LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func LoadUsersBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadUsersLoader").(type) {
 	case *dataloader.Loader:
@@ -1226,12 +1226,12 @@ func (m *UsersModule) LoyaltyInfoType() *gql.Object {
 
 // UsersLoadUsers loads a single *User using the users service dataloader
 func (m *UsersModule) UsersLoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return LoadUsers(p, key)
+	return LoadUsersBatch(p, key)
 }
 
 // UsersLoadUsersMany loads multiple *User using the users service dataloader
 func (m *UsersModule) UsersLoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return LoadUsersMany(p, keys)
+	return LoadUsersBatchMany(p, keys)
 }
 
 // Service instance accessors
@@ -1241,8 +1241,9 @@ func (m *UsersModule) UsersLoadUsersMany(p gql.ResolveParams, keys []string) (fu
 type UsersInstance interface {
 	GetUsers(ctx context.Context, req *GetUsersRequest) (*GetUsersResponse, error)
 	GetUserProfile(ctx context.Context, req *GetUserProfileRequest) (*UserProfile, error)
-	LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error)
-	LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error)
+	LoadUsers(ctx context.Context, req *pg.BatchRequest) (*UsersBatchResponse, error)
+	LoadUsersBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error)
+	LoadUsersBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error)
 }
 
 type usersServerAdapter struct {
@@ -1257,12 +1258,16 @@ func (a *usersServerAdapter) GetUserProfile(ctx context.Context, req *GetUserPro
 	return a.server.GetUserProfile(ctx, req)
 }
 
-func (a *usersServerAdapter) LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return LoadUsers(p, key)
+func (a *usersServerAdapter) LoadUsers(ctx context.Context, req *pg.BatchRequest) (*UsersBatchResponse, error) {
+	return a.server.LoadUsers(ctx, req)
 }
 
-func (a *usersServerAdapter) LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return LoadUsersMany(p, keys)
+func (a *usersServerAdapter) LoadUsersBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+	return LoadUsersBatch(p, key)
+}
+
+func (a *usersServerAdapter) LoadUsersBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	return LoadUsersBatchMany(p, keys)
 }
 
 type usersClientAdapter struct {
@@ -1277,12 +1282,16 @@ func (a *usersClientAdapter) GetUserProfile(ctx context.Context, req *GetUserPro
 	return a.client.GetUserProfile(ctx, req)
 }
 
-func (a *usersClientAdapter) LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return LoadUsers(p, key)
+func (a *usersClientAdapter) LoadUsers(ctx context.Context, req *pg.BatchRequest) (*UsersBatchResponse, error) {
+	return a.client.LoadUsers(ctx, req)
 }
 
-func (a *usersClientAdapter) LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return LoadUsersMany(p, keys)
+func (a *usersClientAdapter) LoadUsersBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+	return LoadUsersBatch(p, key)
+}
+
+func (a *usersClientAdapter) LoadUsersBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	return LoadUsersBatchMany(p, keys)
 }
 
 // Users returns a unified UsersInstance that works with both clients and services
@@ -1307,8 +1316,26 @@ var defaultModule *UsersModule
 // Deprecated: Use NewUsersModule().Users() instead
 var UsersClientInstance UsersInstance
 
+// SetDefaultModule allows you to set a custom module instance as the default
+// for use with deprecated package-level functions.
+// This allows you to configure a module once and have all deprecated functions use it.
+// Example:
+//
+//	module := NewUsersModule(WithDialOptions(...))
+//	SetDefaultModule(module)
+//	// Now all deprecated Init(), WithLoaders(), etc. will use your module
+func SetDefaultModule(module *UsersModule) {
+	defaultModule = module
+}
+
+func getDefaultModule() *UsersModule {
+	if defaultModule == nil {
+		defaultModule = NewUsersModule()
+	}
+	return defaultModule
+}
+
 func init() {
-	defaultModule = NewUsersModule()
 	// Initialize UsersClientInstance with lazy-loading adapter
 	UsersClientInstance = &usersClientAdapter{client: nil}
 }
@@ -1317,15 +1344,16 @@ func init() {
 // Deprecated: Use NewUsersModule() and configure with WithModuleUsersClient() or WithModuleUsersService() instead.
 func UsersInit(ctx context.Context, opts ...UsersModuleOption) (context.Context, []*gql.Field) {
 	// Apply options to default module
+	m := getDefaultModule()
 	for _, opt := range opts {
-		opt(defaultModule)
+		opt(m)
 	}
 
 	// Get fields from the module
-	fields := defaultModule.Fields()
+	fields := m.Fields()
 
 	// Register loaders in context
-	ctx = defaultModule.WithLoaders(ctx)
+	ctx = m.WithLoaders(ctx)
 
 	// Convert fields map to slice for this service only
 	var serviceFields []*gql.Field
@@ -1342,17 +1370,17 @@ func UsersInit(ctx context.Context, opts ...UsersModuleOption) (context.Context,
 // UsersWithLoaders registers dataloaders for the Users service into the context.
 // Deprecated: Use NewUsersModule().WithLoaders(ctx) instead.
 func UsersWithLoaders(ctx context.Context) context.Context {
-	return defaultModule.WithLoaders(ctx)
+	return getDefaultModule().WithLoaders(ctx)
 }
 
 // WithLoaders registers all dataloaders from all services into the context.
 // Deprecated: Use NewUsersModule().WithLoaders(ctx) instead.
 func WithLoaders(ctx context.Context) context.Context {
-	return defaultModule.WithLoaders(ctx)
+	return getDefaultModule().WithLoaders(ctx)
 }
 
 // Fields returns all GraphQL query/mutation fields from all services.
 // Deprecated: Use NewUsersModule().Fields() instead.
 func Fields() gql.Fields {
-	return defaultModule.Fields()
+	return getDefaultModule().Fields()
 }

@@ -20,7 +20,7 @@ service Products {
   }
 
   // Custom batch loader with complex request type for advanced filtering
-  rpc getProductsBatch(GetProductsBatchRequest) returns (GetProductsBatchResponse) {
+  rpc loadProducts(LoadProductsRequest) returns (LoadProductsResponse) {
     option (graphql.batch_loader) = true;
   }
 
@@ -46,11 +46,11 @@ message GetProductsByCategoryResponse {
   map<string, ProductsByCategory> results = 1;
 }
 
-message GetProductsBatchRequest {
+message LoadProductsRequest {
   repeated GetProductsRequest reqs = 1;
 }
 
-message GetProductsBatchResponse {
+message LoadProductsResponse {
   map<string, GetProductsResponse> results = 1;
 }
 

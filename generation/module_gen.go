@@ -15,12 +15,12 @@ const loaderAccessorTemplate = `
 {{- range .Loaders }}
 // {{ .MethodName }} loads a single {{ .ResultsType }} using the {{ .LowerServiceName }} service dataloader
 func (m *{{ $.ModuleName }}) {{ .MethodName }}(p gql.ResolveParams, {{ if .Custom }}key *{{ .KeysType }}{{ else }}key string{{ end }}) (func() (interface{}, error), error) {
-	return {{ .Method }}(p, key)
+	return {{ .Method }}Batch(p, key)
 }
 
 // {{ .MethodNameMany }} loads multiple {{ .ResultsType }} using the {{ .LowerServiceName }} service dataloader
 func (m *{{ $.ModuleName }}) {{ .MethodNameMany }}(p gql.ResolveParams, {{ if .Custom }}keys []*{{ .KeysType }}{{ else }}keys []string{{ end }}) (func() (interface{}, error), error) {
-	return {{ .Method }}Many(p, keys)
+	return {{ .Method }}BatchMany(p, keys)
 }
 {{ end -}}
 `
@@ -485,7 +485,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 		out += "// It works with both gRPC clients and direct service implementations\n"
 		out += fmt.Sprintf("type %sInstance interface {\n", serviceName)
 
-		// Add methods from the service
+		// Add methods from the service (normal RPC methods)
 		for _, method := range svc.Methods {
 			inputType := method.Input
 			if inputType == "BatchRequest" {
@@ -495,22 +495,30 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 				method.Name, inputType, method.Output)
 		}
 
-		// Add dataloader helper methods (with gql.ResolveParams signature)
+		// Add batch loader methods with BOTH normal RPC signature and batch signature
 		for _, loader := range svc.Loaders {
-			// Single item loader
+			// Add normal RPC signature for the loader method
+			inputType := loader.RequestType
+			if inputType == "BatchRequest" {
+				inputType = "pg.BatchRequest"
+			}
+			out += fmt.Sprintf("\t%s(ctx context.Context, req *%s) (*%s, error)\n",
+				loader.Method, inputType, loader.ResponseType)
+
+			// Single item batch loader (suffixed with "Batch")
 			keyType := "string"
 			if loader.Custom {
 				keyType = "*" + loader.KeysType
 			}
-			out += fmt.Sprintf("\t%s(p gql.ResolveParams, key %s) (func() (interface{}, error), error)\n",
+			out += fmt.Sprintf("\t%sBatch(p gql.ResolveParams, key %s) (func() (interface{}, error), error)\n",
 				loader.Method, keyType)
 
-			// Many items loader
+			// Many items batch loader (suffixed with "BatchMany")
 			keysType := "[]string"
 			if loader.Custom {
 				keysType = "[]*" + loader.KeysType
 			}
-			out += fmt.Sprintf("\t%sMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error)\n",
+			out += fmt.Sprintf("\t%sBatchMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error)\n",
 				loader.Method, keysType)
 		}
 
@@ -533,26 +541,36 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			out += "}\n"
 		}
 
-		// Implement dataloader helper methods for the server adapter
+		// Implement batch loader methods for the server adapter
 		for _, loader := range svc.Loaders {
-			// Single item loader
+			// Normal RPC signature for loader method
+			inputType := loader.RequestType
+			if inputType == "BatchRequest" {
+				inputType = "pg.BatchRequest"
+			}
+			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %s(ctx context.Context, req *%s) (*%s, error) {\n",
+				lowerServiceName, loader.Method, inputType, loader.ResponseType)
+			out += fmt.Sprintf("\treturn a.server.%s(ctx, req)\n", loader.Method)
+			out += "}\n"
+
+			// Single item batch loader (suffixed with "Batch")
 			keyType := "string"
 			if loader.Custom {
 				keyType = "*" + loader.KeysType
 			}
-			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %s(p gql.ResolveParams, key %s) (func() (interface{}, error), error) {\n",
+			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %sBatch(p gql.ResolveParams, key %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keyType)
-			out += fmt.Sprintf("\treturn %s(p, key)\n", loader.Method)
+			out += fmt.Sprintf("\treturn %sBatch(p, key)\n", loader.Method)
 			out += "}\n"
 
-			// Many items loader
+			// Many items batch loader (suffixed with "BatchMany")
 			keysType := "[]string"
 			if loader.Custom {
 				keysType = "[]*" + loader.KeysType
 			}
-			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %sMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error) {\n",
+			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %sBatchMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keysType)
-			out += fmt.Sprintf("\treturn %sMany(p, keys)\n", loader.Method)
+			out += fmt.Sprintf("\treturn %sBatchMany(p, keys)\n", loader.Method)
 			out += "}\n"
 		}
 
@@ -573,26 +591,36 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			out += "}\n"
 		}
 
-		// Implement dataloader helper methods for the client adapter
+		// Implement batch loader methods for the client adapter
 		for _, loader := range svc.Loaders {
-			// Single item loader
+			// Normal RPC signature for loader method
+			inputType := loader.RequestType
+			if inputType == "BatchRequest" {
+				inputType = "pg.BatchRequest"
+			}
+			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %s(ctx context.Context, req *%s) (*%s, error) {\n",
+				lowerServiceName, loader.Method, inputType, loader.ResponseType)
+			out += fmt.Sprintf("\treturn a.client.%s(ctx, req)\n", loader.Method)
+			out += "}\n"
+
+			// Single item batch loader (suffixed with "Batch")
 			keyType := "string"
 			if loader.Custom {
 				keyType = "*" + loader.KeysType
 			}
-			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %s(p gql.ResolveParams, key %s) (func() (interface{}, error), error) {\n",
+			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %sBatch(p gql.ResolveParams, key %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keyType)
-			out += fmt.Sprintf("\treturn %s(p, key)\n", loader.Method)
+			out += fmt.Sprintf("\treturn %sBatch(p, key)\n", loader.Method)
 			out += "}\n"
 
-			// Many items loader
+			// Many items batch loader (suffixed with "BatchMany")
 			keysType := "[]string"
 			if loader.Custom {
 				keysType = "[]*" + loader.KeysType
 			}
-			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %sMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error) {\n",
+			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %sBatchMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keysType)
-			out += fmt.Sprintf("\treturn %sMany(p, keys)\n", loader.Method)
+			out += fmt.Sprintf("\treturn %sBatchMany(p, keys)\n", loader.Method)
 			out += "}\n"
 		}
 
