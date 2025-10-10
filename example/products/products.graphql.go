@@ -998,7 +998,7 @@ func (msg *Inventory) XXX_GraphqlArgs() gql.FieldConfigArgument {
 func (msg *Inventory) XXX_Package() string {
 	return "products"
 }
-func GetProductsByCategoryBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+func GetProductsByCategory(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetProductsByCategoryLoader").(type) {
 	case *dataloader.Loader:
@@ -1017,7 +1017,7 @@ func GetProductsByCategoryBatch(p gql.ResolveParams, key string) (func() (interf
 	}, nil
 }
 
-func GetProductsByCategoryBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func GetProductsByCategoryMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetProductsByCategoryLoader").(type) {
 	case *dataloader.Loader:
@@ -1057,7 +1057,7 @@ func (key *GetProductsRequestKey) Raw() interface{} {
 	return key
 }
 
-func LoadProductsBatch(p gql.ResolveParams, key *GetProductsRequest) (func() (interface{}, error), error) {
+func LoadProducts(p gql.ResolveParams, key *GetProductsRequest) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadProductsLoader").(type) {
 	case *dataloader.Loader:
@@ -1076,7 +1076,7 @@ func LoadProductsBatch(p gql.ResolveParams, key *GetProductsRequest) (func() (in
 	}, nil
 }
 
-func LoadProductsBatchMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error) {
+func LoadProductsMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadProductsLoader").(type) {
 	case *dataloader.Loader:
@@ -1417,22 +1417,22 @@ func (m *ProductsModule) InventoryType() *gql.Object {
 
 // ProductsGetProductsByCategory loads a single *ProductsByCategory using the products service dataloader
 func (m *ProductsModule) ProductsGetProductsByCategory(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return GetProductsByCategoryBatch(p, key)
+	return GetProductsByCategory(p, key)
 }
 
 // ProductsGetProductsByCategoryMany loads multiple *ProductsByCategory using the products service dataloader
 func (m *ProductsModule) ProductsGetProductsByCategoryMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return GetProductsByCategoryBatchMany(p, keys)
+	return GetProductsByCategoryMany(p, keys)
 }
 
 // ProductsLoadProducts loads a single *GetProductsResponse using the products service dataloader
 func (m *ProductsModule) ProductsLoadProducts(p gql.ResolveParams, key *GetProductsRequest) (func() (interface{}, error), error) {
-	return LoadProductsBatch(p, key)
+	return LoadProducts(p, key)
 }
 
 // ProductsLoadProductsMany loads multiple *GetProductsResponse using the products service dataloader
 func (m *ProductsModule) ProductsLoadProductsMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error) {
-	return LoadProductsBatchMany(p, keys)
+	return LoadProductsMany(p, keys)
 }
 
 // Service instance accessors
@@ -1467,11 +1467,11 @@ func (a *productsServerAdapter) GetProductsByCategory(ctx context.Context, req *
 }
 
 func (a *productsServerAdapter) GetProductsByCategoryBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return GetProductsByCategoryBatch(p, key)
+	return GetProductsByCategory(p, key)
 }
 
 func (a *productsServerAdapter) GetProductsByCategoryBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return GetProductsByCategoryBatchMany(p, keys)
+	return GetProductsByCategoryMany(p, keys)
 }
 
 func (a *productsServerAdapter) LoadProducts(ctx context.Context, req *LoadProductsRequest) (*LoadProductsResponse, error) {
@@ -1479,11 +1479,11 @@ func (a *productsServerAdapter) LoadProducts(ctx context.Context, req *LoadProdu
 }
 
 func (a *productsServerAdapter) LoadProductsBatch(p gql.ResolveParams, key *GetProductsRequest) (func() (interface{}, error), error) {
-	return LoadProductsBatch(p, key)
+	return LoadProducts(p, key)
 }
 
 func (a *productsServerAdapter) LoadProductsBatchMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error) {
-	return LoadProductsBatchMany(p, keys)
+	return LoadProductsMany(p, keys)
 }
 
 type productsClientAdapter struct {
@@ -1503,11 +1503,11 @@ func (a *productsClientAdapter) GetProductsByCategory(ctx context.Context, req *
 }
 
 func (a *productsClientAdapter) GetProductsByCategoryBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return GetProductsByCategoryBatch(p, key)
+	return GetProductsByCategory(p, key)
 }
 
 func (a *productsClientAdapter) GetProductsByCategoryBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return GetProductsByCategoryBatchMany(p, keys)
+	return GetProductsByCategoryMany(p, keys)
 }
 
 func (a *productsClientAdapter) LoadProducts(ctx context.Context, req *LoadProductsRequest) (*LoadProductsResponse, error) {
@@ -1515,11 +1515,11 @@ func (a *productsClientAdapter) LoadProducts(ctx context.Context, req *LoadProdu
 }
 
 func (a *productsClientAdapter) LoadProductsBatch(p gql.ResolveParams, key *GetProductsRequest) (func() (interface{}, error), error) {
-	return LoadProductsBatch(p, key)
+	return LoadProducts(p, key)
 }
 
 func (a *productsClientAdapter) LoadProductsBatchMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error) {
-	return LoadProductsBatchMany(p, keys)
+	return LoadProductsMany(p, keys)
 }
 
 // Products returns a unified ProductsInstance that works with both clients and services

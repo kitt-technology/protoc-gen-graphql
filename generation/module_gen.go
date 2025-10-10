@@ -15,12 +15,12 @@ const loaderAccessorTemplate = `
 {{- range .Loaders }}
 // {{ .MethodName }} loads a single {{ .ResultsType }} using the {{ .LowerServiceName }} service dataloader
 func (m *{{ $.ModuleName }}) {{ .MethodName }}(p gql.ResolveParams, {{ if .Custom }}key *{{ .KeysType }}{{ else }}key string{{ end }}) (func() (interface{}, error), error) {
-	return {{ .Method }}Batch(p, key)
+	return {{ .Method }}(p, key)
 }
 
 // {{ .MethodNameMany }} loads multiple {{ .ResultsType }} using the {{ .LowerServiceName }} service dataloader
 func (m *{{ $.ModuleName }}) {{ .MethodNameMany }}(p gql.ResolveParams, {{ if .Custom }}keys []*{{ .KeysType }}{{ else }}keys []string{{ end }}) (func() (interface{}, error), error) {
-	return {{ .Method }}BatchMany(p, keys)
+	return {{ .Method }}Many(p, keys)
 }
 {{ end -}}
 `
@@ -560,7 +560,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			}
 			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %sBatch(p gql.ResolveParams, key %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keyType)
-			out += fmt.Sprintf("\treturn %sBatch(p, key)\n", loader.Method)
+			out += fmt.Sprintf("\treturn %s(p, key)\n", loader.Method)
 			out += "}\n"
 
 			// Many items batch loader (suffixed with "BatchMany")
@@ -570,7 +570,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			}
 			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %sBatchMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keysType)
-			out += fmt.Sprintf("\treturn %sBatchMany(p, keys)\n", loader.Method)
+			out += fmt.Sprintf("\treturn %sMany(p, keys)\n", loader.Method)
 			out += "}\n"
 		}
 
@@ -610,7 +610,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			}
 			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %sBatch(p gql.ResolveParams, key %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keyType)
-			out += fmt.Sprintf("\treturn %sBatch(p, key)\n", loader.Method)
+			out += fmt.Sprintf("\treturn %s(p, key)\n", loader.Method)
 			out += "}\n"
 
 			// Many items batch loader (suffixed with "BatchMany")
@@ -620,7 +620,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			}
 			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %sBatchMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keysType)
-			out += fmt.Sprintf("\treturn %sBatchMany(p, keys)\n", loader.Method)
+			out += fmt.Sprintf("\treturn %sMany(p, keys)\n", loader.Method)
 			out += "}\n"
 		}
 

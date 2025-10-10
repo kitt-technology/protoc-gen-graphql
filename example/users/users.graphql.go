@@ -931,7 +931,7 @@ func (msg *LoyaltyInfo) XXX_GraphqlArgs() gql.FieldConfigArgument {
 func (msg *LoyaltyInfo) XXX_Package() string {
 	return "users"
 }
-func LoadUsersBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+func LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadUsersLoader").(type) {
 	case *dataloader.Loader:
@@ -950,7 +950,7 @@ func LoadUsersBatch(p gql.ResolveParams, key string) (func() (interface{}, error
 	}, nil
 }
 
-func LoadUsersBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("LoadUsersLoader").(type) {
 	case *dataloader.Loader:
@@ -1226,12 +1226,12 @@ func (m *UsersModule) LoyaltyInfoType() *gql.Object {
 
 // UsersLoadUsers loads a single *User using the users service dataloader
 func (m *UsersModule) UsersLoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return LoadUsersBatch(p, key)
+	return LoadUsers(p, key)
 }
 
 // UsersLoadUsersMany loads multiple *User using the users service dataloader
 func (m *UsersModule) UsersLoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return LoadUsersBatchMany(p, keys)
+	return LoadUsersMany(p, keys)
 }
 
 // Service instance accessors
@@ -1263,11 +1263,11 @@ func (a *usersServerAdapter) LoadUsers(ctx context.Context, req *pg.BatchRequest
 }
 
 func (a *usersServerAdapter) LoadUsersBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return LoadUsersBatch(p, key)
+	return LoadUsers(p, key)
 }
 
 func (a *usersServerAdapter) LoadUsersBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return LoadUsersBatchMany(p, keys)
+	return LoadUsersMany(p, keys)
 }
 
 type usersClientAdapter struct {
@@ -1287,11 +1287,11 @@ func (a *usersClientAdapter) LoadUsers(ctx context.Context, req *pg.BatchRequest
 }
 
 func (a *usersClientAdapter) LoadUsersBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return LoadUsersBatch(p, key)
+	return LoadUsers(p, key)
 }
 
 func (a *usersClientAdapter) LoadUsersBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return LoadUsersBatchMany(p, keys)
+	return LoadUsersMany(p, keys)
 }
 
 // Users returns a unified UsersInstance that works with both clients and services
