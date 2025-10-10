@@ -74,7 +74,6 @@ var GetBooksRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var GetBooksRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "BooksRequestInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -207,7 +206,6 @@ var PaginationOptionsGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var PaginationOptionsGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "PaginationOptionsInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -269,7 +267,6 @@ var FilterGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var FilterGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "FilterInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -321,7 +318,6 @@ var GetBooksResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var GetBooksResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetBooksResponseInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -379,7 +375,6 @@ var GetBooksBatchRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var GetBooksBatchRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetBooksBatchRequestInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -437,7 +432,6 @@ var GetBooksBatchResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var GetBooksBatchResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetBooksBatchResponseInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -485,7 +479,6 @@ var GetBooksByAuthorResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var GetBooksByAuthorResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetBooksByAuthorResponseInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -533,7 +526,6 @@ var BooksByAuthorGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var BooksByAuthorGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "BooksByAuthorInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -633,7 +625,6 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "BookInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -793,7 +784,6 @@ var MoneyGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var MoneyGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "MoneyInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -836,7 +826,7 @@ func (msg *Money) XXX_GraphqlArgs() gql.FieldConfigArgument {
 func (msg *Money) XXX_Package() string {
 	return "books"
 }
-func GetBooksByAuthorBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+func GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
@@ -855,7 +845,7 @@ func GetBooksByAuthorBatch(p gql.ResolveParams, key string) (func() (interface{}
 	}, nil
 }
 
-func GetBooksByAuthorBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
@@ -895,7 +885,7 @@ func (key *GetBooksRequestKey) Raw() interface{} {
 	return key
 }
 
-func GetBooksBatchBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
+func GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksBatchLoader").(type) {
 	case *dataloader.Loader:
@@ -914,7 +904,7 @@ func GetBooksBatchBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (inte
 	}, nil
 }
 
-func GetBooksBatchBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
+func GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksBatchLoader").(type) {
 	case *dataloader.Loader:
@@ -1230,22 +1220,22 @@ func (m *CasesModule) MoneyType() *gql.Object {
 
 // BooksGetBooksByAuthor loads a single *BooksByAuthor using the books service dataloader
 func (m *CasesModule) BooksGetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return GetBooksByAuthorBatch(p, key)
+	return GetBooksByAuthor(p, key)
 }
 
 // BooksGetBooksByAuthorMany loads multiple *BooksByAuthor using the books service dataloader
 func (m *CasesModule) BooksGetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return GetBooksByAuthorBatchMany(p, keys)
+	return GetBooksByAuthorMany(p, keys)
 }
 
 // BooksGetBooksBatch loads a single *GetBooksResponse using the books service dataloader
 func (m *CasesModule) BooksGetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
-	return GetBooksBatchBatch(p, key)
+	return GetBooksBatch(p, key)
 }
 
 // BooksGetBooksBatchMany loads multiple *GetBooksResponse using the books service dataloader
 func (m *CasesModule) BooksGetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
-	return GetBooksBatchBatchMany(p, keys)
+	return GetBooksBatchMany(p, keys)
 }
 
 // Service instance accessors
@@ -1275,11 +1265,11 @@ func (a *booksServerAdapter) GetBooksByAuthor(ctx context.Context, req *pg.Batch
 }
 
 func (a *booksServerAdapter) GetBooksByAuthorBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return GetBooksByAuthorBatch(p, key)
+	return GetBooksByAuthor(p, key)
 }
 
 func (a *booksServerAdapter) GetBooksByAuthorBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return GetBooksByAuthorBatchMany(p, keys)
+	return GetBooksByAuthorMany(p, keys)
 }
 
 func (a *booksServerAdapter) GetBooksBatch(ctx context.Context, req *GetBooksBatchRequest) (*GetBooksBatchResponse, error) {
@@ -1287,11 +1277,11 @@ func (a *booksServerAdapter) GetBooksBatch(ctx context.Context, req *GetBooksBat
 }
 
 func (a *booksServerAdapter) GetBooksBatchBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
-	return GetBooksBatchBatch(p, key)
+	return GetBooksBatch(p, key)
 }
 
 func (a *booksServerAdapter) GetBooksBatchBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
-	return GetBooksBatchBatchMany(p, keys)
+	return GetBooksBatchMany(p, keys)
 }
 
 type booksClientAdapter struct {
@@ -1307,11 +1297,11 @@ func (a *booksClientAdapter) GetBooksByAuthor(ctx context.Context, req *pg.Batch
 }
 
 func (a *booksClientAdapter) GetBooksByAuthorBatch(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return GetBooksByAuthorBatch(p, key)
+	return GetBooksByAuthor(p, key)
 }
 
 func (a *booksClientAdapter) GetBooksByAuthorBatchMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return GetBooksByAuthorBatchMany(p, keys)
+	return GetBooksByAuthorMany(p, keys)
 }
 
 func (a *booksClientAdapter) GetBooksBatch(ctx context.Context, req *GetBooksBatchRequest) (*GetBooksBatchResponse, error) {
@@ -1319,11 +1309,11 @@ func (a *booksClientAdapter) GetBooksBatch(ctx context.Context, req *GetBooksBat
 }
 
 func (a *booksClientAdapter) GetBooksBatchBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
-	return GetBooksBatchBatch(p, key)
+	return GetBooksBatch(p, key)
 }
 
 func (a *booksClientAdapter) GetBooksBatchBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
-	return GetBooksBatchBatchMany(p, keys)
+	return GetBooksBatchMany(p, keys)
 }
 
 // Books returns a unified BooksInstance that works with both clients and services
