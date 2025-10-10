@@ -184,6 +184,9 @@ func (f File) generateServiceModule(services []templates.Message) string {
 	// 9. Generate service instance accessor methods
 	out += f.generateServiceAccessors(moduleName, services)
 
+	// 10. Generate backward compatibility layer (deprecated)
+	out += f.generateBackwardCompatLayer(moduleName, services)
+
 	return out
 }
 
@@ -606,6 +609,78 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 		out += "\treturn nil\n"
 		out += "}\n"
 	}
+
+	return out
+}
+
+// generateBackwardCompatLayer generates deprecated global functions for backward compatibility with v0.51.7
+func (f File) generateBackwardCompatLayer(moduleName string, services []templates.Message) string {
+	var out string
+
+	// Generate package-level default module instance
+	out += "// Backward compatibility layer for v0.51.7 API\n"
+	out += "// All functions below are deprecated and will be removed in a future version.\n"
+	out += "// Please migrate to the module-based API using New" + moduleName + "()\n\n"
+
+	out += "var defaultModule *" + moduleName + "\n\n"
+
+	out += "func init() {\n"
+	out += "\tdefaultModule = New" + moduleName + "()\n"
+	out += "}\n\n"
+
+	// Generate deprecated Init() function for each service
+	for _, svc := range services {
+		serviceName := svc.Descriptor.GetName()
+
+		out += fmt.Sprintf("// %sInit initializes the %s service.\n", serviceName, serviceName)
+		out += "// Deprecated: Use New" + moduleName + "() and configure with WithModule" + serviceName + "Client() or WithModule" + serviceName + "Service() instead.\n"
+		out += fmt.Sprintf("func %sInit(ctx context.Context, opts ...%sOption) (context.Context, []*gql.Field) {\n", serviceName, moduleName)
+		out += "\t// Apply options to default module\n"
+		out += "\tfor _, opt := range opts {\n"
+		out += "\t\topt(defaultModule)\n"
+		out += "\t}\n\n"
+
+		out += "\t// Get fields from the module\n"
+		out += "\tfields := defaultModule.Fields()\n\n"
+
+		out += "\t// Register loaders in context\n"
+		out += "\tctx = defaultModule.WithLoaders(ctx)\n\n"
+
+		out += "\t// Convert fields map to slice for this service only\n"
+		out += "\tvar serviceFields []*gql.Field\n"
+		out += fmt.Sprintf("\tservicePrefix := %q\n", svc.ServiceName+"_")
+		out += "\tfor name, field := range fields {\n"
+		out += "\t\tif strings.HasPrefix(name, servicePrefix) {\n"
+		out += "\t\t\tserviceFields = append(serviceFields, field)\n"
+		out += "\t\t}\n"
+		out += "\t}\n\n"
+
+		out += "\treturn ctx, serviceFields\n"
+		out += "}\n\n"
+
+		// Generate deprecated WithLoaders() function if this service has loaders
+		if len(svc.Loaders) > 0 {
+			out += fmt.Sprintf("// %sWithLoaders registers dataloaders for the %s service into the context.\n", serviceName, serviceName)
+			out += "// Deprecated: Use New" + moduleName + "().WithLoaders(ctx) instead.\n"
+			out += fmt.Sprintf("func %sWithLoaders(ctx context.Context) context.Context {\n", serviceName)
+			out += "\treturn defaultModule.WithLoaders(ctx)\n"
+			out += "}\n\n"
+		}
+	}
+
+	// Generate deprecated global WithLoaders() function
+	out += "// WithLoaders registers all dataloaders from all services into the context.\n"
+	out += "// Deprecated: Use New" + moduleName + "().WithLoaders(ctx) instead.\n"
+	out += "func WithLoaders(ctx context.Context) context.Context {\n"
+	out += "\treturn defaultModule.WithLoaders(ctx)\n"
+	out += "}\n\n"
+
+	// Generate deprecated global Fields() function
+	out += "// Fields returns all GraphQL query/mutation fields from all services.\n"
+	out += "// Deprecated: Use New" + moduleName + "().Fields() instead.\n"
+	out += "func Fields() gql.Fields {\n"
+	out += "\treturn defaultModule.Fields()\n"
+	out += "}\n\n"
 
 	return out
 }

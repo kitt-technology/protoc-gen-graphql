@@ -1441,8 +1441,10 @@ func (m *ProductsModule) ProductsGetProductsBatchMany(p gql.ResolveParams, keys 
 type ProductsInstance interface {
 	GetProducts(ctx context.Context, req *GetProductsRequest) (*GetProductsResponse, error)
 	SearchProducts(ctx context.Context, req *SearchProductsRequest) (*SearchProductsResponse, error)
-	GetProductsByCategory(ctx context.Context, req *pg.BatchRequest) (*GetProductsByCategoryResponse, error)
-	GetProductsBatch(ctx context.Context, req *GetProductsBatchRequest) (*GetProductsBatchResponse, error)
+	GetProductsByCategory(p gql.ResolveParams, key string) (func() (interface{}, error), error)
+	GetProductsByCategoryMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error)
+	GetProductsBatch(p gql.ResolveParams, key *GetProductsRequest) (func() (interface{}, error), error)
+	GetProductsBatchMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error)
 }
 
 type productsServerAdapter struct {
@@ -1457,12 +1459,20 @@ func (a *productsServerAdapter) SearchProducts(ctx context.Context, req *SearchP
 	return a.server.SearchProducts(ctx, req)
 }
 
-func (a *productsServerAdapter) GetProductsByCategory(ctx context.Context, req *pg.BatchRequest) (*GetProductsByCategoryResponse, error) {
-	return a.server.GetProductsByCategory(ctx, req)
+func (a *productsServerAdapter) GetProductsByCategory(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+	return ProductsGetProductsByCategory(p, key)
 }
 
-func (a *productsServerAdapter) GetProductsBatch(ctx context.Context, req *GetProductsBatchRequest) (*GetProductsBatchResponse, error) {
-	return a.server.GetProductsBatch(ctx, req)
+func (a *productsServerAdapter) GetProductsByCategoryMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	return ProductsGetProductsByCategoryMany(p, keys)
+}
+
+func (a *productsServerAdapter) GetProductsBatch(p gql.ResolveParams, key *GetProductsRequest) (func() (interface{}, error), error) {
+	return ProductsGetProductsBatch(p, key)
+}
+
+func (a *productsServerAdapter) GetProductsBatchMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error) {
+	return ProductsGetProductsBatchMany(p, keys)
 }
 
 type productsClientAdapter struct {
@@ -1477,17 +1487,25 @@ func (a *productsClientAdapter) SearchProducts(ctx context.Context, req *SearchP
 	return a.client.SearchProducts(ctx, req)
 }
 
-func (a *productsClientAdapter) GetProductsByCategory(ctx context.Context, req *pg.BatchRequest) (*GetProductsByCategoryResponse, error) {
-	return a.client.GetProductsByCategory(ctx, req)
+func (a *productsClientAdapter) GetProductsByCategory(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+	return ProductsGetProductsByCategory(p, key)
 }
 
-func (a *productsClientAdapter) GetProductsBatch(ctx context.Context, req *GetProductsBatchRequest) (*GetProductsBatchResponse, error) {
-	return a.client.GetProductsBatch(ctx, req)
+func (a *productsClientAdapter) GetProductsByCategoryMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	return ProductsGetProductsByCategoryMany(p, keys)
 }
 
-// GetProducts returns a unified ProductsInstance that works with both clients and services
+func (a *productsClientAdapter) GetProductsBatch(p gql.ResolveParams, key *GetProductsRequest) (func() (interface{}, error), error) {
+	return ProductsGetProductsBatch(p, key)
+}
+
+func (a *productsClientAdapter) GetProductsBatchMany(p gql.ResolveParams, keys []*GetProductsRequest) (func() (interface{}, error), error) {
+	return ProductsGetProductsBatchMany(p, keys)
+}
+
+// Products returns a unified ProductsInstance that works with both clients and services
 // Returns nil if neither client nor service is configured
-func (m *ProductsModule) GetProducts() ProductsInstance {
+func (m *ProductsModule) Products() ProductsInstance {
 	if m.productsClient != nil {
 		return &productsClientAdapter{client: m.productsClient}
 	}
@@ -1495,4 +1513,58 @@ func (m *ProductsModule) GetProducts() ProductsInstance {
 		return &productsServerAdapter{server: m.productsService}
 	}
 	return nil
+}
+
+// Backward compatibility layer for v0.51.7 API
+// All functions below are deprecated and will be removed in a future version.
+// Please migrate to the module-based API using NewProductsModule()
+
+var defaultModule *ProductsModule
+
+func init() {
+	defaultModule = NewProductsModule()
+}
+
+// ProductsInit initializes the Products service.
+// Deprecated: Use NewProductsModule() and configure with WithModuleProductsClient() or WithModuleProductsService() instead.
+func ProductsInit(ctx context.Context, opts ...ProductsModuleOption) (context.Context, []*gql.Field) {
+	// Apply options to default module
+	for _, opt := range opts {
+		opt(defaultModule)
+	}
+
+	// Get fields from the module
+	fields := defaultModule.Fields()
+
+	// Register loaders in context
+	ctx = defaultModule.WithLoaders(ctx)
+
+	// Convert fields map to slice for this service only
+	var serviceFields []*gql.Field
+	servicePrefix := "products_"
+	for name, field := range fields {
+		if strings.HasPrefix(name, servicePrefix) {
+			serviceFields = append(serviceFields, field)
+		}
+	}
+
+	return ctx, serviceFields
+}
+
+// ProductsWithLoaders registers dataloaders for the Products service into the context.
+// Deprecated: Use NewProductsModule().WithLoaders(ctx) instead.
+func ProductsWithLoaders(ctx context.Context) context.Context {
+	return defaultModule.WithLoaders(ctx)
+}
+
+// WithLoaders registers all dataloaders from all services into the context.
+// Deprecated: Use NewProductsModule().WithLoaders(ctx) instead.
+func WithLoaders(ctx context.Context) context.Context {
+	return defaultModule.WithLoaders(ctx)
+}
+
+// Fields returns all GraphQL query/mutation fields from all services.
+// Deprecated: Use NewProductsModule().Fields() instead.
+func Fields() gql.Fields {
+	return defaultModule.Fields()
 }

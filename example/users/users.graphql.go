@@ -1240,7 +1240,8 @@ func (m *UsersModule) UsersLoadUsersMany(p gql.ResolveParams, keys []string) (fu
 type UsersInstance interface {
 	GetUsers(ctx context.Context, req *GetUsersRequest) (*GetUsersResponse, error)
 	GetUserProfile(ctx context.Context, req *GetUserProfileRequest) (*UserProfile, error)
-	LoadUsers(ctx context.Context, req *pg.BatchRequest) (*UsersBatchResponse, error)
+	LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error)
+	LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error)
 }
 
 type usersServerAdapter struct {
@@ -1255,8 +1256,12 @@ func (a *usersServerAdapter) GetUserProfile(ctx context.Context, req *GetUserPro
 	return a.server.GetUserProfile(ctx, req)
 }
 
-func (a *usersServerAdapter) LoadUsers(ctx context.Context, req *pg.BatchRequest) (*UsersBatchResponse, error) {
-	return a.server.LoadUsers(ctx, req)
+func (a *usersServerAdapter) LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+	return UsersLoadUsers(p, key)
+}
+
+func (a *usersServerAdapter) LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	return UsersLoadUsersMany(p, keys)
 }
 
 type usersClientAdapter struct {
@@ -1271,13 +1276,17 @@ func (a *usersClientAdapter) GetUserProfile(ctx context.Context, req *GetUserPro
 	return a.client.GetUserProfile(ctx, req)
 }
 
-func (a *usersClientAdapter) LoadUsers(ctx context.Context, req *pg.BatchRequest) (*UsersBatchResponse, error) {
-	return a.client.LoadUsers(ctx, req)
+func (a *usersClientAdapter) LoadUsers(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+	return UsersLoadUsers(p, key)
 }
 
-// GetUsers returns a unified UsersInstance that works with both clients and services
+func (a *usersClientAdapter) LoadUsersMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	return UsersLoadUsersMany(p, keys)
+}
+
+// Users returns a unified UsersInstance that works with both clients and services
 // Returns nil if neither client nor service is configured
-func (m *UsersModule) GetUsers() UsersInstance {
+func (m *UsersModule) Users() UsersInstance {
 	if m.usersClient != nil {
 		return &usersClientAdapter{client: m.usersClient}
 	}
@@ -1285,4 +1294,58 @@ func (m *UsersModule) GetUsers() UsersInstance {
 		return &usersServerAdapter{server: m.usersService}
 	}
 	return nil
+}
+
+// Backward compatibility layer for v0.51.7 API
+// All functions below are deprecated and will be removed in a future version.
+// Please migrate to the module-based API using NewUsersModule()
+
+var defaultModule *UsersModule
+
+func init() {
+	defaultModule = NewUsersModule()
+}
+
+// UsersInit initializes the Users service.
+// Deprecated: Use NewUsersModule() and configure with WithModuleUsersClient() or WithModuleUsersService() instead.
+func UsersInit(ctx context.Context, opts ...UsersModuleOption) (context.Context, []*gql.Field) {
+	// Apply options to default module
+	for _, opt := range opts {
+		opt(defaultModule)
+	}
+
+	// Get fields from the module
+	fields := defaultModule.Fields()
+
+	// Register loaders in context
+	ctx = defaultModule.WithLoaders(ctx)
+
+	// Convert fields map to slice for this service only
+	var serviceFields []*gql.Field
+	servicePrefix := "users_"
+	for name, field := range fields {
+		if strings.HasPrefix(name, servicePrefix) {
+			serviceFields = append(serviceFields, field)
+		}
+	}
+
+	return ctx, serviceFields
+}
+
+// UsersWithLoaders registers dataloaders for the Users service into the context.
+// Deprecated: Use NewUsersModule().WithLoaders(ctx) instead.
+func UsersWithLoaders(ctx context.Context) context.Context {
+	return defaultModule.WithLoaders(ctx)
+}
+
+// WithLoaders registers all dataloaders from all services into the context.
+// Deprecated: Use NewUsersModule().WithLoaders(ctx) instead.
+func WithLoaders(ctx context.Context) context.Context {
+	return defaultModule.WithLoaders(ctx)
+}
+
+// Fields returns all GraphQL query/mutation fields from all services.
+// Deprecated: Use NewUsersModule().Fields() instead.
+func Fields() gql.Fields {
+	return defaultModule.Fields()
 }

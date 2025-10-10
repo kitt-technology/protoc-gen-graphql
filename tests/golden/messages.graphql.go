@@ -1318,3 +1318,57 @@ func (m *CasesModule) Books() BooksInstance {
 	}
 	return nil
 }
+
+// Backward compatibility layer for v0.51.7 API
+// All functions below are deprecated and will be removed in a future version.
+// Please migrate to the module-based API using NewCasesModule()
+
+var defaultModule *CasesModule
+
+func init() {
+	defaultModule = NewCasesModule()
+}
+
+// BooksInit initializes the Books service.
+// Deprecated: Use NewCasesModule() and configure with WithModuleBooksClient() or WithModuleBooksService() instead.
+func BooksInit(ctx context.Context, opts ...CasesModuleOption) (context.Context, []*gql.Field) {
+	// Apply options to default module
+	for _, opt := range opts {
+		opt(defaultModule)
+	}
+
+	// Get fields from the module
+	fields := defaultModule.Fields()
+
+	// Register loaders in context
+	ctx = defaultModule.WithLoaders(ctx)
+
+	// Convert fields map to slice for this service only
+	var serviceFields []*gql.Field
+	servicePrefix := "books_"
+	for name, field := range fields {
+		if strings.HasPrefix(name, servicePrefix) {
+			serviceFields = append(serviceFields, field)
+		}
+	}
+
+	return ctx, serviceFields
+}
+
+// BooksWithLoaders registers dataloaders for the Books service into the context.
+// Deprecated: Use NewCasesModule().WithLoaders(ctx) instead.
+func BooksWithLoaders(ctx context.Context) context.Context {
+	return defaultModule.WithLoaders(ctx)
+}
+
+// WithLoaders registers all dataloaders from all services into the context.
+// Deprecated: Use NewCasesModule().WithLoaders(ctx) instead.
+func WithLoaders(ctx context.Context) context.Context {
+	return defaultModule.WithLoaders(ctx)
+}
+
+// Fields returns all GraphQL query/mutation fields from all services.
+// Deprecated: Use NewCasesModule().Fields() instead.
+func Fields() gql.Fields {
+	return defaultModule.Fields()
+}

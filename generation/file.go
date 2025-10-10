@@ -46,9 +46,14 @@ func New(file *protogen.File) (f File) {
 	f.Package = file.GoPackageName
 
 	hasServices := false
+	hasLoaders := false
 	for _, service := range file.Proto.Service {
-		f.Message = append(f.Message, templates.New(service, file.Proto))
+		svc := templates.New(service, file.Proto)
+		f.Message = append(f.Message, svc)
 		hasServices = true
+		if len(svc.Loaders) > 0 {
+			hasLoaders = true
+		}
 	}
 
 	// Add imports needed for all generated files with services or just types
@@ -57,7 +62,12 @@ func New(file *protogen.File) (f File) {
 
 	// Only add these if we have services (modules with services need them)
 	if hasServices {
-		f.Imports = append(f.Imports, imports.DataloaderImport, imports.OsImport)
+		f.Imports = append(f.Imports, imports.OsImport)
+	}
+
+	// Only add dataloader if we have services with batch loaders
+	if hasLoaders {
+		f.Imports = append(f.Imports, imports.DataloaderImport)
 	}
 
 	for _, e := range file.Proto.EnumType {
