@@ -15,12 +15,12 @@ const loaderAccessorTemplate = `
 {{- range .Loaders }}
 // {{ .MethodName }} loads a single {{ .ResultsType }} using the {{ .LowerServiceName }} service dataloader
 func (m *{{ $.ModuleName }}) {{ .MethodName }}(p gql.ResolveParams, {{ if .Custom }}key *{{ .KeysType }}{{ else }}key string{{ end }}) (func() (interface{}, error), error) {
-	return {{ .ServiceName }}{{ .Method }}(p, key)
+	return {{ .Method }}(p, key)
 }
 
 // {{ .MethodNameMany }} loads multiple {{ .ResultsType }} using the {{ .LowerServiceName }} service dataloader
 func (m *{{ $.ModuleName }}) {{ .MethodNameMany }}(p gql.ResolveParams, {{ if .Custom }}keys []*{{ .KeysType }}{{ else }}keys []string{{ end }}) (func() (interface{}, error), error) {
-	return {{ .ServiceName }}{{ .Method }}Many(p, keys)
+	return {{ .Method }}Many(p, keys)
 }
 {{ end -}}
 `
@@ -542,7 +542,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			}
 			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %s(p gql.ResolveParams, key %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keyType)
-			out += fmt.Sprintf("\treturn %s%s(p, key)\n", serviceName, loader.Method)
+			out += fmt.Sprintf("\treturn %s(p, key)\n", loader.Method)
 			out += "}\n"
 
 			// Many items loader
@@ -552,7 +552,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			}
 			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %sMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keysType)
-			out += fmt.Sprintf("\treturn %s%sMany(p, keys)\n", serviceName, loader.Method)
+			out += fmt.Sprintf("\treturn %sMany(p, keys)\n", loader.Method)
 			out += "}\n"
 		}
 
@@ -582,7 +582,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			}
 			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %s(p gql.ResolveParams, key %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keyType)
-			out += fmt.Sprintf("\treturn %s%s(p, key)\n", serviceName, loader.Method)
+			out += fmt.Sprintf("\treturn %s(p, key)\n", loader.Method)
 			out += "}\n"
 
 			// Many items loader
@@ -592,7 +592,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			}
 			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %sMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error) {\n",
 				lowerServiceName, loader.Method, keysType)
-			out += fmt.Sprintf("\treturn %s%sMany(p, keys)\n", serviceName, loader.Method)
+			out += fmt.Sprintf("\treturn %sMany(p, keys)\n", loader.Method)
 			out += "}\n"
 		}
 

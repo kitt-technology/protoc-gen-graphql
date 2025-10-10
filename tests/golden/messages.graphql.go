@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"os"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"strings"
 )
 
 var GenreGraphqlEnum = gql.NewEnum(gql.EnumConfig{
@@ -835,7 +836,7 @@ func (msg *Money) XXX_GraphqlArgs() gql.FieldConfigArgument {
 func (msg *Money) XXX_Package() string {
 	return "books"
 }
-func BooksGetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+func GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
@@ -854,7 +855,7 @@ func BooksGetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}
 	}, nil
 }
 
-func BooksGetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+func GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksByAuthorLoader").(type) {
 	case *dataloader.Loader:
@@ -894,7 +895,7 @@ func (key *GetBooksRequestKey) Raw() interface{} {
 	return key
 }
 
-func BooksGetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
+func GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksBatchLoader").(type) {
 	case *dataloader.Loader:
@@ -913,7 +914,7 @@ func BooksGetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (inte
 	}, nil
 }
 
-func BooksGetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
+func GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
 	var loader *dataloader.Loader
 	switch p.Context.Value("GetBooksBatchLoader").(type) {
 	case *dataloader.Loader:
@@ -1229,22 +1230,22 @@ func (m *CasesModule) MoneyType() *gql.Object {
 
 // BooksGetBooksByAuthor loads a single *BooksByAuthor using the books service dataloader
 func (m *CasesModule) BooksGetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return BooksGetBooksByAuthor(p, key)
+	return GetBooksByAuthor(p, key)
 }
 
 // BooksGetBooksByAuthorMany loads multiple *BooksByAuthor using the books service dataloader
 func (m *CasesModule) BooksGetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return BooksGetBooksByAuthorMany(p, keys)
+	return GetBooksByAuthorMany(p, keys)
 }
 
 // BooksGetBooksBatch loads a single *GetBooksResponse using the books service dataloader
 func (m *CasesModule) BooksGetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
-	return BooksGetBooksBatch(p, key)
+	return GetBooksBatch(p, key)
 }
 
 // BooksGetBooksBatchMany loads multiple *GetBooksResponse using the books service dataloader
 func (m *CasesModule) BooksGetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
-	return BooksGetBooksBatchMany(p, keys)
+	return GetBooksBatchMany(p, keys)
 }
 
 // Service instance accessors
@@ -1268,19 +1269,19 @@ func (a *booksServerAdapter) GetBooks(ctx context.Context, req *GetBooksRequest)
 }
 
 func (a *booksServerAdapter) GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return BooksGetBooksByAuthor(p, key)
+	return GetBooksByAuthor(p, key)
 }
 
 func (a *booksServerAdapter) GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return BooksGetBooksByAuthorMany(p, keys)
+	return GetBooksByAuthorMany(p, keys)
 }
 
 func (a *booksServerAdapter) GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
-	return BooksGetBooksBatch(p, key)
+	return GetBooksBatch(p, key)
 }
 
 func (a *booksServerAdapter) GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
-	return BooksGetBooksBatchMany(p, keys)
+	return GetBooksBatchMany(p, keys)
 }
 
 type booksClientAdapter struct {
@@ -1292,19 +1293,19 @@ func (a *booksClientAdapter) GetBooks(ctx context.Context, req *GetBooksRequest)
 }
 
 func (a *booksClientAdapter) GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
-	return BooksGetBooksByAuthor(p, key)
+	return GetBooksByAuthor(p, key)
 }
 
 func (a *booksClientAdapter) GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
-	return BooksGetBooksByAuthorMany(p, keys)
+	return GetBooksByAuthorMany(p, keys)
 }
 
 func (a *booksClientAdapter) GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
-	return BooksGetBooksBatch(p, key)
+	return GetBooksBatch(p, key)
 }
 
 func (a *booksClientAdapter) GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
-	return BooksGetBooksBatchMany(p, keys)
+	return GetBooksBatchMany(p, keys)
 }
 
 // Books returns a unified BooksInstance that works with both clients and services

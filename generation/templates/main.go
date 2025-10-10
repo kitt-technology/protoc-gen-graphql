@@ -159,7 +159,6 @@ func (m Message) Generate() string {
 }
 
 func (m Message) generateLoaderHelpers(loader LoaderVars) string {
-	serviceName := *m.Descriptor.Name
 	var out string
 
 	// Generate custom key type if needed
@@ -177,8 +176,8 @@ func (m Message) generateLoaderHelpers(loader LoaderVars) string {
 		out += "}\n\n"
 	}
 
-	// Generate Load helper function
-	out += fmt.Sprintf("func %s%s(p gql.ResolveParams, ", serviceName, loader.Method)
+	// Generate Load helper function (without service name prefix for backward compatibility)
+	out += fmt.Sprintf("func %s(p gql.ResolveParams, ", loader.Method)
 	if loader.Custom {
 		out += fmt.Sprintf("key *%s", loader.KeysType)
 	} else {
@@ -210,8 +209,8 @@ func (m Message) generateLoaderHelpers(loader LoaderVars) string {
 	out += "\t}, nil\n"
 	out += "}\n\n"
 
-	// Generate LoadMany helper function
-	out += fmt.Sprintf("func %s%sMany(p gql.ResolveParams, ", serviceName, loader.Method)
+	// Generate LoadMany helper function (without service name prefix for backward compatibility)
+	out += fmt.Sprintf("func %sMany(p gql.ResolveParams, ", loader.Method)
 	if loader.Custom {
 		out += fmt.Sprintf("keys []*%s", loader.KeysType)
 	} else {
