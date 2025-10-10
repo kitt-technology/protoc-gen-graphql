@@ -1,4 +1,4 @@
-hm version: v2
+version: v2
 name: buf.build/kitt-technology/graphql
 lint:
   except:

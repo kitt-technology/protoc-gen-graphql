@@ -9,6 +9,7 @@ extend google.protobuf.MessageOptions {
   string object_name = 1085;
   bool mutation = 1086;
   bool skip_message = 1087;
+  string input_type_name = 1089;
 }
 
 extend google.protobuf.FileOptions {

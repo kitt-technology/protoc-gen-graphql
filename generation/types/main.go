@@ -43,6 +43,7 @@ type Message struct {
 	OneOfFields      map[string]map[string]Field
 	Import           map[string]string
 	ObjectName       string
+	InputTypeName    string
 	PackageImportMap map[string]GraphqlImport
 	SkippedMessages  map[string]bool
 }
@@ -87,6 +88,13 @@ func (m Message) Generate() string {
 		}
 	} else {
 		m.ObjectName = *m.Descriptor.Name
+	}
+
+	// Check for custom input type name override
+	if proto.HasExtension(m.Descriptor.Options, graphql.E_InputTypeName) {
+		if name, ok := proto.GetExtension(m.Descriptor.Options, graphql.E_InputTypeName).(string); ok {
+			m.InputTypeName = name
+		}
 	}
 
 	for _, field := range m.Descriptor.Field {

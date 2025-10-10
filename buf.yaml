@@ -2,5 +2,6 @@ version: v2
 modules:
   - path: example
   - path: graphql
+    name: buf.build/kitt-technology/graphql
 deps:
   - buf.build/googleapis/googleapis
