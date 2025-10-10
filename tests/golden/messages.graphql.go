@@ -1253,6 +1253,12 @@ func (m *CasesModule) BooksGetBooksBatchMany(p gql.ResolveParams, keys []*GetBoo
 // It works with both gRPC clients and direct service implementations
 type BooksInstance interface {
 	GetBooks(ctx context.Context, req *GetBooksRequest) (*GetBooksResponse, error)
+	GetBooksByAuthor(ctx context.Context, req *pg.BatchRequest) (*GetBooksByAuthorResponse, error)
+	GetBooksBatch(ctx context.Context, req *GetBooksBatchRequest) (*GetBooksBatchResponse, error)
+	GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error)
+	GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error)
+	GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error)
+	GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error)
 }
 
 type booksServerAdapter struct {
@@ -1263,6 +1269,30 @@ func (a *booksServerAdapter) GetBooks(ctx context.Context, req *GetBooksRequest)
 	return a.server.GetBooks(ctx, req)
 }
 
+func (a *booksServerAdapter) GetBooksByAuthor(ctx context.Context, req *pg.BatchRequest) (*GetBooksByAuthorResponse, error) {
+	return a.server.GetBooksByAuthor(ctx, req)
+}
+
+func (a *booksServerAdapter) GetBooksBatch(ctx context.Context, req *GetBooksBatchRequest) (*GetBooksBatchResponse, error) {
+	return a.server.GetBooksBatch(ctx, req)
+}
+
+func (a *booksServerAdapter) GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+	return BooksGetBooksByAuthor(p, key)
+}
+
+func (a *booksServerAdapter) GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	return BooksGetBooksByAuthorMany(p, keys)
+}
+
+func (a *booksServerAdapter) GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
+	return BooksGetBooksBatch(p, key)
+}
+
+func (a *booksServerAdapter) GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
+	return BooksGetBooksBatchMany(p, keys)
+}
+
 type booksClientAdapter struct {
 	client BooksClient
 }
@@ -1271,9 +1301,33 @@ func (a *booksClientAdapter) GetBooks(ctx context.Context, req *GetBooksRequest)
 	return a.client.GetBooks(ctx, req)
 }
 
-// GetBooks returns a unified BooksInstance that works with both clients and services
+func (a *booksClientAdapter) GetBooksByAuthor(ctx context.Context, req *pg.BatchRequest) (*GetBooksByAuthorResponse, error) {
+	return a.client.GetBooksByAuthor(ctx, req)
+}
+
+func (a *booksClientAdapter) GetBooksBatch(ctx context.Context, req *GetBooksBatchRequest) (*GetBooksBatchResponse, error) {
+	return a.client.GetBooksBatch(ctx, req)
+}
+
+func (a *booksClientAdapter) GetBooksByAuthor(p gql.ResolveParams, key string) (func() (interface{}, error), error) {
+	return BooksGetBooksByAuthor(p, key)
+}
+
+func (a *booksClientAdapter) GetBooksByAuthorMany(p gql.ResolveParams, keys []string) (func() (interface{}, error), error) {
+	return BooksGetBooksByAuthorMany(p, keys)
+}
+
+func (a *booksClientAdapter) GetBooksBatch(p gql.ResolveParams, key *GetBooksRequest) (func() (interface{}, error), error) {
+	return BooksGetBooksBatch(p, key)
+}
+
+func (a *booksClientAdapter) GetBooksBatchMany(p gql.ResolveParams, keys []*GetBooksRequest) (func() (interface{}, error), error) {
+	return BooksGetBooksBatchMany(p, keys)
+}
+
+// Books returns a unified BooksInstance that works with both clients and services
 // Returns nil if neither client nor service is configured
-func (m *CasesModule) GetBooks() BooksInstance {
+func (m *CasesModule) Books() BooksInstance {
 	if m.booksClient != nil {
 		return &booksClientAdapter{client: m.booksClient}
 	}

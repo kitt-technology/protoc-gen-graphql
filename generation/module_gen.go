@@ -492,7 +492,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 				method.Name, inputType, method.Output)
 		}
 
-		// Add batch loader methods
+		// Add batch loader gRPC methods (the actual service methods)
 		for _, loader := range svc.Loaders {
 			inputType := loader.RequestType
 			if inputType == "BatchRequest" {
@@ -500,6 +500,25 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			}
 			out += fmt.Sprintf("\t%s(ctx context.Context, req *%s) (*%s, error)\n",
 				loader.Method, inputType, loader.ResponseType)
+		}
+
+		// Add dataloader helper methods (ProductsGetProductsBatch style)
+		for _, loader := range svc.Loaders {
+			// Single item loader
+			keyType := "string"
+			if loader.Custom {
+				keyType = "*" + loader.KeysType
+			}
+			out += fmt.Sprintf("\t%s(p gql.ResolveParams, key %s) (func() (interface{}, error), error)\n",
+				loader.Method, keyType)
+
+			// Many items loader
+			keysType := "[]string"
+			if loader.Custom {
+				keysType = "[]*" + loader.KeysType
+			}
+			out += fmt.Sprintf("\t%sMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error)\n",
+				loader.Method, keysType)
 		}
 
 		out += "}\n"
@@ -521,7 +540,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			out += "}\n"
 		}
 
-		// Implement loader methods for the server adapter
+		// Implement loader gRPC methods for the server adapter
 		for _, loader := range svc.Loaders {
 			inputType := loader.RequestType
 			if inputType == "BatchRequest" {
@@ -530,6 +549,29 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %s(ctx context.Context, req *%s) (*%s, error) {\n",
 				lowerServiceName, loader.Method, inputType, loader.ResponseType)
 			out += fmt.Sprintf("\treturn a.server.%s(ctx, req)\n", loader.Method)
+			out += "}\n"
+		}
+
+		// Implement dataloader helper methods for the server adapter
+		for _, loader := range svc.Loaders {
+			// Single item loader
+			keyType := "string"
+			if loader.Custom {
+				keyType = "*" + loader.KeysType
+			}
+			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %s(p gql.ResolveParams, key %s) (func() (interface{}, error), error) {\n",
+				lowerServiceName, loader.Method, keyType)
+			out += fmt.Sprintf("\treturn %s%s(p, key)\n", serviceName, loader.Method)
+			out += "}\n"
+
+			// Many items loader
+			keysType := "[]string"
+			if loader.Custom {
+				keysType = "[]*" + loader.KeysType
+			}
+			out += fmt.Sprintf("\nfunc (a *%sServerAdapter) %sMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error) {\n",
+				lowerServiceName, loader.Method, keysType)
+			out += fmt.Sprintf("\treturn %s%sMany(p, keys)\n", serviceName, loader.Method)
 			out += "}\n"
 		}
 
@@ -550,7 +592,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			out += "}\n"
 		}
 
-		// Implement loader methods for the client adapter
+		// Implement loader gRPC methods for the client adapter
 		for _, loader := range svc.Loaders {
 			inputType := loader.RequestType
 			if inputType == "BatchRequest" {
@@ -562,10 +604,33 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 			out += "}\n"
 		}
 
+		// Implement dataloader helper methods for the client adapter
+		for _, loader := range svc.Loaders {
+			// Single item loader
+			keyType := "string"
+			if loader.Custom {
+				keyType = "*" + loader.KeysType
+			}
+			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %s(p gql.ResolveParams, key %s) (func() (interface{}, error), error) {\n",
+				lowerServiceName, loader.Method, keyType)
+			out += fmt.Sprintf("\treturn %s%s(p, key)\n", serviceName, loader.Method)
+			out += "}\n"
+
+			// Many items loader
+			keysType := "[]string"
+			if loader.Custom {
+				keysType = "[]*" + loader.KeysType
+			}
+			out += fmt.Sprintf("\nfunc (a *%sClientAdapter) %sMany(p gql.ResolveParams, keys %s) (func() (interface{}, error), error) {\n",
+				lowerServiceName, loader.Method, keysType)
+			out += fmt.Sprintf("\treturn %s%sMany(p, keys)\n", serviceName, loader.Method)
+			out += "}\n"
+		}
+
 		// Generate the getter that returns the unified interface
-		out += fmt.Sprintf("\n// Get%s returns a unified %sInstance that works with both clients and services\n", serviceName, serviceName)
+		out += fmt.Sprintf("\n// %s returns a unified %sInstance that works with both clients and services\n", serviceName, serviceName)
 		out += "// Returns nil if neither client nor service is configured\n"
-		out += fmt.Sprintf("func (m *%s) Get%s() %sInstance {\n", moduleName, serviceName, serviceName)
+		out += fmt.Sprintf("func (m *%s) %s() %sInstance {\n", moduleName, serviceName, serviceName)
 		out += fmt.Sprintf("\tif m.%sClient != nil {\n", lowerServiceName)
 		out += fmt.Sprintf("\t\treturn &%sClientAdapter{client: m.%sClient}\n", lowerServiceName, lowerServiceName)
 		out += "\t}\n"
