@@ -315,8 +315,12 @@ func (f File) generateWithLoadersMethod(moduleName string, services []templates.
 			out += fmt.Sprintf("\t\t\t\tresp, err = m.get%sClient().%s(ctx, req)\n", serviceName, loader.Method)
 			out += "\t\t\t}\n\n"
 
-			// Handle errors
+			// Handle errors - must return error results for ALL keys
 			out += "\t\t\tif err != nil {\n"
+			out += "\t\t\t\t// Return error result for each key - dataloader requires same number of results as keys\n"
+			out += "\t\t\t\tfor range keys {\n"
+			out += "\t\t\t\t\tresults = append(results, &dataloader.Result{Error: err})\n"
+			out += "\t\t\t\t}\n"
 			out += "\t\t\t\treturn results\n"
 			out += "\t\t\t}\n\n"
 

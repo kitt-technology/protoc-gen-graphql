@@ -71,7 +71,6 @@ var GetProductsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var GetProductsRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "ProductsRequestInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -168,7 +167,6 @@ var GetProductsResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var GetProductsResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetProductsResponseInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -236,7 +234,6 @@ var GetProductsByCategoryResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var GetProductsByCategoryResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetProductsByCategoryResponseInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -284,7 +281,6 @@ var LoadProductsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var LoadProductsRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "LoadProductsRequestInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -342,7 +338,6 @@ var LoadProductsResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var LoadProductsResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "LoadProductsResponseInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -396,7 +391,6 @@ var SearchProductsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var SearchProductsRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "SearchProductsRequestInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -471,7 +465,6 @@ var SearchProductsResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var SearchProductsResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "SearchProductsResponseInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -539,7 +532,6 @@ var ProductsByCategoryGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var ProductsByCategoryGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "ProductsByCategoryInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -639,7 +631,6 @@ var ProductGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var ProductGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "ProductInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -834,7 +825,6 @@ var ProductVariantGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var ProductVariantGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "ProductVariantInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -925,7 +915,6 @@ var InventoryGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var InventoryGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "InventoryInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -1232,6 +1221,10 @@ func (m *ProductsModule) WithLoaders(ctx context.Context) context.Context {
 			}
 
 			if err != nil {
+				// Return error result for each key - dataloader requires same number of results as keys
+				for range keys {
+					results = append(results, &dataloader.Result{Error: err})
+				}
 				return results
 			}
 
@@ -1270,6 +1263,10 @@ func (m *ProductsModule) WithLoaders(ctx context.Context) context.Context {
 			}
 
 			if err != nil {
+				// Return error result for each key - dataloader requires same number of results as keys
+				for range keys {
+					results = append(results, &dataloader.Result{Error: err})
+				}
 				return results
 			}
 

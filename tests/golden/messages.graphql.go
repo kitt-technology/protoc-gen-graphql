@@ -1045,6 +1045,10 @@ func (m *CasesModule) WithLoaders(ctx context.Context) context.Context {
 			}
 
 			if err != nil {
+				// Return error result for each key - dataloader requires same number of results as keys
+				for range keys {
+					results = append(results, &dataloader.Result{Error: err})
+				}
 				return results
 			}
 
@@ -1083,6 +1087,10 @@ func (m *CasesModule) WithLoaders(ctx context.Context) context.Context {
 			}
 
 			if err != nil {
+				// Return error result for each key - dataloader requires same number of results as keys
+				for range keys {
+					results = append(results, &dataloader.Result{Error: err})
+				}
 				return results
 			}
 
