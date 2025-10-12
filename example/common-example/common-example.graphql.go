@@ -2,19 +2,9 @@ package common_example
 
 import (
 	gql "github.com/graphql-go/graphql"
-	"google.golang.org/grpc"
+	"context"
+	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 )
-
-var fieldInits []func(...grpc.DialOption)
-
-func Fields(opts ...grpc.DialOption) []*gql.Field {
-	for _, fieldInit := range fieldInits {
-		fieldInit(opts...)
-	}
-	return fields
-}
-
-var fields []*gql.Field
 
 var Int32RangeGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "Int32Range",
@@ -27,7 +17,6 @@ var Int32RangeGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var Int32RangeGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "Int32RangeInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -84,33 +73,23 @@ func (msg *Int32Range) XXX_Package() string {
 var MoneyRangeGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "MoneyRange",
 	Fields: gql.Fields{
-		"min": &gql.Field{
-			Type: MoneyGraphqlType,
-		},
-		"max": &gql.Field{
-			Type: MoneyGraphqlType,
+		"_null": &gql.Field{
+			Type: gql.Boolean,
 		},
 	},
 })
-
 var MoneyRangeGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "MoneyRangeInput",
 	Fields: gql.InputObjectConfigFieldMap{
-		"min": &gql.InputObjectFieldConfig{
-			Type: MoneyGraphqlInputType,
-		},
-		"max": &gql.InputObjectFieldConfig{
-			Type: MoneyGraphqlInputType,
+		"_null": &gql.InputObjectFieldConfig{
+			Type: gql.Boolean,
 		},
 	},
 })
 
 var MoneyRangeGraphqlArgs = gql.FieldConfigArgument{
-	"min": &gql.ArgumentConfig{
-		Type: MoneyGraphqlInputType,
-	},
-	"max": &gql.ArgumentConfig{
-		Type: MoneyGraphqlInputType,
+	"_null": &gql.ArgumentConfig{
+		Type: gql.Boolean,
 	},
 }
 
@@ -119,14 +98,6 @@ func MoneyRangeFromArgs(args map[string]interface{}) *MoneyRange {
 }
 
 func MoneyRangeInstanceFromArgs(objectFromArgs *MoneyRange, args map[string]interface{}) *MoneyRange {
-	if args["min"] != nil {
-		val := args["min"]
-		objectFromArgs.Min = MoneyFromArgs(val.(map[string]interface{}))
-	}
-	if args["max"] != nil {
-		val := args["max"]
-		objectFromArgs.Max = MoneyFromArgs(val.(map[string]interface{}))
-	}
 	return objectFromArgs
 }
 
@@ -143,5 +114,39 @@ func (msg *MoneyRange) XXX_GraphqlArgs() gql.FieldConfigArgument {
 }
 
 func (msg *MoneyRange) XXX_Package() string {
+	return "common_example"
+}
+
+// allMessages contains all message types from this proto package
+var allMessages = []pg.GraphqlMessage{
+	&Int32Range{},
+	&MoneyRange{},
+}
+
+// CommonExampleModule implements the Module interface for the common_example package (types only, no services)
+type CommonExampleModule struct{}
+
+// NewCommonExampleModule creates a new module instance
+func NewCommonExampleModule() pg.Module {
+	return &CommonExampleModule{}
+}
+
+// Fields returns an empty map (no services in this module)
+func (m *CommonExampleModule) Fields() gql.Fields {
+	return gql.Fields{}
+}
+
+// Messages returns all message types from this package
+func (m *CommonExampleModule) Messages() []pg.GraphqlMessage {
+	return allMessages
+}
+
+// WithLoaders returns the context unchanged (no loaders in this module)
+func (m *CommonExampleModule) WithLoaders(ctx context.Context) context.Context {
+	return ctx
+}
+
+// PackageName returns the proto package name
+func (m *CommonExampleModule) PackageName() string {
 	return "common_example"
 }

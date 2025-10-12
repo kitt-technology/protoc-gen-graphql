@@ -105,11 +105,6 @@ func shouldProcess(file *protogen.File) bool {
 		return false
 	}
 
-	// Skip common-example proto (test fixture that has skip_message types)
-	if strings.Contains(filename, "common-example/common-example.proto") {
-		return false
-	}
-
 	// Check for disabled option
 	if proto.HasExtension(file.Proto.Options, graphql.E_Disabled) {
 		if disabled, ok := proto.GetExtension(file.Proto.Options, graphql.E_Disabled).(bool); ok {

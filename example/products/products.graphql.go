@@ -5,8 +5,8 @@ import (
 	"context"
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql/language/ast"
+	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-	"os"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"strings"
 )
@@ -596,6 +596,9 @@ var ProductGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"category": &gql.Field{
 			Type: CategoryGraphqlEnum,
 		},
+		"price": &gql.Field{
+			Type: common_example.MoneyGraphqlType,
+		},
 		"inventory": &gql.Field{
 			Type: InventoryGraphqlType,
 		},
@@ -646,6 +649,9 @@ var ProductGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"category": &gql.InputObjectFieldConfig{
 			Type: CategoryGraphqlEnum,
 		},
+		"price": &gql.InputObjectFieldConfig{
+			Type: common_example.MoneyGraphqlInputType,
+		},
 		"inventory": &gql.InputObjectFieldConfig{
 			Type: InventoryGraphqlInputType,
 		},
@@ -688,6 +694,9 @@ var ProductGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"category": &gql.ArgumentConfig{
 		Type: CategoryGraphqlEnum,
+	},
+	"price": &gql.ArgumentConfig{
+		Type: common_example.MoneyGraphqlInputType,
 	},
 	"inventory": &gql.ArgumentConfig{
 		Type: InventoryGraphqlInputType,
@@ -738,6 +747,10 @@ func ProductInstanceFromArgs(objectFromArgs *Product, args map[string]interface{
 	if args["category"] != nil {
 		val := args["category"]
 		objectFromArgs.Category = val.(Category)
+	}
+	if args["price"] != nil {
+		val := args["price"]
+		objectFromArgs.Price = common_example.MoneyFromArgs(val.(map[string]interface{}))
 	}
 	if args["inventory"] != nil {
 		val := args["inventory"]
@@ -820,6 +833,9 @@ var ProductVariantGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"sku": &gql.Field{
 			Type: gql.NewNonNull(gql.String),
 		},
+		"price": &gql.Field{
+			Type: common_example.MoneyGraphqlType,
+		},
 		"stockQuantity": &gql.Field{
 			Type: gql.NewNonNull(gql.Int),
 		},
@@ -837,6 +853,9 @@ var ProductVariantGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"sku": &gql.InputObjectFieldConfig{
 			Type: gql.NewNonNull(gql.String),
 		},
+		"price": &gql.InputObjectFieldConfig{
+			Type: common_example.MoneyGraphqlInputType,
+		},
 		"stockQuantity": &gql.InputObjectFieldConfig{
 			Type: gql.NewNonNull(gql.Int),
 		},
@@ -852,6 +871,9 @@ var ProductVariantGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"sku": &gql.ArgumentConfig{
 		Type: gql.NewNonNull(gql.String),
+	},
+	"price": &gql.ArgumentConfig{
+		Type: common_example.MoneyGraphqlInputType,
 	},
 	"stockQuantity": &gql.ArgumentConfig{
 		Type: gql.NewNonNull(gql.Int),
@@ -874,6 +896,10 @@ func ProductVariantInstanceFromArgs(objectFromArgs *ProductVariant, args map[str
 	if args["sku"] != nil {
 		val := args["sku"]
 		objectFromArgs.Sku = string(val.(string))
+	}
+	if args["price"] != nil {
+		val := args["price"]
+		objectFromArgs.Price = common_example.MoneyFromArgs(val.(map[string]interface{}))
 	}
 	if args["stockQuantity"] != nil {
 		val := args["stockQuantity"]
@@ -1157,11 +1183,7 @@ func NewProductsModule(opts ...ProductsModuleOption) *ProductsModule {
 // getProductsClient returns the client, creating it lazily if needed
 func (m *ProductsModule) getProductsClient() ProductsClient {
 	if m.productsClient == nil {
-		host := os.Getenv("PRODUCTS_SERVICE_HOST")
-		if host == "" {
-			host = "localhost:50051"
-		}
-		m.productsClient = NewProductsClient(pg.GrpcConnection(host, m.dialOpts["Products"]...))
+		m.productsClient = NewProductsClient(pg.GrpcConnection("localhost:50051", m.dialOpts["Products"]...))
 	}
 	return m.productsClient
 }

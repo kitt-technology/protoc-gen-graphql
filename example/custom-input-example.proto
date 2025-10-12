@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package example;
+
+import "graphql.proto";
+
+option go_package = "github.com/kitt-technology/protoc-gen-graphql/example;example";
+
+// This message has a custom input type override
+// The GraphQL output type will be auto-generated from the proto
+// But the input type will use a custom type defined in custom-input.graphql.go
+message SearchRequest {
+  option (graphql.input_type_name) = "CustomSearchInputType";
+
+  string query = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+// This message uses the default auto-generated input type
+message SearchResponse {
+  repeated string results = 1;
+  int32 total = 2;
+}
