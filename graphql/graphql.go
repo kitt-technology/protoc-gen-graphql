@@ -2,10 +2,11 @@ package graphql
 
 import (
 	"context"
+	"crypto/tls"
+	"google.golang.org/grpc/credentials"
 
 	gql "github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -13,7 +14,9 @@ func GrpcConnection(host string, option ...grpc.DialOption) *grpc.ClientConn {
 	// If no options are provided, use insecure credentials as default
 	opts := option
 	if len(opts) == 0 {
-		opts = []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+		opts = []grpc.DialOption{grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
+			InsecureSkipVerify: true,
+		}))}
 	}
 
 	conn, err := grpc.NewClient(
