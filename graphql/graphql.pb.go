@@ -204,14 +204,6 @@ var file_graphql_graphql_proto_extTypes = []protoimpl.ExtensionInfo{
 		Filename:      "graphql/graphql.proto",
 	},
 	{
-		ExtendedType:  (*descriptorpb.MessageOptions)(nil),
-		ExtensionType: (*string)(nil),
-		Field:         1089,
-		Name:          "graphql.input_type_name",
-		Tag:           "bytes,1089,opt,name=input_type_name",
-		Filename:      "graphql/graphql.proto",
-	},
-	{
 		ExtendedType:  (*descriptorpb.FileOptions)(nil),
 		ExtensionType: (*bool)(nil),
 		Field:         1055,
@@ -277,42 +269,40 @@ var (
 	E_Mutation = &file_graphql_graphql_proto_extTypes[1]
 	// optional bool skip_message = 1087;
 	E_SkipMessage = &file_graphql_graphql_proto_extTypes[2]
-	// optional string input_type_name = 1089;
-	E_InputTypeName = &file_graphql_graphql_proto_extTypes[3]
 )
 
 // Extension fields to descriptorpb.FileOptions.
 var (
 	// optional bool disabled = 1055;
-	E_Disabled = &file_graphql_graphql_proto_extTypes[4]
+	E_Disabled = &file_graphql_graphql_proto_extTypes[3]
 	// optional string package = 1056;
-	E_Package = &file_graphql_graphql_proto_extTypes[5]
+	E_Package = &file_graphql_graphql_proto_extTypes[4]
 )
 
 // Extension fields to descriptorpb.ServiceOptions.
 var (
 	// optional string host = 1088;
-	E_Host = &file_graphql_graphql_proto_extTypes[6]
+	E_Host = &file_graphql_graphql_proto_extTypes[5]
 )
 
 // Extension fields to descriptorpb.EnumOptions.
 var (
 	// optional string enum_name = 1086;
-	E_EnumName = &file_graphql_graphql_proto_extTypes[7]
+	E_EnumName = &file_graphql_graphql_proto_extTypes[6]
 )
 
 // Extension fields to descriptorpb.FieldOptions.
 var (
 	// optional bool optional = 1096;
-	E_Optional = &file_graphql_graphql_proto_extTypes[8]
+	E_Optional = &file_graphql_graphql_proto_extTypes[7]
 	// optional bool skip_field = 1097;
-	E_SkipField = &file_graphql_graphql_proto_extTypes[9]
+	E_SkipField = &file_graphql_graphql_proto_extTypes[8]
 )
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
 	// optional bool batch_loader = 1098;
-	E_BatchLoader = &file_graphql_graphql_proto_extTypes[10]
+	E_BatchLoader = &file_graphql_graphql_proto_extTypes[9]
 )
 
 var File_graphql_graphql_proto protoreflect.FileDescriptor
@@ -337,8 +327,7 @@ const file_graphql_graphql_proto_rawDesc = "" +
 	"\vobject_name\x12\x1f.google.protobuf.MessageOptions\x18\xbd\b \x01(\tR\n" +
 	"objectName:<\n" +
 	"\bmutation\x12\x1f.google.protobuf.MessageOptions\x18\xbe\b \x01(\bR\bmutation:C\n" +
-	"\fskip_message\x12\x1f.google.protobuf.MessageOptions\x18\xbf\b \x01(\bR\vskipMessage:H\n" +
-	"\x0finput_type_name\x12\x1f.google.protobuf.MessageOptions\x18\xc1\b \x01(\tR\rinputTypeName:9\n" +
+	"\fskip_message\x12\x1f.google.protobuf.MessageOptions\x18\xbf\b \x01(\bR\vskipMessage:9\n" +
 	"\bdisabled\x12\x1c.google.protobuf.FileOptions\x18\x9f\b \x01(\bR\bdisabled:7\n" +
 	"\apackage\x12\x1c.google.protobuf.FileOptions\x18\xa0\b \x01(\tR\apackage:4\n" +
 	"\x04host\x12\x1f.google.protobuf.ServiceOptions\x18\xc0\b \x01(\tR\x04host::\n" +
@@ -378,18 +367,17 @@ var file_graphql_graphql_proto_depIdxs = []int32{
 	4,  // 1: graphql.object_name:extendee -> google.protobuf.MessageOptions
 	4,  // 2: graphql.mutation:extendee -> google.protobuf.MessageOptions
 	4,  // 3: graphql.skip_message:extendee -> google.protobuf.MessageOptions
-	4,  // 4: graphql.input_type_name:extendee -> google.protobuf.MessageOptions
-	5,  // 5: graphql.disabled:extendee -> google.protobuf.FileOptions
-	5,  // 6: graphql.package:extendee -> google.protobuf.FileOptions
-	6,  // 7: graphql.host:extendee -> google.protobuf.ServiceOptions
-	7,  // 8: graphql.enum_name:extendee -> google.protobuf.EnumOptions
-	8,  // 9: graphql.optional:extendee -> google.protobuf.FieldOptions
-	8,  // 10: graphql.skip_field:extendee -> google.protobuf.FieldOptions
-	9,  // 11: graphql.batch_loader:extendee -> google.protobuf.MethodOptions
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	1,  // [1:12] is the sub-list for extension extendee
+	5,  // 4: graphql.disabled:extendee -> google.protobuf.FileOptions
+	5,  // 5: graphql.package:extendee -> google.protobuf.FileOptions
+	6,  // 6: graphql.host:extendee -> google.protobuf.ServiceOptions
+	7,  // 7: graphql.enum_name:extendee -> google.protobuf.EnumOptions
+	8,  // 8: graphql.optional:extendee -> google.protobuf.FieldOptions
+	8,  // 9: graphql.skip_field:extendee -> google.protobuf.FieldOptions
+	9,  // 10: graphql.batch_loader:extendee -> google.protobuf.MethodOptions
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	1,  // [1:11] is the sub-list for extension extendee
 	0,  // [0:1] is the sub-list for field type_name
 }
 
@@ -405,7 +393,7 @@ func file_graphql_graphql_proto_init() {
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_graphql_graphql_proto_rawDesc), len(file_graphql_graphql_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   4,
-			NumExtensions: 11,
+			NumExtensions: 10,
 			NumServices:   0,
 		},
 		GoTypes:           file_graphql_graphql_proto_goTypes,

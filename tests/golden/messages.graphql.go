@@ -989,6 +989,17 @@ func NewCasesModule(opts ...CasesModuleOption) *CasesModule {
 	for _, opt := range opts {
 		opt(m)
 	}
+
+	// Initialize ClientInstance variables for backward compatibility
+	if m.dialOpts != nil || m.booksClient != nil || m.booksService != nil {
+		if m.booksClient != nil {
+			BooksClientInstance = &booksClientAdapter{client: m.booksClient}
+		} else if m.booksService != nil {
+			BooksClientInstance = &booksServerAdapter{server: m.booksService}
+		} else {
+			BooksClientInstance = &booksClientAdapter{client: m.getBooksClient()}
+		}
+	}
 	return m
 }
 

@@ -145,7 +145,24 @@ func (f File) generateServiceModule(services []templates.Message) string {
 	out += fmt.Sprintf("\tm := &%s{}\n", moduleName)
 	out += "\tfor _, opt := range opts {\n"
 	out += "\t\topt(m)\n"
-	out += "\t}\n"
+	out += "\t}\n\n"
+
+	// Initialize ClientInstance variables if module has dial options
+	out += "\t// Initialize ClientInstance variables for backward compatibility\n"
+	for _, svc := range services {
+		serviceName := svc.Descriptor.GetName()
+		lowerServiceName := strcase.ToLowerCamel(serviceName)
+		out += fmt.Sprintf("\tif m.dialOpts != nil || m.%sClient != nil || m.%sService != nil {\n", lowerServiceName, lowerServiceName)
+		out += fmt.Sprintf("\t\tif m.%sClient != nil {\n", lowerServiceName)
+		out += fmt.Sprintf("\t\t\t%sClientInstance = &%sClientAdapter{client: m.%sClient}\n", serviceName, lowerServiceName, lowerServiceName)
+		out += fmt.Sprintf("\t\t} else if m.%sService != nil {\n", lowerServiceName)
+		out += fmt.Sprintf("\t\t\t%sClientInstance = &%sServerAdapter{server: m.%sService}\n", serviceName, lowerServiceName, lowerServiceName)
+		out += "\t\t} else {\n"
+		out += fmt.Sprintf("\t\t\t%sClientInstance = &%sClientAdapter{client: m.get%sClient()}\n", serviceName, lowerServiceName, serviceName)
+		out += "\t\t}\n"
+		out += "\t}\n"
+	}
+
 	out += "\treturn m\n"
 	out += "}\n\n"
 

@@ -6,7 +6,6 @@ import (
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql/language/ast"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-	"os"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"strings"
 )
@@ -78,7 +77,6 @@ var GetUsersRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var GetUsersRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetUsersRequestInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -149,7 +147,6 @@ var GetUsersResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var GetUsersResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetUsersResponseInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -217,7 +214,6 @@ var UsersBatchResponseGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var UsersBatchResponseGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "UsersBatchResponseInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -265,7 +261,6 @@ var GetUserProfileRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var GetUserProfileRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "GetUserProfileRequestInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -347,7 +342,6 @@ var UserGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var UserGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "CustomerInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -495,7 +489,6 @@ var UserProfileGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var UserProfileGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "UserProfileInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -633,7 +626,6 @@ var AddressGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var AddressGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "AddressInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -774,7 +766,6 @@ var UserPreferencesGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var UserPreferencesGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "UserPreferencesInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -868,7 +859,6 @@ var LoyaltyInfoGraphqlType = gql.NewObject(gql.ObjectConfig{
 		},
 	},
 })
-
 var LoyaltyInfoGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "LoyaltyInfoInput",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -1035,11 +1025,7 @@ func NewUsersModule(opts ...UsersModuleOption) *UsersModule {
 // getUsersClient returns the client, creating it lazily if needed
 func (m *UsersModule) getUsersClient() UsersClient {
 	if m.usersClient == nil {
-		host := os.Getenv("USERS_SERVICE_HOST")
-		if host == "" {
-			host = "localhost:50052"
-		}
-		m.usersClient = NewUsersClient(pg.GrpcConnection(host, m.dialOpts["Users"]...))
+		m.usersClient = NewUsersClient(pg.GrpcConnection("localhost:50052", m.dialOpts["Users"]...))
 	}
 	return m.usersClient
 }
@@ -1099,6 +1085,10 @@ func (m *UsersModule) WithLoaders(ctx context.Context) context.Context {
 			}
 
 			if err != nil {
+				// Return error result for each key - dataloader requires same number of results as keys
+				for range keys {
+					results = append(results, &dataloader.Result{Error: err})
+				}
 				return results
 			}
 
