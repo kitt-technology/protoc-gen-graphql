@@ -995,11 +995,7 @@ func NewCasesModule(opts ...CasesModuleOption) *CasesModule {
 // getBooksClient returns the client, creating it lazily if needed
 func (m *CasesModule) getBooksClient() BooksClient {
 	if m.booksClient == nil {
-		host := os.Getenv("BOOKS_SERVICE_HOST")
-		if host == "" {
-			host = "localhost:50051"
-		}
-		m.booksClient = NewBooksClient(pg.GrpcConnection(host, m.dialOpts["Books"]...))
+		m.booksClient = NewBooksClient(pg.GrpcConnection("localhost:50051", m.dialOpts["Books"]...))
 	}
 	return m.booksClient
 }

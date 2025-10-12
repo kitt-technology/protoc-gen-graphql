@@ -161,12 +161,8 @@ func (f File) generateServiceModule(services []templates.Message) string {
 		out += fmt.Sprintf("// get%sClient returns the client, creating it lazily if needed\n", serviceName)
 		out += fmt.Sprintf("func (m *%s) get%sClient() %sClient {\n", moduleName, serviceName, serviceName)
 		out += fmt.Sprintf("\tif m.%sClient == nil {\n", lowerServiceName)
-		out += fmt.Sprintf("\t\thost := os.Getenv(%q)\n", strings.ToUpper(serviceName)+"_SERVICE_HOST")
-		out += "\t\tif host == \"\" {\n"
-		out += fmt.Sprintf("\t\t\thost = %q\n", dns)
-		out += "\t\t}\n"
-		out += fmt.Sprintf("\t\tm.%sClient = New%sClient(pg.GrpcConnection(host, m.dialOpts[%q]...))\n",
-			lowerServiceName, serviceName, serviceName)
+		out += fmt.Sprintf("\t\tm.%sClient = New%sClient(pg.GrpcConnection(%q, m.dialOpts[%q]...))\n",
+			lowerServiceName, serviceName, dns, serviceName)
 		out += "\t}\n"
 		out += fmt.Sprintf("\treturn m.%sClient\n", lowerServiceName)
 		out += "}\n\n"
