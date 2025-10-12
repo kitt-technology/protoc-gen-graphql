@@ -990,19 +990,6 @@ func NewCasesModule(opts ...CasesModuleOption) *CasesModule {
 		opt(m)
 	}
 
-	// Initialize ClientInstance variables for backward compatibility
-	if m.dialOpts != nil || m.booksClient != nil || m.booksService != nil {
-		if m.booksClient != nil {
-			BooksClientInstance = &booksClientAdapter{client: m.booksClient}
-		} else if m.booksService != nil {
-			BooksClientInstance = &booksServerAdapter{server: m.booksService}
-		} else {
-			BooksClientInstance = &booksClientAdapter{client: m.getBooksClient()}
-		}
-	}
-	if BooksClientInstance == nil {
-		BooksClientInstance = &booksClientAdapter{client: m.getBooksClient()}
-	}
 	return m
 }
 
@@ -1351,10 +1338,6 @@ func (m *CasesModule) Books() BooksInstance {
 // Please migrate to the module-based API using NewCasesModule()
 
 var defaultModule *CasesModule
-
-// BooksClientInstance provides a unified Books client interface
-// Deprecated: Use NewCasesModule().Books() instead
-var BooksClientInstance BooksInstance
 
 // SetDefaultModule allows you to set a custom module instance as the default
 // for use with deprecated package-level functions.
