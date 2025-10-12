@@ -1000,6 +1000,9 @@ func NewCasesModule(opts ...CasesModuleOption) *CasesModule {
 			BooksClientInstance = &booksClientAdapter{client: m.getBooksClient()}
 		}
 	}
+	if BooksClientInstance == nil {
+		BooksClientInstance = &booksClientAdapter{client: m.getBooksClient()}
+	}
 	return m
 }
 
@@ -1370,11 +1373,6 @@ func getDefaultModule() *CasesModule {
 		defaultModule = NewCasesModule()
 	}
 	return defaultModule
-}
-
-func init() {
-	// Initialize BooksClientInstance with lazy-loading adapter
-	BooksClientInstance = &booksClientAdapter{client: nil}
 }
 
 // BooksInit initializes the Books service.

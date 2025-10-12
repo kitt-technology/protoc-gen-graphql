@@ -1177,6 +1177,17 @@ func NewProductsModule(opts ...ProductsModuleOption) *ProductsModule {
 	for _, opt := range opts {
 		opt(m)
 	}
+
+	// Initialize ClientInstance variables for backward compatibility
+	if m.dialOpts != nil || m.productsClient != nil || m.productsService != nil {
+		if m.productsClient != nil {
+			ProductsClientInstance = &productsClientAdapter{client: m.productsClient}
+		} else if m.productsService != nil {
+			ProductsClientInstance = &productsServerAdapter{server: m.productsService}
+		} else {
+			ProductsClientInstance = &productsClientAdapter{client: m.getProductsClient()}
+		}
+	}
 	return m
 }
 
@@ -1580,11 +1591,6 @@ func getDefaultModule() *ProductsModule {
 		defaultModule = NewProductsModule()
 	}
 	return defaultModule
-}
-
-func init() {
-	// Initialize ProductsClientInstance with lazy-loading adapter
-	ProductsClientInstance = &productsClientAdapter{client: nil}
 }
 
 // ProductsInit initializes the Products service.

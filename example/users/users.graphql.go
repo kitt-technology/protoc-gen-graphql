@@ -1019,6 +1019,17 @@ func NewUsersModule(opts ...UsersModuleOption) *UsersModule {
 	for _, opt := range opts {
 		opt(m)
 	}
+
+	// Initialize ClientInstance variables for backward compatibility
+	if m.dialOpts != nil || m.usersClient != nil || m.usersService != nil {
+		if m.usersClient != nil {
+			UsersClientInstance = &usersClientAdapter{client: m.usersClient}
+		} else if m.usersService != nil {
+			UsersClientInstance = &usersServerAdapter{server: m.usersService}
+		} else {
+			UsersClientInstance = &usersClientAdapter{client: m.getUsersClient()}
+		}
+	}
 	return m
 }
 
@@ -1323,11 +1334,6 @@ func getDefaultModule() *UsersModule {
 		defaultModule = NewUsersModule()
 	}
 	return defaultModule
-}
-
-func init() {
-	// Initialize UsersClientInstance with lazy-loading adapter
-	UsersClientInstance = &usersClientAdapter{client: nil}
 }
 
 // UsersInit initializes the Users service.

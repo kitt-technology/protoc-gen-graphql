@@ -161,6 +161,10 @@ func (f File) generateServiceModule(services []templates.Message) string {
 		out += fmt.Sprintf("\t\t\t%sClientInstance = &%sClientAdapter{client: m.get%sClient()}\n", serviceName, lowerServiceName, serviceName)
 		out += "\t\t}\n"
 		out += "\t}\n"
+		out += fmt.Sprintf("\tif %sClientInstance == nil {\n", serviceName)
+		out += fmt.Sprintf("\t\t%sClientInstance = &%sClientAdapter{client: m.get%sClient()}\n", serviceName, lowerServiceName, serviceName)
+		out += fmt.Sprintf("\t}\n")
+
 	}
 
 	out += "\treturn m\n"
@@ -695,16 +699,6 @@ func (f File) generateBackwardCompatLayer(moduleName string, services []template
 	out += "\t\tdefaultModule = New" + moduleName + "()\n"
 	out += "\t}\n"
 	out += "\treturn defaultModule\n"
-	out += "}\n\n"
-
-	out += "func init() {\n"
-	// Initialize ClientInstance variables
-	for _, svc := range services {
-		serviceName := svc.Descriptor.GetName()
-		lowerServiceName := strcase.ToLowerCamel(serviceName)
-		out += fmt.Sprintf("\t// Initialize %sClientInstance with lazy-loading adapter\n", serviceName)
-		out += fmt.Sprintf("\t%sClientInstance = &%sClientAdapter{client: nil}\n", serviceName, lowerServiceName)
-	}
 	out += "}\n\n"
 
 	// Generate deprecated Init() function for each service
