@@ -47,7 +47,6 @@ var {{ .Descriptor.GetName }}GraphqlType = gql.NewObject(gql.ObjectConfig{
 		{{- end }}
 	},
 })
-{{- if not .InputTypeName }}
 var {{ .Descriptor.GetName }}GraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "{{ .ObjectName }}Input",
 	Fields: gql.InputObjectConfigFieldMap{
@@ -66,18 +65,6 @@ var {{ .Descriptor.GetName }}GraphqlArgs = gql.FieldConfigArgument{
 	},
 	{{- end }}
 }
-{{- else }}
-// Using custom input type: {{ .InputTypeName }}
-var {{ .Descriptor.GetName }}GraphqlInputType = {{ .InputTypeName }}
-
-var {{ .Descriptor.GetName }}GraphqlArgs = gql.FieldConfigArgument{
-	{{- range $field := .Fields }}
-	"{{ $field.GqlKey }}": &gql.ArgumentConfig{
-			Type: {{- $field.InputType }},
-	},
-	{{- end }}
-}
-{{- end }}
 
 func {{ .Descriptor.GetName }}FromArgs(args map[string]interface{}) *{{ .Descriptor.GetName }} {
 	return {{ .Descriptor.GetName }}InstanceFromArgs(&{{ .Descriptor.GetName }}{}, args)

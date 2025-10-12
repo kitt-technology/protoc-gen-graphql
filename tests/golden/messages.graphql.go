@@ -5,6 +5,7 @@ import (
 	"context"
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql/language/ast"
+	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"strings"
@@ -593,7 +594,7 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: pg.TimestampGraphqlType,
 		},
 		"price": &gql.Field{
-			Type: MoneyGraphqlType,
+			Type: common_example.MoneyGraphqlType,
 		},
 		"priceTwo": &gql.Field{
 			Type: MoneyGraphqlType,
@@ -617,7 +618,7 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 			},
 		},
 		"historicPrices": &gql.Field{
-			Type: gql.NewList(gql.NewNonNull(MoneyGraphqlType)),
+			Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlType)),
 		},
 		"pages": &gql.Field{
 			Type: gql.Int,
@@ -643,7 +644,7 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: pg.TimestampGraphqlInputType,
 		},
 		"price": &gql.InputObjectFieldConfig{
-			Type: MoneyGraphqlInputType,
+			Type: common_example.MoneyGraphqlInputType,
 		},
 		"priceTwo": &gql.InputObjectFieldConfig{
 			Type: MoneyGraphqlInputType,
@@ -655,7 +656,7 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: gql.String,
 		},
 		"historicPrices": &gql.InputObjectFieldConfig{
-			Type: gql.NewList(gql.NewNonNull(MoneyGraphqlInputType)),
+			Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlInputType)),
 		},
 		"pages": &gql.InputObjectFieldConfig{
 			Type: gql.Int,
@@ -680,7 +681,7 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 		Type: pg.TimestampGraphqlInputType,
 	},
 	"price": &gql.ArgumentConfig{
-		Type: MoneyGraphqlInputType,
+		Type: common_example.MoneyGraphqlInputType,
 	},
 	"priceTwo": &gql.ArgumentConfig{
 		Type: MoneyGraphqlInputType,
@@ -692,7 +693,7 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.String,
 	},
 	"historicPrices": &gql.ArgumentConfig{
-		Type: gql.NewList(gql.NewNonNull(MoneyGraphqlInputType)),
+		Type: gql.NewList(gql.NewNonNull(common_example.MoneyGraphqlInputType)),
 	},
 	"pages": &gql.ArgumentConfig{
 		Type: gql.Int,
@@ -727,7 +728,7 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	}
 	if args["price"] != nil {
 		val := args["price"]
-		objectFromArgs.Price = MoneyFromArgs(val.(map[string]interface{}))
+		objectFromArgs.Price = common_example.MoneyFromArgs(val.(map[string]interface{}))
 	}
 	if args["priceTwo"] != nil {
 		val := args["priceTwo"]
@@ -743,10 +744,10 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	}
 	if args["historicPrices"] != nil {
 		historicPricesInterfaceList := args["historicPrices"].([]interface{})
-		historicPrices := make([]*Money, 0)
+		historicPrices := make([]*common_example.Money, 0)
 
 		for _, val := range historicPricesInterfaceList {
-			itemResolved := MoneyFromArgs(val.(map[string]interface{}))
+			itemResolved := common_example.MoneyFromArgs(val.(map[string]interface{}))
 			historicPrices = append(historicPrices, itemResolved)
 		}
 		objectFromArgs.HistoricPrices = historicPrices

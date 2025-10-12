@@ -73,23 +73,32 @@ func (msg *Int32Range) XXX_Package() string {
 var MoneyRangeGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "MoneyRange",
 	Fields: gql.Fields{
-		"_null": &gql.Field{
-			Type: gql.Boolean,
+		"min": &gql.Field{
+			Type: MoneyGraphqlType,
+		},
+		"max": &gql.Field{
+			Type: MoneyGraphqlType,
 		},
 	},
 })
 var MoneyRangeGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 	Name: "MoneyRangeInput",
 	Fields: gql.InputObjectConfigFieldMap{
-		"_null": &gql.InputObjectFieldConfig{
-			Type: gql.Boolean,
+		"min": &gql.InputObjectFieldConfig{
+			Type: MoneyGraphqlInputType,
+		},
+		"max": &gql.InputObjectFieldConfig{
+			Type: MoneyGraphqlInputType,
 		},
 	},
 })
 
 var MoneyRangeGraphqlArgs = gql.FieldConfigArgument{
-	"_null": &gql.ArgumentConfig{
-		Type: gql.Boolean,
+	"min": &gql.ArgumentConfig{
+		Type: MoneyGraphqlInputType,
+	},
+	"max": &gql.ArgumentConfig{
+		Type: MoneyGraphqlInputType,
 	},
 }
 
@@ -98,6 +107,14 @@ func MoneyRangeFromArgs(args map[string]interface{}) *MoneyRange {
 }
 
 func MoneyRangeInstanceFromArgs(objectFromArgs *MoneyRange, args map[string]interface{}) *MoneyRange {
+	if args["min"] != nil {
+		val := args["min"]
+		objectFromArgs.Min = MoneyFromArgs(val.(map[string]interface{}))
+	}
+	if args["max"] != nil {
+		val := args["max"]
+		objectFromArgs.Max = MoneyFromArgs(val.(map[string]interface{}))
+	}
 	return objectFromArgs
 }
 

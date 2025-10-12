@@ -43,7 +43,6 @@ type Message struct {
 	OneOfFields      map[string]map[string]Field
 	Import           map[string]string
 	ObjectName       string
-	InputTypeName    string
 	PackageImportMap map[string]GraphqlImport
 	SkippedMessages  map[string]bool
 }
@@ -88,13 +87,6 @@ func (m Message) Generate() string {
 		}
 	} else {
 		m.ObjectName = *m.Descriptor.Name
-	}
-
-	// Check for custom input type name override
-	if proto.HasExtension(m.Descriptor.Options, graphql.E_InputTypeName) {
-		if name, ok := proto.GetExtension(m.Descriptor.Options, graphql.E_InputTypeName).(string); ok {
-			m.InputTypeName = name
-		}
 	}
 
 	for _, field := range m.Descriptor.Field {
@@ -321,33 +313,36 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 	}
 
 	// Check if this is a skipped message
+	// Skipped messages should not have their GraphQL types auto-generated,
+	// but references to them should still work (using manually-created types)
 	if field.GetTypeName() != "" {
 		typeNameWithProtoImport := field.GetTypeName()[1:]
 		if skippedMessages[typeNameWithProtoImport] {
-			// Check if this is a cross-package reference
+			// Extract the package of the field type
 			fieldPackage := strings.TrimSuffix(typeNameWithProtoImport, "."+util.Last(field.GetTypeName()))
 			currentPackage := root.GetPackage()
 
-			// Only skip if it's in the SAME package
-			// For cross-package references, try to resolve via packageImportMap
-			if fieldPackage == currentPackage {
+			// Check if it's a cross-package reference
+			if fieldPackage != currentPackage {
+				// Cross-package reference - use packageImportMap
+				for pkg, graphqlType := range packageImportMap {
+					if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg+".") {
+						typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg+".")
+						typeNameWithGoImport := graphqlType.GoPackage + "." + typeName
+						return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common, true
+					}
+				}
+
+				// If we reach here, the package isn't in packageImportMap
+				// This shouldn't happen if the proto file has the graphql.package option set
+				// Skip the field to avoid generating broken references
 				return "", "", "", false
 			}
 
-			// Cross-package reference to a skipped message
-			// Try to resolve it via packageImportMap (it should have manual GraphQL types)
-			for pkg, graphqlType := range packageImportMap {
-				if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg+".") {
-					typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg+".")
-					typeNameWithGoImport := graphqlType.GoPackage + "." + typeName
-					return GoType(typeNameWithGoImport), GqlType(typeNameWithGoImport), Common, true
-				}
-			}
-
-			// If we reach here, the package isn't in packageImportMap
-			// This shouldn't happen if the proto file has the graphql.package option set
-			// Skip the field to avoid generating broken references
-			return "", "", "", false
+			// Same-package reference to a skipped message
+			// Reference the manually-created GraphQL type (no package prefix needed)
+			typeName := util.Last(field.GetTypeName())
+			return GoType(typeName), GqlType(typeName), Object, true
 		}
 	}
 
