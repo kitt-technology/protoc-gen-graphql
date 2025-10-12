@@ -7,6 +7,5 @@ const (
 	PggImport         = "pg \"github.com/kitt-technology/protoc-gen-graphql/graphql\""
 	ContextImport     = "context"
 	DataloaderImport  = "github.com/graph-gophers/dataloader"
-	OsImport          = "os"
 	StringsImport     = "strings"
 )

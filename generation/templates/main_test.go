@@ -243,7 +243,7 @@ func TestMessage_Imports_WithoutLoaders(t *testing.T) {
 
 	imports := m.Imports()
 
-	expectedImports := []string{"context", "os"}
+	expectedImports := []string{"context"}
 	if len(imports) != len(expectedImports) {
 		t.Fatalf("Imports() should return %d imports, got %d", len(expectedImports), len(imports))
 	}
@@ -263,9 +263,8 @@ func TestMessage_Imports_WithLoaders(t *testing.T) {
 
 	imports := m.Imports()
 
-	// Should include os, context, and dataloader
+	// Should include context, and dataloader
 	expectedImports := map[string]bool{
-		"os":                                  true,
 		"context":                             true,
 		"github.com/graph-gophers/dataloader": true,
 	}
