@@ -5,13 +5,20 @@ import (
 
 	gql "github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 )
 
 func GrpcConnection(host string, option ...grpc.DialOption) *grpc.ClientConn {
+	// If no options are provided, use insecure credentials as default
+	opts := option
+	if len(opts) == 0 {
+		opts = []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	}
+
 	conn, err := grpc.NewClient(
 		host,
-		option...,
+		opts...,
 	)
 
 	if err != nil {
@@ -95,11 +102,12 @@ func WithAllLoaders(ctx context.Context, modules ...Module) context.Context {
 
 // DialOptions configures dial options for gRPC services.
 // Service names should match the service names defined in your proto files.
+// If no options are provided for a service, insecure credentials are used by default.
 //
 // Example:
 //
 //	dialOpts := pg.DialOptions{
-//	    "Users":    []grpc.DialOption{grpc.WithInsecure()},
-//	    "Products": []grpc.DialOption{grpc.WithInsecure()},
+//	    "Users":    []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
+//	    "Products": []grpc.DialOption{grpc.WithTransportCredentials(yourTLSCreds)},
 //	}
 type DialOptions map[string][]grpc.DialOption
