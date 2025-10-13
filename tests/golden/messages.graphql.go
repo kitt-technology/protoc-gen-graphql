@@ -1330,7 +1330,7 @@ func (m *CasesModule) Books() BooksInstance {
 	if m.booksService != nil {
 		return &booksServerAdapter{server: m.booksService}
 	}
-	return nil
+	return &booksClientAdapter{client: m.getBooksClient()}
 }
 
 // Backward compatibility layer for v0.51.7 API
