@@ -155,8 +155,15 @@ func (m Message) Generate() string {
 			}
 			m.Import[imports.PggImport] = imports.PggImport
 		case typeOfType == Common:
+			// Sort keys to ensure deterministic iteration order
+			var pkgKeys []string
+			for key := range m.PackageImportMap {
+				pkgKeys = append(pkgKeys, key)
+			}
+			sort.Strings(pkgKeys)
 
-			for key, importPath := range m.PackageImportMap {
+			for _, key := range pkgKeys {
+				importPath := m.PackageImportMap[key]
 				typeNameWithProtoImport := field.GetTypeName()[1:]
 				if strings.HasPrefix(typeNameWithProtoImport, key+".") {
 					m.Import[importPath.ImportPath] = importPath.ImportPath
@@ -334,7 +341,15 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 			// Check if it's a cross-package reference
 			if fieldPackage != currentPackage {
 				// Cross-package reference - use packageImportMap
-				for pkg, graphqlType := range packageImportMap {
+				// Sort keys to ensure deterministic iteration order
+				var pkgKeys []string
+				for pkg := range packageImportMap {
+					pkgKeys = append(pkgKeys, pkg)
+				}
+				sort.Strings(pkgKeys)
+
+				for _, pkg := range pkgKeys {
+					graphqlType := packageImportMap[pkg]
 					if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg+".") {
 						typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg+".")
 						typeNameWithGoImport := graphqlType.GoPackage + "." + typeName
@@ -356,7 +371,15 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 	}
 
 	// Handle non-skipped cross-package references
-	for pkg, graphqlType := range packageImportMap {
+	// Sort keys to ensure deterministic iteration order
+	var pkgKeys []string
+	for pkg := range packageImportMap {
+		pkgKeys = append(pkgKeys, pkg)
+	}
+	sort.Strings(pkgKeys)
+
+	for _, pkg := range pkgKeys {
+		graphqlType := packageImportMap[pkg]
 		typeNameWithProtoImport := field.GetTypeName()[1:]
 		if pkg != root.GetPackage() && strings.HasPrefix(typeNameWithProtoImport, pkg+".") {
 			typeName := strings.TrimPrefix(typeNameWithProtoImport, pkg+".")

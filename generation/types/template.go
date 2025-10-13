@@ -130,7 +130,15 @@ var {{ $name }}GraphqlType = gql.NewUnion(gql.UnionConfig{
 		{{- range $field := $fields }}
 		case *{{ $.Descriptor.GetName }}_{{- $field.GoKey }}:
 			fields := gql.Fields{}
-			for name, field := range {{ $field.GoType }}GraphqlType.Fields() {
+			// Sort field names for deterministic order
+			sourceFields := {{ $field.GoType }}GraphqlType.Fields()
+			fieldNames := make([]string, 0, len(sourceFields))
+			for name := range sourceFields {
+				fieldNames = append(fieldNames, name)
+			}
+			sort.Strings(fieldNames)
+			for _, name := range fieldNames {
+				field := sourceFields[name]
 				fields[name] = &gql.Field{
 					Name: field.Name,
 					Type: field.Type,

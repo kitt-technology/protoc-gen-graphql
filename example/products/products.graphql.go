@@ -38,6 +38,10 @@ var CategoryGraphqlType = CategoryGraphqlEnum
 
 var CategoryGraphqlInputType = CategoryGraphqlEnum
 
+func CategoryFromArgs(val interface{}) Category {
+	return val.(Category)
+}
+
 var GetProductsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "ProductsRequest",
 	Fields: gql.Fields{
@@ -114,7 +118,7 @@ func GetProductsRequestInstanceFromArgs(objectFromArgs *GetProductsRequest, args
 		categories := make([]Category, 0)
 
 		for _, val := range categoriesInterfaceList {
-			itemResolved := val.(Category)
+			itemResolved := CategoryFromArgs(val)
 			categories = append(categories, itemResolved)
 		}
 		objectFromArgs.Categories = categories
@@ -736,7 +740,7 @@ func ProductInstanceFromArgs(objectFromArgs *Product, args map[string]interface{
 	}
 	if args["category"] != nil {
 		val := args["category"]
-		objectFromArgs.Category = val.(Category)
+		objectFromArgs.Category = CategoryFromArgs(val)
 	}
 	if args["price"] != nil {
 		val := args["price"]

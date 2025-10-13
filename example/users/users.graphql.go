@@ -28,6 +28,10 @@ var UserTypeGraphqlType = UserTypeGraphqlEnum
 
 var UserTypeGraphqlInputType = UserTypeGraphqlEnum
 
+func UserTypeFromArgs(val interface{}) UserType {
+	return val.(UserType)
+}
+
 var AddressTypeGraphqlEnum = gql.NewEnum(gql.EnumConfig{
 	Name: "AddressType",
 	Values: gql.EnumValueConfigMap{
@@ -46,6 +50,10 @@ var AddressTypeGraphqlEnum = gql.NewEnum(gql.EnumConfig{
 var AddressTypeGraphqlType = AddressTypeGraphqlEnum
 
 var AddressTypeGraphqlInputType = AddressTypeGraphqlEnum
+
+func AddressTypeFromArgs(val interface{}) AddressType {
+	return val.(AddressType)
+}
 
 var GetUsersRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "GetUsersRequest",
@@ -96,7 +104,7 @@ func GetUsersRequestInstanceFromArgs(objectFromArgs *GetUsersRequest, args map[s
 	}
 	if args["type"] != nil {
 		val := args["type"]
-		objectFromArgs.Type = val.(UserType)
+		objectFromArgs.Type = UserTypeFromArgs(val)
 	}
 	return objectFromArgs
 }
@@ -409,7 +417,7 @@ func UserInstanceFromArgs(objectFromArgs *User, args map[string]interface{}) *Us
 	}
 	if args["type"] != nil {
 		val := args["type"]
-		objectFromArgs.Type = val.(UserType)
+		objectFromArgs.Type = UserTypeFromArgs(val)
 	}
 	if args["createdAt"] != nil {
 		val := args["createdAt"]
@@ -705,7 +713,7 @@ func AddressInstanceFromArgs(objectFromArgs *Address, args map[string]interface{
 	}
 	if args["type"] != nil {
 		val := args["type"]
-		objectFromArgs.Type = val.(AddressType)
+		objectFromArgs.Type = AddressTypeFromArgs(val)
 	}
 	if args["isDefault"] != nil {
 		val := args["isDefault"]

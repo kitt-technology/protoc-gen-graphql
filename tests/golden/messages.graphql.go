@@ -1387,7 +1387,14 @@ func BooksInit(ctx context.Context, opts ...CasesModuleOption) (context.Context,
 	// Convert fields map to slice for this service only
 	var serviceFields []*gql.Field
 	servicePrefix := "books_"
-	for name, field := range fields {
+	// Sort field names for deterministic order
+	var fieldNames []string
+	for name := range fields {
+		fieldNames = append(fieldNames, name)
+	}
+	sort.Strings(fieldNames)
+	for _, name := range fieldNames {
+		field := fields[name]
 		if strings.HasPrefix(name, servicePrefix) {
 			serviceFields = append(serviceFields, field)
 		}
