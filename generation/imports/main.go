@@ -8,4 +8,5 @@ const (
 	ContextImport     = "context"
 	DataloaderImport  = "github.com/graph-gophers/dataloader"
 	StringsImport     = "strings"
+	SortImport        = "sort"
 )

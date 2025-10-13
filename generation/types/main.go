@@ -265,6 +265,11 @@ func (m Message) Generate() string {
 		})
 	}
 
+	// If there are OneOf fields, we need the sort package
+	if len(m.OneOfFields) > 0 {
+		m.Import[imports.SortImport] = imports.SortImport
+	}
+
 	var buf bytes.Buffer
 	if err := messageTemplate.Execute(&buf, m); err != nil {
 		panic(err)
