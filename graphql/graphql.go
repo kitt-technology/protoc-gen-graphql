@@ -2,10 +2,11 @@ package graphql
 
 import (
 	"context"
-	"google.golang.org/grpc/credentials/insecure"
+	"sort"
 
 	gql "github.com/graphql-go/graphql"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -68,8 +69,15 @@ type FieldCustomizer func(fields gql.FieldDefinitionMap)
 func CombineFields(fieldMaps ...gql.Fields) gql.Fields {
 	combined := gql.Fields{}
 	for _, fields := range fieldMaps {
-		for name, field := range fields {
-			combined[name] = field
+		// Sort field names to ensure deterministic iteration order
+		names := make([]string, 0, len(fields))
+		for name := range fields {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+
+		for _, name := range names {
+			combined[name] = fields[name]
 		}
 	}
 	return combined

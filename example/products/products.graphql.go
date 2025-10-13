@@ -7,6 +7,7 @@ import (
 	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"sort"
 	"strings"
 )
 

@@ -6,6 +6,7 @@ import (
 	"github.com/graph-gophers/dataloader"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
+	"sort"
 	"strings"
 )
 
