@@ -8,7 +8,7 @@ const typeTpl = `
 {{- if eq .TypeOfType "Object" }}{{ .GqlType }}{{ .Suffix }}{{- end }}
 {{- if eq .TypeOfType "Wrapper" }}{{ .GqlType }}{{- end }}
 {{- if eq .TypeOfType "Primitive" }}{{ .GqlType }}{{- end }}
-{{- if eq .TypeOfType "Enum" }}{{ .GqlType }}GraphqlEnum{{- end }}
+{{- if eq .TypeOfType "Enum" }}{{ .GqlType }}{{ .Suffix }}{{- end }}
 {{- if eq .TypeOfType "Timestamp" }}pg.Timestamp{{ .Suffix }}{{- end }}
 {{- if eq .TypeOfType "WrappedString" }}pg.WrappedString{{ .Suffix }}{{- end }}
 {{- if eq .TypeOfType "Common" }}{{ .GqlType }}{{ .Suffix }}{{- end }}
@@ -19,7 +19,7 @@ const goFromArgs = `
 {{- if eq .TypeOfType "Object" }}{{ .GoType  }}FromArgs(val.(map[string]interface{})){{- end }}
 {{- if eq .TypeOfType "Primitive" }}{{  .GoType }}(val.({{ strip_precision .GoType }})){{- end }}
 {{- if eq .TypeOfType "Wrapper" }}{{  .GoType }}({{ primitive_to_wrapper .GoType }}(val.({{ wrapper_to_primitive .GoType }}))){{- end }}
-{{- if eq .TypeOfType "Enum" }}val.({{ .GoType }}){{- end }}
+{{- if eq .TypeOfType "Enum" }}{{ .GoType }}FromArgs(val){{- end }}
 {{- if eq .TypeOfType "Timestamp" }}pg.ToTimestamp(val){{- end }}
 {{- if eq .TypeOfType "Common" }}{{ .GoType  }}FromArgs(val.(map[string]interface{})){{- end }}`
 

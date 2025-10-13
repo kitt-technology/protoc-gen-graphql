@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"io"
+	"sort"
 	"strings"
 
 	"github.com/iancoleman/strcase"
@@ -71,8 +72,16 @@ func New(msg *descriptorpb.DescriptorProto, file *descriptorpb.FileDescriptorPro
 func (m Message) Imports() []string {
 	m.Generate()
 	var imps []string
-	for _, val := range m.Import {
-		imps = append(imps, val)
+
+	// Sort keys to ensure deterministic iteration order
+	var keys []string
+	for key := range m.Import {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		imps = append(imps, m.Import[key])
 	}
 	return imps
 }

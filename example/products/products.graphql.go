@@ -4,7 +4,6 @@ import (
 	gql "github.com/graphql-go/graphql"
 	"context"
 	"github.com/graph-gophers/dataloader"
-	"github.com/graphql-go/graphql/language/ast"
 	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
@@ -35,18 +34,9 @@ var CategoryGraphqlEnum = gql.NewEnum(gql.EnumConfig{
 	},
 })
 
-var CategoryGraphqlType = gql.NewScalar(gql.ScalarConfig{
-	Name: "Category",
-	ParseValue: func(value interface{}) interface{} {
-		return nil
-	},
-	Serialize: func(value interface{}) interface{} {
-		return value.(Category).String()
-	},
-	ParseLiteral: func(valueAST ast.Value) interface{} {
-		return nil
-	},
-})
+var CategoryGraphqlType = CategoryGraphqlEnum
+
+var CategoryGraphqlInputType = CategoryGraphqlEnum
 
 var GetProductsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "ProductsRequest",
@@ -55,7 +45,7 @@ var GetProductsRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: gql.NewList(gql.NewNonNull(gql.String)),
 		},
 		"categories": &gql.Field{
-			Type: gql.NewList(gql.NewNonNull(CategoryGraphqlEnum)),
+			Type: gql.NewList(gql.NewNonNull(CategoryGraphqlType)),
 		},
 		"inStockOnly": &gql.Field{
 			Type: gql.Boolean,
@@ -78,7 +68,7 @@ var GetProductsRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfi
 			Type: gql.NewList(gql.NewNonNull(gql.String)),
 		},
 		"categories": &gql.InputObjectFieldConfig{
-			Type: gql.NewList(gql.NewNonNull(CategoryGraphqlEnum)),
+			Type: gql.NewList(gql.NewNonNull(CategoryGraphqlInputType)),
 		},
 		"inStockOnly": &gql.InputObjectFieldConfig{
 			Type: gql.Boolean,
@@ -94,7 +84,7 @@ var GetProductsRequestGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.NewList(gql.NewNonNull(gql.String)),
 	},
 	"categories": &gql.ArgumentConfig{
-		Type: gql.NewList(gql.NewNonNull(CategoryGraphqlEnum)),
+		Type: gql.NewList(gql.NewNonNull(CategoryGraphqlInputType)),
 	},
 	"inStockOnly": &gql.ArgumentConfig{
 		Type: gql.Boolean,
@@ -594,7 +584,7 @@ var ProductGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: gql.NewNonNull(gql.String),
 		},
 		"category": &gql.Field{
-			Type: CategoryGraphqlEnum,
+			Type: CategoryGraphqlType,
 		},
 		"price": &gql.Field{
 			Type: common_example.MoneyGraphqlType,
@@ -647,7 +637,7 @@ var ProductGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: gql.NewNonNull(gql.String),
 		},
 		"category": &gql.InputObjectFieldConfig{
-			Type: CategoryGraphqlEnum,
+			Type: CategoryGraphqlInputType,
 		},
 		"price": &gql.InputObjectFieldConfig{
 			Type: common_example.MoneyGraphqlInputType,
@@ -693,7 +683,7 @@ var ProductGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.NewNonNull(gql.String),
 	},
 	"category": &gql.ArgumentConfig{
-		Type: CategoryGraphqlEnum,
+		Type: CategoryGraphqlInputType,
 	},
 	"price": &gql.ArgumentConfig{
 		Type: common_example.MoneyGraphqlInputType,
@@ -1188,6 +1178,9 @@ func NewProductsModule(opts ...ProductsModuleOption) *ProductsModule {
 			ProductsClientInstance = &productsClientAdapter{client: m.getProductsClient()}
 		}
 	}
+	if ProductsClientInstance == nil {
+		ProductsClientInstance = &productsClientAdapter{client: m.getProductsClient()}
+	}
 	return m
 }
 
@@ -1561,7 +1554,7 @@ func (m *ProductsModule) Products() ProductsInstance {
 	if m.productsService != nil {
 		return &productsServerAdapter{server: m.productsService}
 	}
-	return nil
+	return &productsClientAdapter{client: m.getProductsClient()}
 }
 
 // Backward compatibility layer for v0.51.7 API

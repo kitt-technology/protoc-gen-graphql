@@ -120,14 +120,18 @@ func (f File) ToString() string {
 		extraImportMap[val] = val
 	}
 
-	for _, val := range extraImportMap {
-		extraImports = append(extraImports, val)
+	// Sort keys before iterating to ensure deterministic order
+	var keys []string
+	for key := range extraImportMap {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		extraImports = append(extraImports, extraImportMap[key])
 	}
 
 	f.Imports = extraImports
-
-	// Sort so that we're deterministic for testing
-	sort.Strings(f.Imports)
 
 	var buf bytes.Buffer
 	tpl, err := template.New("file").Funcs(map[string]interface{}{

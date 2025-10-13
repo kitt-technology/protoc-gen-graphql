@@ -4,7 +4,6 @@ import (
 	gql "github.com/graphql-go/graphql"
 	"context"
 	"github.com/graph-gophers/dataloader"
-	"github.com/graphql-go/graphql/language/ast"
 	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
@@ -23,18 +22,13 @@ var GenreGraphqlEnum = gql.NewEnum(gql.EnumConfig{
 	},
 })
 
-var GenreGraphqlType = gql.NewScalar(gql.ScalarConfig{
-	Name: "Genre",
-	ParseValue: func(value interface{}) interface{} {
-		return nil
-	},
-	Serialize: func(value interface{}) interface{} {
-		return value.(Genre).String()
-	},
-	ParseLiteral: func(valueAST ast.Value) interface{} {
-		return nil
-	},
-})
+var GenreGraphqlType = GenreGraphqlEnum
+
+var GenreGraphqlInputType = GenreGraphqlEnum
+
+func GenreFromArgs(val interface{}) Genre {
+	return val.(Genre)
+}
 
 var GetBooksRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "BooksRequest",
@@ -61,7 +55,7 @@ var GetBooksRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 			},
 		},
 		"genres": &gql.Field{
-			Type: gql.NewList(gql.NewNonNull(GenreGraphqlEnum)),
+			Type: gql.NewList(gql.NewNonNull(GenreGraphqlType)),
 		},
 		"releasedAfter": &gql.Field{
 			Type: pg.TimestampGraphqlType,
@@ -87,7 +81,7 @@ var GetBooksRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: gql.Float,
 		},
 		"genres": &gql.InputObjectFieldConfig{
-			Type: gql.NewList(gql.NewNonNull(GenreGraphqlEnum)),
+			Type: gql.NewList(gql.NewNonNull(GenreGraphqlInputType)),
 		},
 		"releasedAfter": &gql.InputObjectFieldConfig{
 			Type: pg.TimestampGraphqlInputType,
@@ -112,7 +106,7 @@ var GetBooksRequestGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.Float,
 	},
 	"genres": &gql.ArgumentConfig{
-		Type: gql.NewList(gql.NewNonNull(GenreGraphqlEnum)),
+		Type: gql.NewList(gql.NewNonNull(GenreGraphqlInputType)),
 	},
 	"releasedAfter": &gql.ArgumentConfig{
 		Type: pg.TimestampGraphqlInputType,
@@ -153,7 +147,7 @@ func GetBooksRequestInstanceFromArgs(objectFromArgs *GetBooksRequest, args map[s
 		genres := make([]Genre, 0)
 
 		for _, val := range genresInterfaceList {
-			itemResolved := val.(Genre)
+			itemResolved := GenreFromArgs(val)
 			genres = append(genres, itemResolved)
 		}
 		objectFromArgs.Genres = genres
@@ -588,7 +582,7 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: gql.NewNonNull(gql.String),
 		},
 		"genre": &gql.Field{
-			Type: GenreGraphqlEnum,
+			Type: GenreGraphqlType,
 		},
 		"releaseDate": &gql.Field{
 			Type: pg.TimestampGraphqlType,
@@ -638,7 +632,7 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: gql.NewNonNull(gql.String),
 		},
 		"genre": &gql.InputObjectFieldConfig{
-			Type: GenreGraphqlEnum,
+			Type: GenreGraphqlInputType,
 		},
 		"releaseDate": &gql.InputObjectFieldConfig{
 			Type: pg.TimestampGraphqlInputType,
@@ -675,7 +669,7 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.NewNonNull(gql.String),
 	},
 	"genre": &gql.ArgumentConfig{
-		Type: GenreGraphqlEnum,
+		Type: GenreGraphqlInputType,
 	},
 	"releaseDate": &gql.ArgumentConfig{
 		Type: pg.TimestampGraphqlInputType,
@@ -719,7 +713,7 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 	}
 	if args["genre"] != nil {
 		val := args["genre"]
-		ptr := val.(Genre)
+		ptr := GenreFromArgs(val)
 		objectFromArgs.Genre = &ptr
 	}
 	if args["releaseDate"] != nil {

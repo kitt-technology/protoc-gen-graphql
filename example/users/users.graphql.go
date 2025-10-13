@@ -4,7 +4,6 @@ import (
 	gql "github.com/graphql-go/graphql"
 	"context"
 	"github.com/graph-gophers/dataloader"
-	"github.com/graphql-go/graphql/language/ast"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"strings"
@@ -25,18 +24,9 @@ var UserTypeGraphqlEnum = gql.NewEnum(gql.EnumConfig{
 	},
 })
 
-var UserTypeGraphqlType = gql.NewScalar(gql.ScalarConfig{
-	Name: "UserType",
-	ParseValue: func(value interface{}) interface{} {
-		return nil
-	},
-	Serialize: func(value interface{}) interface{} {
-		return value.(UserType).String()
-	},
-	ParseLiteral: func(valueAST ast.Value) interface{} {
-		return nil
-	},
-})
+var UserTypeGraphqlType = UserTypeGraphqlEnum
+
+var UserTypeGraphqlInputType = UserTypeGraphqlEnum
 
 var AddressTypeGraphqlEnum = gql.NewEnum(gql.EnumConfig{
 	Name: "AddressType",
@@ -53,18 +43,9 @@ var AddressTypeGraphqlEnum = gql.NewEnum(gql.EnumConfig{
 	},
 })
 
-var AddressTypeGraphqlType = gql.NewScalar(gql.ScalarConfig{
-	Name: "AddressType",
-	ParseValue: func(value interface{}) interface{} {
-		return nil
-	},
-	Serialize: func(value interface{}) interface{} {
-		return value.(AddressType).String()
-	},
-	ParseLiteral: func(valueAST ast.Value) interface{} {
-		return nil
-	},
-})
+var AddressTypeGraphqlType = AddressTypeGraphqlEnum
+
+var AddressTypeGraphqlInputType = AddressTypeGraphqlEnum
 
 var GetUsersRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 	Name: "GetUsersRequest",
@@ -73,7 +54,7 @@ var GetUsersRequestGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: gql.NewList(gql.NewNonNull(gql.String)),
 		},
 		"type": &gql.Field{
-			Type: UserTypeGraphqlEnum,
+			Type: UserTypeGraphqlType,
 		},
 	},
 })
@@ -84,7 +65,7 @@ var GetUsersRequestGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: gql.NewList(gql.NewNonNull(gql.String)),
 		},
 		"type": &gql.InputObjectFieldConfig{
-			Type: UserTypeGraphqlEnum,
+			Type: UserTypeGraphqlInputType,
 		},
 	},
 })
@@ -94,7 +75,7 @@ var GetUsersRequestGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.NewList(gql.NewNonNull(gql.String)),
 	},
 	"type": &gql.ArgumentConfig{
-		Type: UserTypeGraphqlEnum,
+		Type: UserTypeGraphqlInputType,
 	},
 }
 
@@ -320,7 +301,7 @@ var UserGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: gql.NewNonNull(gql.String),
 		},
 		"type": &gql.Field{
-			Type: UserTypeGraphqlEnum,
+			Type: UserTypeGraphqlType,
 		},
 		"createdAt": &gql.Field{
 			Type: pg.TimestampGraphqlType,
@@ -358,7 +339,7 @@ var UserGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: gql.NewNonNull(gql.String),
 		},
 		"type": &gql.InputObjectFieldConfig{
-			Type: UserTypeGraphqlEnum,
+			Type: UserTypeGraphqlInputType,
 		},
 		"createdAt": &gql.InputObjectFieldConfig{
 			Type: pg.TimestampGraphqlInputType,
@@ -389,7 +370,7 @@ var UserGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.NewNonNull(gql.String),
 	},
 	"type": &gql.ArgumentConfig{
-		Type: UserTypeGraphqlEnum,
+		Type: UserTypeGraphqlInputType,
 	},
 	"createdAt": &gql.ArgumentConfig{
 		Type: pg.TimestampGraphqlInputType,
@@ -613,7 +594,7 @@ var AddressGraphqlType = gql.NewObject(gql.ObjectConfig{
 			Type: gql.NewNonNull(gql.String),
 		},
 		"type": &gql.Field{
-			Type: AddressTypeGraphqlEnum,
+			Type: AddressTypeGraphqlType,
 		},
 		"isDefault": &gql.Field{
 			Type: gql.Boolean,
@@ -651,7 +632,7 @@ var AddressGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 			Type: gql.NewNonNull(gql.String),
 		},
 		"type": &gql.InputObjectFieldConfig{
-			Type: AddressTypeGraphqlEnum,
+			Type: AddressTypeGraphqlInputType,
 		},
 		"isDefault": &gql.InputObjectFieldConfig{
 			Type: gql.Boolean,
@@ -682,7 +663,7 @@ var AddressGraphqlArgs = gql.FieldConfigArgument{
 		Type: gql.NewNonNull(gql.String),
 	},
 	"type": &gql.ArgumentConfig{
-		Type: AddressTypeGraphqlEnum,
+		Type: AddressTypeGraphqlInputType,
 	},
 	"isDefault": &gql.ArgumentConfig{
 		Type: gql.Boolean,
@@ -1030,6 +1011,9 @@ func NewUsersModule(opts ...UsersModuleOption) *UsersModule {
 			UsersClientInstance = &usersClientAdapter{client: m.getUsersClient()}
 		}
 	}
+	if UsersClientInstance == nil {
+		UsersClientInstance = &usersClientAdapter{client: m.getUsersClient()}
+	}
 	return m
 }
 
@@ -1304,7 +1288,7 @@ func (m *UsersModule) Users() UsersInstance {
 	if m.usersService != nil {
 		return &usersServerAdapter{server: m.usersService}
 	}
-	return nil
+	return &usersClientAdapter{client: m.getUsersClient()}
 }
 
 // Backward compatibility layer for v0.51.7 API
