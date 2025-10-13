@@ -655,7 +655,7 @@ func (f File) generateServiceAccessors(moduleName string, services []templates.M
 		out += fmt.Sprintf("\tif m.%sService != nil {\n", lowerServiceName)
 		out += fmt.Sprintf("\t\treturn &%sServerAdapter{server: m.%sService}\n", lowerServiceName, lowerServiceName)
 		out += "\t}\n"
-		out += "\treturn nil\n"
+		out += fmt.Sprintf("\treturn &%sClientAdapter{client: m.get%sClient()}", lowerServiceName, serviceName)
 		out += "}\n"
 	}
 
