@@ -11,7 +11,8 @@ import (
 	"github.com/kitt-technology/protoc-gen-graphql/generation/types"
 )
 
-const loaderAccessorTemplate = `
+const (
+	loaderAccessorTemplate = `
 {{- range .Loaders }}
 // {{ .MethodName }} loads a single {{ .ResultsType }} using the {{ .LowerServiceName }} service dataloader
 func (m *{{ $.ModuleName }}) {{ .MethodName }}(p gql.ResolveParams, {{ if .Custom }}key *{{ .KeysType }}{{ else }}key string{{ end }}) (func() (interface{}, error), error) {
@@ -24,6 +25,223 @@ func (m *{{ $.ModuleName }}) {{ .MethodNameMany }}(p gql.ResolveParams, {{ if .C
 }
 {{ end -}}
 `
+
+	typeOnlyModuleTemplate = `
+// {{ .ModuleName }} implements the Module interface for the {{ .PackageName }} package (types only, no services)
+type {{ .ModuleName }} struct{}
+
+// New{{ .ModuleName }} creates a new module instance
+func New{{ .ModuleName }}() pg.Module {
+	return &{{ .ModuleName }}{}
+}
+
+// Fields returns an empty map (no services in this module)
+func (m *{{ .ModuleName }}) Fields() gql.Fields {
+	return gql.Fields{}
+}
+
+// Messages returns all message types from this package
+func (m *{{ .ModuleName }}) Messages() []pg.GraphqlMessage {
+	return allMessages
+}
+
+// WithLoaders returns the context unchanged (no loaders in this module)
+func (m *{{ .ModuleName }}) WithLoaders(ctx context.Context) context.Context {
+	return ctx
+}
+
+// PackageName returns the proto package name
+func (m *{{ .ModuleName }}) PackageName() string {
+	return {{ printf "%q" .PackageName }}
+}
+`
+
+	moduleStructTemplate = `
+// {{ .ModuleName }} implements the Module interface for the {{ .PackageName }} package
+type {{ .ModuleName }} struct {
+{{- range .Services }}
+	{{ .LowerServiceName }}Client  {{ .ServiceName }}Client
+	{{ .LowerServiceName }}Service {{ .ServiceName }}Server
+{{- end }}
+
+	dialOpts pg.DialOptions
+}
+`
+
+	moduleOptionTemplate = `
+// {{ .ModuleName }}Option configures the {{ .ModuleName }}
+type {{ .ModuleName }}Option func(*{{ .ModuleName }})
+`
+
+	serviceOptionTemplate = `
+// WithModule{{ .ServiceName }}Client sets the gRPC client for the {{ .ServiceName }} service
+func WithModule{{ .ServiceName }}Client(client {{ .ServiceName }}Client) {{ .ModuleName }}Option {
+	return func(m *{{ .ModuleName }}) {
+		m.{{ .LowerServiceName }}Client = client
+	}
+}
+
+// WithModule{{ .ServiceName }}Service sets the direct service implementation for the {{ .ServiceName }} service
+func WithModule{{ .ServiceName }}Service(service {{ .ServiceName }}Server) {{ .ModuleName }}Option {
+	return func(m *{{ .ModuleName }}) {
+		m.{{ .LowerServiceName }}Service = service
+	}
+}
+`
+
+	dialOptionsTemplate = `
+// WithDialOptions sets dial options for lazy client creation
+func WithDialOptions(opts pg.DialOptions) {{ .ModuleName }}Option {
+	return func(m *{{ .ModuleName }}) {
+		m.dialOpts = opts
+	}
+}
+`
+
+	constructorTemplate = `
+// New{{ .ModuleName }} creates a new module with optional service configurations
+func New{{ .ModuleName }}(opts ...{{ .ModuleName }}Option) *{{ .ModuleName }} {
+	m := &{{ .ModuleName }}{}
+	for _, opt := range opts {
+		opt(m)
+	}
+
+	// Initialize ClientInstance variables for backward compatibility
+{{- range .Services }}
+	if m.dialOpts != nil || m.{{ .LowerServiceName }}Client != nil || m.{{ .LowerServiceName }}Service != nil {
+		if m.{{ .LowerServiceName }}Client != nil {
+			{{ .ServiceName }}ClientInstance = &{{ .LowerServiceName }}ClientAdapter{client: m.{{ .LowerServiceName }}Client}
+		} else if m.{{ .LowerServiceName }}Service != nil {
+			{{ .ServiceName }}ClientInstance = &{{ .LowerServiceName }}ServerAdapter{server: m.{{ .LowerServiceName }}Service}
+		} else {
+			{{ .ServiceName }}ClientInstance = &{{ .LowerServiceName }}ClientAdapter{client: m.get{{ .ServiceName }}Client()}
+		}
+	}
+	if {{ .ServiceName }}ClientInstance == nil {
+		{{ .ServiceName }}ClientInstance = &{{ .LowerServiceName }}ClientAdapter{client: m.get{{ .ServiceName }}Client()}
+	}
+{{- end }}
+	return m
+}
+`
+
+	getClientTemplate = `
+// get{{ .ServiceName }}Client returns the client, creating it lazily if needed
+func (m *{{ .ModuleName }}) get{{ .ServiceName }}Client() {{ .ServiceName }}Client {
+	if m.{{ .LowerServiceName }}Client == nil {
+		m.{{ .LowerServiceName }}Client = New{{ .ServiceName }}Client(pg.GrpcConnection({{ printf "%q" .Dns }}, m.dialOpts[{{ printf "%q" .ServiceName }}]...))
+	}
+	return m.{{ .LowerServiceName }}Client
+}
+`
+
+	basicMethodsTemplate = `
+// Messages returns all message types from this package
+func (m *{{ .ModuleName }}) Messages() []pg.GraphqlMessage {
+	return allMessages
+}
+
+// PackageName returns the proto package name
+func (m *{{ .ModuleName }}) PackageName() string {
+	return {{ printf "%q" .PackageName }}
+}
+`
+
+	fieldCustomizerTemplate = `
+// AddFieldTo{{ .TypeName }} adds a custom field to the {{ .TypeName }} GraphQL type
+func (m *{{ .ModuleName }}) AddFieldTo{{ .TypeName }}(fieldName string, field *gql.Field) {
+	{{ .TypeName }}GraphqlType.AddFieldConfig(fieldName, field)
+}
+`
+
+	typeAccessorTemplate = `
+// {{ .TypeName }}Type returns the GraphQL type for {{ .TypeName }}
+func (m *{{ .ModuleName }}) {{ .TypeName }}Type() *gql.Object {
+	return {{ .TypeName }}GraphqlType
+}
+`
+
+	serviceInstanceInterfaceTemplate = `
+// {{ .ServiceName }}Instance is a unified interface for calling {{ .ServiceName }} methods
+// It works with both gRPC clients and direct service implementations
+type {{ .ServiceName }}Instance interface {
+{{- range .Methods }}
+	{{ .Name }}(ctx context.Context, req *{{ .InputType }}) (*{{ .Output }}, error)
+{{- end }}
+{{- range .Loaders }}
+	{{ .Method }}(ctx context.Context, req *{{ .InputType }}) (*{{ .ResponseType }}, error)
+	{{ .Method }}Batch(p gql.ResolveParams, key {{ .KeyType }}) (func() (interface{}, error), error)
+	{{ .Method }}BatchMany(p gql.ResolveParams, keys {{ .KeysType }}) (func() (interface{}, error), error)
+{{- end }}
+}
+`
+
+	serverAdapterTemplate = `
+type {{ .LowerServiceName }}ServerAdapter struct {
+	server {{ .ServiceName }}Server
+}
+{{- range .Methods }}
+
+func (a *{{ $.LowerServiceName }}ServerAdapter) {{ .Name }}(ctx context.Context, req *{{ .InputType }}) (*{{ .Output }}, error) {
+	return a.server.{{ .Name }}(ctx, req)
+}
+{{- end }}
+{{- range .Loaders }}
+
+func (a *{{ $.LowerServiceName }}ServerAdapter) {{ .Method }}(ctx context.Context, req *{{ .InputType }}) (*{{ .ResponseType }}, error) {
+	return a.server.{{ .Method }}(ctx, req)
+}
+
+func (a *{{ $.LowerServiceName }}ServerAdapter) {{ .Method }}Batch(p gql.ResolveParams, key {{ .KeyType }}) (func() (interface{}, error), error) {
+	return {{ .Method }}(p, key)
+}
+
+func (a *{{ $.LowerServiceName }}ServerAdapter) {{ .Method }}BatchMany(p gql.ResolveParams, keys {{ .KeysType }}) (func() (interface{}, error), error) {
+	return {{ .Method }}Many(p, keys)
+}
+{{- end }}
+`
+
+	clientAdapterTemplate = `
+type {{ .LowerServiceName }}ClientAdapter struct {
+	client {{ .ServiceName }}Client
+}
+{{- range .Methods }}
+
+func (a *{{ $.LowerServiceName }}ClientAdapter) {{ .Name }}(ctx context.Context, req *{{ .InputType }}) (*{{ .Output }}, error) {
+	return a.client.{{ .Name }}(ctx, req)
+}
+{{- end }}
+{{- range .Loaders }}
+
+func (a *{{ $.LowerServiceName }}ClientAdapter) {{ .Method }}(ctx context.Context, req *{{ .InputType }}) (*{{ .ResponseType }}, error) {
+	return a.client.{{ .Method }}(ctx, req)
+}
+
+func (a *{{ $.LowerServiceName }}ClientAdapter) {{ .Method }}Batch(p gql.ResolveParams, key {{ .KeyType }}) (func() (interface{}, error), error) {
+	return {{ .Method }}(p, key)
+}
+
+func (a *{{ $.LowerServiceName }}ClientAdapter) {{ .Method }}BatchMany(p gql.ResolveParams, keys {{ .KeysType }}) (func() (interface{}, error), error) {
+	return {{ .Method }}Many(p, keys)
+}
+{{- end }}
+`
+
+	serviceGetterTemplate = `
+// {{ .ServiceName }} returns a unified {{ .ServiceName }}Instance that works with both clients and services
+// Returns nil if neither client nor service is configured
+func (m *{{ .ModuleName }}) {{ .ServiceName }}() {{ .ServiceName }}Instance {
+	if m.{{ .LowerServiceName }}Client != nil {
+		return &{{ .LowerServiceName }}ClientAdapter{client: m.{{ .LowerServiceName }}Client}
+	}
+	if m.{{ .LowerServiceName }}Service != nil {
+		return &{{ .LowerServiceName }}ServerAdapter{server: m.{{ .LowerServiceName }}Service}
+	}
+	return &{{ .LowerServiceName }}ClientAdapter{client: m.get{{ .ServiceName }}Client()}
+}
+`
+)
 
 type loaderAccessorData struct {
 	ModuleName string
@@ -46,43 +264,22 @@ func (f File) generateTypeOnlyModule() string {
 	moduleName := strcase.ToCamel(string(f.Package)) + "Module"
 	pkgName := string(f.Package)
 
-	return fmt.Sprintf(`
-// %s implements the Module interface for the %s package (types only, no services)
-type %s struct{}
+	tmpl := template.Must(template.New("typeOnlyModule").Parse(typeOnlyModuleTemplate))
 
-// New%s creates a new module instance
-func New%s() pg.Module {
-	return &%s{}
-}
+	var buf bytes.Buffer
+	data := struct {
+		ModuleName  string
+		PackageName string
+	}{
+		ModuleName:  moduleName,
+		PackageName: pkgName,
+	}
 
-// Fields returns an empty map (no services in this module)
-func (m *%s) Fields() gql.Fields {
-	return gql.Fields{}
-}
+	if err := tmpl.Execute(&buf, data); err != nil {
+		panic(fmt.Sprintf("failed to execute type-only module template: %v", err))
+	}
 
-// Messages returns all message types from this package
-func (m *%s) Messages() []pg.GraphqlMessage {
-	return allMessages
-}
-
-// WithLoaders returns the context unchanged (no loaders in this module)
-func (m *%s) WithLoaders(ctx context.Context) context.Context {
-	return ctx
-}
-
-// PackageName returns the proto package name
-func (m *%s) PackageName() string {
-	return %q
-}
-`,
-		moduleName, pkgName,
-		moduleName,
-		moduleName, moduleName, moduleName,
-		moduleName,
-		moduleName,
-		moduleName,
-		moduleName, pkgName,
-	)
+	return buf.String()
 }
 
 // generateServiceModule generates a module for proto files with one or more services
@@ -365,21 +562,22 @@ func (f File) generateWithLoadersMethod(moduleName string, services []templates.
 
 // generateBasicMethods generates Messages() and PackageName() methods
 func (f File) generateBasicMethods(moduleName, pkgName string, services []templates.Message) string {
-	var out string
+	tmpl := template.Must(template.New("basicMethods").Parse(basicMethodsTemplate))
 
-	out += fmt.Sprintf(`// Messages returns all message types from this package
-func (m *%s) Messages() []pg.GraphqlMessage {
-	return allMessages
-}
+	var buf bytes.Buffer
+	data := struct {
+		ModuleName  string
+		PackageName string
+	}{
+		ModuleName:  moduleName,
+		PackageName: pkgName,
+	}
 
-// PackageName returns the proto package name
-func (m *%s) PackageName() string {
-	return %q
-}
-`,
-		moduleName,
-		moduleName, pkgName,
-	)
+	if err := tmpl.Execute(&buf, data); err != nil {
+		panic(fmt.Sprintf("failed to execute basic methods template: %v", err))
+	}
+
+	out := buf.String()
 
 	// Generate type-safe field customization methods for each message type
 	out += "\n// Type-safe field customization methods\n"
@@ -398,8 +596,9 @@ func (m *%s) PackageName() string {
 
 // generateFieldCustomizers generates type-safe methods to add fields on message types
 func (f File) generateFieldCustomizers(moduleName string) string {
-	var out string
+	tmpl := template.Must(template.New("fieldCustomizer").Parse(fieldCustomizerTemplate))
 
+	var buf bytes.Buffer
 	for _, typedef := range f.TypeDefs {
 		// Only generate for message types (not enums)
 		msg, ok := typedef.(types.Message)
@@ -408,20 +607,27 @@ func (f File) generateFieldCustomizers(moduleName string) string {
 		}
 
 		typeName := msg.Descriptor.GetName()
+		data := struct {
+			ModuleName string
+			TypeName   string
+		}{
+			ModuleName: moduleName,
+			TypeName:   typeName,
+		}
 
-		out += fmt.Sprintf("\n// AddFieldTo%s adds a custom field to the %s GraphQL type\n", typeName, typeName)
-		out += fmt.Sprintf("func (m *%s) AddFieldTo%s(fieldName string, field *gql.Field) {\n", moduleName, typeName)
-		out += fmt.Sprintf("\t%sGraphqlType.AddFieldConfig(fieldName, field)\n", typeName)
-		out += "}\n"
+		if err := tmpl.Execute(&buf, data); err != nil {
+			panic(fmt.Sprintf("failed to execute field customizer template: %v", err))
+		}
 	}
 
-	return out
+	return buf.String()
 }
 
 // generateTypeAccessors generates methods to access GraphQL types through the module
 func (f File) generateTypeAccessors(moduleName string) string {
-	var out string
+	tmpl := template.Must(template.New("typeAccessor").Parse(typeAccessorTemplate))
 
+	var buf bytes.Buffer
 	for _, typedef := range f.TypeDefs {
 		// Only generate for message types (not enums)
 		msg, ok := typedef.(types.Message)
@@ -430,14 +636,20 @@ func (f File) generateTypeAccessors(moduleName string) string {
 		}
 
 		typeName := msg.Descriptor.GetName()
+		data := struct {
+			ModuleName string
+			TypeName   string
+		}{
+			ModuleName: moduleName,
+			TypeName:   typeName,
+		}
 
-		out += fmt.Sprintf("\n// %sType returns the GraphQL type for %s\n", typeName, typeName)
-		out += fmt.Sprintf("func (m *%s) %sType() *gql.Object {\n", moduleName, typeName)
-		out += fmt.Sprintf("\treturn %sGraphqlType\n", typeName)
-		out += "}\n"
+		if err := tmpl.Execute(&buf, data); err != nil {
+			panic(fmt.Sprintf("failed to execute type accessor template: %v", err))
+		}
 	}
 
-	return out
+	return buf.String()
 }
 
 // generateLoaderAccessors generates methods to access loader functions through the module

@@ -2,6 +2,7 @@ package templates
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/iancoleman/strcase"
@@ -24,7 +25,11 @@ type Message struct {
 func New(msg *descriptorpb.ServiceDescriptorProto, root *descriptorpb.FileDescriptorProto) (m Message) {
 	var methods []Method
 
-	dns, _ := proto.GetExtension(msg.Options, graphql.E_Host).(string)
+	// GRAPHQL_GRPC_HOST environment variable takes precedence over proto host option
+	dns := os.Getenv("GRAPHQL_GRPC_HOST")
+	if dns == "" {
+		dns, _ = proto.GetExtension(msg.Options, graphql.E_Host).(string)
+	}
 
 	for _, method := range msg.Method {
 		// Get output type of method
