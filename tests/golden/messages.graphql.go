@@ -951,7 +951,7 @@ type CasesModule struct {
 	booksClient  BooksClient
 	booksService BooksServer
 
-	dialOpts pg.DialOptions
+	dialOpts []grpc.DialOption
 }
 
 // CasesModuleOption configures the CasesModule
@@ -971,8 +971,8 @@ func WithModuleBooksService(service BooksServer) CasesModuleOption {
 	}
 }
 
-// WithDialOptions sets dial options for lazy client creation
-func WithDialOptions(opts pg.DialOptions) CasesModuleOption {
+// WithDialOptions sets dial options for lazy client creation for all services in this module
+func WithDialOptions(opts ...grpc.DialOption) CasesModuleOption {
 	return func(m *CasesModule) {
 		m.dialOpts = opts
 	}
@@ -1004,7 +1004,7 @@ func NewCasesModule(opts ...CasesModuleOption) *CasesModule {
 // getBooksClient returns the client, creating it lazily if needed
 func (m *CasesModule) getBooksClient() BooksClient {
 	if m.booksClient == nil {
-		m.booksClient = NewBooksClient(pg.GrpcConnection("localhost:50051", m.dialOpts["Books"]...))
+		m.booksClient = NewBooksClient(pg.GrpcConnection("localhost:50051", m.dialOpts...))
 	}
 	return m.booksClient
 }

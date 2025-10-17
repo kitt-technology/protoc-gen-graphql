@@ -64,7 +64,7 @@ type {{ .ModuleName }} struct {
 	{{ .LowerServiceName }}Service {{ .ServiceName }}Server
 {{- end }}
 
-	dialOpts pg.DialOptions
+	dialOpts []grpc.DialOption
 }
 `
 
@@ -90,8 +90,8 @@ func WithModule{{ .ServiceName }}Service(service {{ .ServiceName }}Server) {{ .M
 `
 
 	dialOptionsTemplate = `
-// WithDialOptions sets dial options for lazy client creation
-func WithDialOptions(opts pg.DialOptions) {{ .ModuleName }}Option {
+// WithDialOptions sets dial options for lazy client creation for all services in this module
+func WithDialOptions(opts ...grpc.DialOption) {{ .ModuleName }}Option {
 	return func(m *{{ .ModuleName }}) {
 		m.dialOpts = opts
 	}
@@ -129,7 +129,7 @@ func New{{ .ModuleName }}(opts ...{{ .ModuleName }}Option) *{{ .ModuleName }} {
 // get{{ .ServiceName }}Client returns the client, creating it lazily if needed
 func (m *{{ .ModuleName }}) get{{ .ServiceName }}Client() {{ .ServiceName }}Client {
 	if m.{{ .LowerServiceName }}Client == nil {
-		m.{{ .LowerServiceName }}Client = New{{ .ServiceName }}Client(pg.GrpcConnection({{ printf "%q" .Dns }}, m.dialOpts[{{ printf "%q" .ServiceName }}]...))
+		m.{{ .LowerServiceName }}Client = New{{ .ServiceName }}Client(pg.GrpcConnection({{ printf "%q" .Dns }}, m.dialOpts...))
 	}
 	return m.{{ .LowerServiceName }}Client
 }
@@ -302,7 +302,7 @@ func (f File) generateServiceModule(services []templates.Message) string {
 	}
 
 	// Add single dialOpts field
-	out += "\n\tdialOpts pg.DialOptions\n"
+	out += "\n\tdialOpts []grpc.DialOption\n"
 	out += "}\n\n"
 
 	// 2. Generate option type
@@ -329,9 +329,9 @@ func (f File) generateServiceModule(services []templates.Message) string {
 		out += "\t}\n}\n\n"
 	}
 
-	// Generate single WithDialOptions function that accepts pg.DialOptions
-	out += "// WithDialOptions sets dial options for lazy client creation\n"
-	out += fmt.Sprintf("func WithDialOptions(opts pg.DialOptions) %sOption {\n", moduleName)
+	// Generate single WithDialOptions function that accepts ...grpc.DialOption
+	out += "// WithDialOptions sets dial options for lazy client creation for all services in this module\n"
+	out += fmt.Sprintf("func WithDialOptions(opts ...grpc.DialOption) %sOption {\n", moduleName)
 	out += fmt.Sprintf("\treturn func(m *%s) {\n", moduleName)
 	out += "\t\tm.dialOpts = opts\n"
 	out += "\t}\n}\n\n"
@@ -379,8 +379,8 @@ func (f File) generateServiceModule(services []templates.Message) string {
 		out += fmt.Sprintf("// get%sClient returns the client, creating it lazily if needed\n", serviceName)
 		out += fmt.Sprintf("func (m *%s) get%sClient() %sClient {\n", moduleName, serviceName, serviceName)
 		out += fmt.Sprintf("\tif m.%sClient == nil {\n", lowerServiceName)
-		out += fmt.Sprintf("\t\tm.%sClient = New%sClient(pg.GrpcConnection(%q, m.dialOpts[%q]...))\n",
-			lowerServiceName, serviceName, dns, serviceName)
+		out += fmt.Sprintf("\t\tm.%sClient = New%sClient(pg.GrpcConnection(%q, m.dialOpts...))\n",
+			lowerServiceName, serviceName, dns)
 		out += "\t}\n"
 		out += fmt.Sprintf("\treturn m.%sClient\n", lowerServiceName)
 		out += "}\n\n"

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/graphql-go/graphql"
 	"github.com/kitt-technology/protoc-gen-graphql/example/products"
@@ -25,39 +24,12 @@ type postData struct {
 func main() {
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 
-	// Get service addresses from environment or use defaults
-	productsAddr := os.Getenv("PRODUCTS_SERVICE_ADDR")
-	if productsAddr == "" {
-		productsAddr = "localhost:50051"
-	}
-
-	usersAddr := os.Getenv("USERS_SERVICE_ADDR")
-	if usersAddr == "" {
-		usersAddr = "localhost:50052"
-	}
-
-	// Create gRPC connections
-	productsConn, err := grpc.NewClient(productsAddr, opts...)
-	if err != nil {
-		log.Fatalf("failed to connect to products service at %s: %v", productsAddr, err)
-	}
-	defer productsConn.Close()
-
-	usersConn, err := grpc.NewClient(usersAddr, opts...)
-	if err != nil {
-		log.Fatalf("failed to connect to users service at %s: %v", usersAddr, err)
-	}
-	defer usersConn.Close()
-
-	// Create modules with gRPC clients
-	productsClient := products.NewProductsClient(productsConn)
-	usersClient := users.NewUsersClient(usersConn)
-
+	// Create modules with dial options - connections will be created lazily
 	productsModule := products.NewProductsModule(
-		products.WithModuleProductsClient(productsClient),
+		products.WithDialOptions(opts...),
 	)
 	usersModule := users.NewUsersModule(
-		users.WithModuleUsersClient(usersClient),
+		users.WithDialOptions(opts...),
 	)
 
 	// Setup cross-service relationships (e.g., add seller field to products)
@@ -113,9 +85,6 @@ func main() {
 	fmt.Println("========================================")
 	fmt.Printf("GraphQL Server running on http://localhost:%s/graphql\n", port)
 	fmt.Println("========================================")
-	fmt.Println("\nConnected to:")
-	fmt.Printf("  - Products service: %s\n", productsAddr)
-	fmt.Printf("  - Users service: %s\n", usersAddr)
 	fmt.Println("\nTest the API with curl:")
 	fmt.Println("\n1. Get all users (demonstrates pagination):")
 	fmt.Println(`  curl -X POST http://localhost:8080/graphql \`)
