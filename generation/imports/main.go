@@ -9,4 +9,5 @@ const (
 	DataloaderImport  = "github.com/graph-gophers/dataloader"
 	StringsImport     = "strings"
 	SortImport        = "sort"
+	GrpcImport        = "google.golang.org/grpc"
 )
