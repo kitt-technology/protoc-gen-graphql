@@ -31,7 +31,7 @@ func (m *{{ $.ModuleName }}) {{ .MethodNameMany }}(p gql.ResolveParams, {{ if .C
 type {{ .ModuleName }} struct{}
 
 // New{{ .ModuleName }} creates a new module instance
-func New{{ .ModuleName }}() pg.Module {
+func New{{ .ModuleName }}() *{{ .ModuleName }} {
 	return &{{ .ModuleName }}{}
 }
 
