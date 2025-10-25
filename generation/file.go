@@ -62,7 +62,7 @@ func New(file *protogen.File) (f File) {
 
 	// Only add these if we have services (modules with services need them)
 	if hasServices {
-		f.Imports = append(f.Imports, imports.StringsImport, imports.SortImport, imports.GrpcImport)
+		f.Imports = append(f.Imports, imports.StringsImport, imports.SortImport, imports.GrpcImport, imports.OsImport)
 	}
 
 	// Only add dataloader if we have services with batch loaders

@@ -10,4 +10,5 @@ const (
 	StringsImport     = "strings"
 	SortImport        = "sort"
 	GrpcImport        = "google.golang.org/grpc"
+	OsImport          = "os"
 )

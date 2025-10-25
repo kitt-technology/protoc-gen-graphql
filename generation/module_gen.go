@@ -129,7 +129,11 @@ func New{{ .ModuleName }}(opts ...{{ .ModuleName }}Option) *{{ .ModuleName }} {
 // get{{ .ServiceName }}Client returns the client, creating it lazily if needed
 func (m *{{ .ModuleName }}) get{{ .ServiceName }}Client() {{ .ServiceName }}Client {
 	if m.{{ .LowerServiceName }}Client == nil {
-		m.{{ .LowerServiceName }}Client = New{{ .ServiceName }}Client(pg.GrpcConnection({{ printf "%q" .Dns }}, m.dialOpts...))
+		host := os.Getenv("GRPC_SERVER_HOST")
+		if host == "" {
+			host = {{ printf "%q" .Dns }}
+		}
+		m.{{ .LowerServiceName }}Client = New{{ .ServiceName }}Client(pg.GrpcConnection(host, m.dialOpts...))
 	}
 	return m.{{ .LowerServiceName }}Client
 }
@@ -379,8 +383,12 @@ func (f File) generateServiceModule(services []templates.Message) string {
 		out += fmt.Sprintf("// get%sClient returns the client, creating it lazily if needed\n", serviceName)
 		out += fmt.Sprintf("func (m *%s) get%sClient() %sClient {\n", moduleName, serviceName, serviceName)
 		out += fmt.Sprintf("\tif m.%sClient == nil {\n", lowerServiceName)
-		out += fmt.Sprintf("\t\tm.%sClient = New%sClient(pg.GrpcConnection(%q, m.dialOpts...))\n",
-			lowerServiceName, serviceName, dns)
+		out += "\t\thost := os.Getenv(\"GRPC_SERVER_HOST\")\n"
+		out += "\t\tif host == \"\" {\n"
+		out += fmt.Sprintf("\t\t\thost = %q\n", dns)
+		out += "\t\t}\n"
+		out += fmt.Sprintf("\t\tm.%sClient = New%sClient(pg.GrpcConnection(host, m.dialOpts...))\n",
+			lowerServiceName, serviceName)
 		out += "\t}\n"
 		out += fmt.Sprintf("\treturn m.%sClient\n", lowerServiceName)
 		out += "}\n\n"

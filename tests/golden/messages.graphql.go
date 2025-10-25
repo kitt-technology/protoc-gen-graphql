@@ -5,7 +5,9 @@ import (
 	"context"
 	"github.com/graph-gophers/dataloader"
 	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	"os"
 	pg "github.com/kitt-technology/protoc-gen-graphql/graphql"
 	"sort"
 	"strings"
@@ -1004,7 +1006,11 @@ func NewCasesModule(opts ...CasesModuleOption) *CasesModule {
 // getBooksClient returns the client, creating it lazily if needed
 func (m *CasesModule) getBooksClient() BooksClient {
 	if m.booksClient == nil {
-		m.booksClient = NewBooksClient(pg.GrpcConnection("localhost:50051", m.dialOpts...))
+		host := os.Getenv("GRPC_SERVER_HOST")
+		if host == "" {
+			host = "localhost:50051"
+		}
+		m.booksClient = NewBooksClient(pg.GrpcConnection(host, m.dialOpts...))
 	}
 	return m.booksClient
 }
