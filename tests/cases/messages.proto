@@ -77,6 +77,9 @@ message Book {
   google.protobuf.StringValue notes = 11;
   repeated common_example.Money historic_prices = 12;
   optional int32 pages = 6;
+  bytes cover_image = 13;
+  repeated bytes sample_pages = 14;
+  optional bytes signature = 15;
 }
 
 enum Genre {

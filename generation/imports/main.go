@@ -11,4 +11,5 @@ const (
 	SortImport        = "sort"
 	GrpcImport        = "google.golang.org/grpc"
 	OsImport          = "os"
+	Base64Import      = "encoding/base64"
 )

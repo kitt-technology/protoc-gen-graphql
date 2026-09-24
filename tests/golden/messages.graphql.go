@@ -3,6 +3,7 @@ package cases
 import (
 	gql "github.com/graphql-go/graphql"
 	"context"
+	"encoding/base64"
 	"github.com/graph-gophers/dataloader"
 	"github.com/kitt-technology/protoc-gen-graphql/example/common-example"
 	"google.golang.org/grpc"
@@ -620,6 +621,40 @@ var BookGraphqlType = gql.NewObject(gql.ObjectConfig{
 		"pages": &gql.Field{
 			Type: gql.Int,
 		},
+		"coverImage": &gql.Field{
+			Type: gql.NewNonNull(gql.String),
+			Resolve: func(p gql.ResolveParams) (interface{}, error) {
+				source := p.Source.(*Book)
+				if source == nil {
+					return nil, nil
+				}
+				return base64.StdEncoding.EncodeToString(source.CoverImage), nil
+			},
+		},
+		"samplePages": &gql.Field{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+			Resolve: func(p gql.ResolveParams) (interface{}, error) {
+				source := p.Source.(*Book)
+				if source == nil {
+					return nil, nil
+				}
+				encoded := make([]string, 0, len(source.SamplePages))
+				for _, item := range source.SamplePages {
+					encoded = append(encoded, base64.StdEncoding.EncodeToString(item))
+				}
+				return encoded, nil
+			},
+		},
+		"signature": &gql.Field{
+			Type: gql.String,
+			Resolve: func(p gql.ResolveParams) (interface{}, error) {
+				source := p.Source.(*Book)
+				if source == nil {
+					return nil, nil
+				}
+				return base64.StdEncoding.EncodeToString(source.Signature), nil
+			},
+		},
 	},
 })
 var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
@@ -658,6 +693,15 @@ var BookGraphqlInputType = gql.NewInputObject(gql.InputObjectConfig{
 		"pages": &gql.InputObjectFieldConfig{
 			Type: gql.Int,
 		},
+		"coverImage": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.String),
+		},
+		"samplePages": &gql.InputObjectFieldConfig{
+			Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+		},
+		"signature": &gql.InputObjectFieldConfig{
+			Type: gql.String,
+		},
 	},
 })
 
@@ -694,6 +738,15 @@ var BookGraphqlArgs = gql.FieldConfigArgument{
 	},
 	"pages": &gql.ArgumentConfig{
 		Type: gql.Int,
+	},
+	"coverImage": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.String),
+	},
+	"samplePages": &gql.ArgumentConfig{
+		Type: gql.NewNonNull(gql.NewList(gql.NewNonNull(gql.String))),
+	},
+	"signature": &gql.ArgumentConfig{
+		Type: gql.String,
 	},
 }
 
@@ -753,6 +806,45 @@ func BookInstanceFromArgs(objectFromArgs *Book, args map[string]interface{}) *Bo
 		val := args["pages"]
 		ptr := int32(val.(int))
 		objectFromArgs.Pages = &ptr
+	}
+	if args["coverImage"] != nil {
+		val := args["coverImage"]
+		objectFromArgs.CoverImage = func() []byte {
+			// bytes are exposed as a String holding standard (padded) base64
+			decoded, err := base64.StdEncoding.DecodeString(val.(string))
+			if err != nil {
+				panic("coverImage: invalid base64: " + err.Error())
+			}
+			return decoded
+		}()
+	}
+	if args["samplePages"] != nil {
+		samplePagesInterfaceList := args["samplePages"].([]interface{})
+		samplePages := make([][]byte, 0)
+
+		for _, val := range samplePagesInterfaceList {
+			itemResolved := func() []byte {
+				// bytes are exposed as a String holding standard (padded) base64
+				decoded, err := base64.StdEncoding.DecodeString(val.(string))
+				if err != nil {
+					panic("samplePages: invalid base64: " + err.Error())
+				}
+				return decoded
+			}()
+			samplePages = append(samplePages, itemResolved)
+		}
+		objectFromArgs.SamplePages = samplePages
+	}
+	if args["signature"] != nil {
+		val := args["signature"]
+		objectFromArgs.Signature = func() []byte {
+			// bytes are exposed as a String holding standard (padded) base64
+			decoded, err := base64.StdEncoding.DecodeString(val.(string))
+			if err != nil {
+				panic("signature: invalid base64: " + err.Error())
+			}
+			return decoded
+		}()
 	}
 	return objectFromArgs
 }

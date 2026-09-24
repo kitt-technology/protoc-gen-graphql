@@ -149,6 +149,8 @@ func (m Message) Generate() string {
 		switch {
 		case typeOfType == Wrapper:
 			m.Import[imports.WrappersPbImport] = imports.WrappersPbImport
+		case typeOfType == Bytes:
+			m.Import[imports.Base64Import] = imports.Base64Import
 		case typeOfType == Timestamp:
 			if isList {
 				m.Import[imports.TimestampPbImport] = imports.TimestampPbImport
@@ -293,6 +295,7 @@ const (
 	Wrapper   FieldType = "Wrapper"
 	Object    FieldType = "Object"
 	Primitive FieldType = "Primitive"
+	Bytes     FieldType = "Bytes"
 	Enum      FieldType = "Enum"
 	Timestamp FieldType = "Timestamp"
 	Common    FieldType = "Common"
@@ -330,7 +333,7 @@ func Types(field *descriptorpb.FieldDescriptorProto, root *descriptorpb.FileDesc
 	case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE:
 		return "float64", "gql.Float", Primitive, true
 	case descriptorpb.FieldDescriptorProto_TYPE_BYTES:
-		return "[]byte", "gql.String", Primitive, true
+		return "[]byte", "gql.String", Bytes, true
 	}
 
 	// Check if this is a skipped message

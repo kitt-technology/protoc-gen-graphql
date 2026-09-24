@@ -8,6 +8,7 @@ const typeTpl = `
 {{- if eq .TypeOfType "Object" }}{{ .GqlType }}{{ .Suffix }}{{- end }}
 {{- if eq .TypeOfType "Wrapper" }}{{ .GqlType }}{{- end }}
 {{- if eq .TypeOfType "Primitive" }}{{ .GqlType }}{{- end }}
+{{- if eq .TypeOfType "Bytes" }}{{ .GqlType }}{{- end }}
 {{- if eq .TypeOfType "Enum" }}{{ .GqlType }}{{ .Suffix }}{{- end }}
 {{- if eq .TypeOfType "Timestamp" }}pg.Timestamp{{ .Suffix }}{{- end }}
 {{- if eq .TypeOfType "WrappedString" }}pg.WrappedString{{ .Suffix }}{{- end }}
@@ -18,6 +19,14 @@ const typeTpl = `
 const goFromArgs = `
 {{- if eq .TypeOfType "Object" }}{{ .GoType  }}FromArgs(val.(map[string]interface{})){{- end }}
 {{- if eq .TypeOfType "Primitive" }}{{  .GoType }}(val.({{ strip_precision .GoType }})){{- end }}
+{{- if eq .TypeOfType "Bytes" }}func() []byte {
+	// bytes are exposed as a String holding standard (padded) base64
+	decoded, err := base64.StdEncoding.DecodeString(val.(string))
+	if err != nil {
+		panic("{{ .GqlKey }}: invalid base64: " + err.Error())
+	}
+	return decoded
+}(){{- end }}
 {{- if eq .TypeOfType "Wrapper" }}{{  .GoType }}({{ primitive_to_wrapper .GoType }}(val.({{ wrapper_to_primitive .GoType }}))){{- end }}
 {{- if eq .TypeOfType "Enum" }}{{ .GoType }}FromArgs(val){{- end }}
 {{- if eq .TypeOfType "Timestamp" }}pg.ToTimestamp(val){{- end }}
@@ -36,6 +45,23 @@ var {{ .Descriptor.GetName }}GraphqlType = gql.NewObject(gql.ObjectConfig{
 					return nil, nil
 				}
 				return p.Source.(*{{ $.Descriptor.GetName }}).{{ $field.GoKey }}.Value, nil
+			},
+			{{ end }}
+			{{- if eq .TypeOfType "Bytes" }}
+			Resolve: func(p gql.ResolveParams) (interface{}, error) {
+				source := p.Source.(*{{ $.Descriptor.GetName }})
+				if source == nil {
+					return nil, nil
+				}
+				{{- if $field.IsList }}
+				encoded := make([]string, 0, len(source.{{ $field.GoKey }}))
+				for _, item := range source.{{ $field.GoKey }} {
+					encoded = append(encoded, base64.StdEncoding.EncodeToString(item))
+				}
+				return encoded, nil
+				{{- else }}
+				return base64.StdEncoding.EncodeToString(source.{{ $field.GoKey }}), nil
+				{{- end }}
 			},
 			{{ end }}
 		},
@@ -87,7 +113,8 @@ func {{ .Descriptor.GetName }}InstanceFromArgs(objectFromArgs *{{ .Descriptor.Ge
 			{{- else }}
 			if args["{{ $field.GqlKey }}"] != nil {
 				val := args["{{  $field.GqlKey }}"]
-				{{- if $field.Proto3Optional }}
+				{{- /* optional bytes stays []byte: protoc-gen-go uses the nil slice for presence */}}
+				{{- if and $field.Proto3Optional (ne $field.TypeOfType "Bytes") }}
 				ptr := {{ $field.GoFromArgs }}
 				objectFromArgs.{{ $field.GoKey }} = &ptr
 				{{- else }}
