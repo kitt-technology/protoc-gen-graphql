@@ -1,0 +1,32 @@
+generation/imports/main.go
+  s_5c02259ec7e5a7::t_f8cbbeb084866c 14
+tests/golden/messages.graphql.go
+  s_5c02259ec7e5a7::t_dcfc1969baae46 6,624-657,696-704,742-750,810-848
+generation/types/main.go
+  s_5c02259ec7e5a7::t_a48816ddcfe93a 152-153,298,336
+generation/types/template.go
+  s_5c02259ec7e5a7::t_6876ae64a1fce2 116-117
+  s_5c02259ec7e5a7::t_9c3e6dbe82d697 22
+  s_5c02259ec7e5a7::t_62d925fd06a4b7 23
+  s_5c02259ec7e5a7::t_d97126f8a8e8e0 24-26
+  s_5c02259ec7e5a7::t_d875094caf0f40 11,27-29
+  s_5c02259ec7e5a7::t_7afb06d34b7542 50-66
+tests/cases/messages.proto
+  s_5c02259ec7e5a7::t_0b4a07c115ab43 80-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5e4eeff41399b0439a18fcca7b938feb07c80457",
+  "prompts": {},
+  "sessions": {
+    "s_5c02259ec7e5a7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5ac59cdb-8ae5-4b37-8a1f-8934180acf2d",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Kyle Shepherd <kyleshepherd13@gmail.com>"
+    }
+  }
+}
